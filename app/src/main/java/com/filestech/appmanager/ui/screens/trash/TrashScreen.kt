@@ -53,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.TrashItem
 import com.filestech.appmanager.ui.components.AppIcon
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.state.EmptyState
@@ -117,18 +118,11 @@ fun TrashScreen(
                     }
                 },
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = null,
-                            tint = BrandDanger,
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text  = stringResource(R.string.screen_trash_title),
-                            color = BrandDanger,
-                        )
-                    }
+                    // v0.1.3 — Files Tech brand mark + title (uniform across all screens).
+                    // The destructive-intent identity is carried by the actions on the right
+                    // (Empty trash BrandDanger) + the screen body (red sub-title, red per-row
+                    // Uninstall buttons), so the title no longer needs the red Icon prefix.
+                    BrandedTitle(stringResource(R.string.screen_trash_title))
                 },
                 actions = {
                     if (items.isNotEmpty()) {
@@ -141,7 +135,6 @@ fun TrashScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(),
             )
         },
     ) { innerPadding ->

@@ -1,5 +1,6 @@
 package com.filestech.appmanager.ui.screens.smartcleaner
 
+import android.content.Intent
 import android.text.format.Formatter
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,9 +17,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.AutoFixHigh
+import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -42,11 +50,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.SmartSuggestion
 import com.filestech.appmanager.ui.components.AppIcon
+import com.filestech.appmanager.ui.components.BrandedTitle
+import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.state.EmptyState
+import timber.log.Timber
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 
@@ -64,18 +77,38 @@ import com.filestech.appmanager.ui.theme.BrandDanger
 @Composable
 fun SmartCleanerScreen(
     onBack: () -> Unit,
+    onAppClick: (packageName: String) -> Unit,
     viewModel: SmartCleanerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 is SmartCleanerViewModel.Event.ShowError ->
                     snackbarHostState.showSnackbar(event.message)
+                is SmartCleanerViewModel.Event.LaunchIntent -> {
+                    runCatching {
+                        context.startActivity(event.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    }.onFailure { Timber.w(it, "Failed to launch intent") }
+                }
+                is SmartCleanerViewModel.Event.AnalyzeDone ->
+                    snackbarHostState.showSnackbar(
+                        context.getString(
+                            R.string.smart_cleaner_refresh_done,
+                            event.suggestionsCount,
+                        ),
+                    )
             }
         }
+    }
+
+    // v0.1.3 hotfix — re-probe PACKAGE_USAGE_STATS on ON_RESUME so the
+    // analysis re-runs automatically once the user grants the permission.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onResumed()
     }
 
     Scaffold(
@@ -90,19 +123,56 @@ fun SmartCleanerScreen(
                         )
                     }
                 },
-                title = { Text(stringResource(R.string.screen_smart_cleaner_title)) },
+                title = { BrandedTitle(stringResource(R.string.screen_smart_cleaner_title)) },
                 actions = {
-                    IconButton(onClick = viewModel::analyze, enabled = !state.isAnalyzing) {
+                    // v0.1.3 — Refresh now triggers a full rescan (re-scan
+                    // PackageManager + re-analyse). Init analysis is lighter
+                    // (reads Room cache only).
+                    IconButton(onClick = viewModel::refresh, enabled = !state.isAnalyzing) {
                         Icon(
                             Icons.Outlined.Refresh,
                             contentDescription = stringResource(R.string.cd_refresh),
+                        )
+                    }
+                    var menuOpen by remember { mutableStateOf(false) }
+                    IconButton(onClick = { menuOpen = true }) {
+                        Icon(
+                            imageVector        = Icons.Outlined.MoreVert,
+                            contentDescription = stringResource(R.string.cd_more_options),
+                        )
+                    }
+                    DropdownMenu(
+                        expanded         = menuOpen,
+                        onDismissRequest = { menuOpen = false },
+                    ) {
+                        DropdownMenuItem(
+                            text        = { Text(stringResource(R.string.filter_include_system_apps)) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = if (state.includeSystemApps) Icons.Outlined.CheckBox
+                                                  else Icons.Outlined.CheckBoxOutlineBlank,
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick     = {
+                                menuOpen = false
+                                viewModel.toggleSystemApps()
+                            },
                         )
                     }
                 },
             )
         },
     ) { innerPadding ->
-        SmartCleanerBody(state = state, innerPadding = innerPadding)
+        SmartCleanerBody(
+            state             = state,
+            innerPadding      = innerPadding,
+            onGrantUsageStats = viewModel::requestUsageStatsPermission,
+            onAppClick        = onAppClick,
+            onUninstallClick  = viewModel::uninstall,
+            onClearCacheClick = viewModel::clearCache,
+            onIgnoreClick     = viewModel::ignore,
+        )
     }
 }
 
@@ -110,27 +180,53 @@ fun SmartCleanerScreen(
 private fun SmartCleanerBody(
     state: SmartCleanerViewModel.UiState,
     innerPadding: PaddingValues,
+    onGrantUsageStats: () -> Unit,
+    onAppClick: (String) -> Unit,
+    onUninstallClick: (String) -> Unit,
+    onClearCacheClick: (String) -> Unit,
+    onIgnoreClick: (String) -> Unit,
 ) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
     ) {
-        when {
-            state.isAnalyzing && state.report.suggestions.isEmpty() ->
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            state.report.suggestions.isEmpty() -> EmptyState(
-                icon  = Icons.Outlined.AutoFixHigh,
-                title = stringResource(R.string.smart_cleaner_empty_title),
-                body  = stringResource(R.string.smart_cleaner_empty_body),
-            )
-            else -> SmartCleanerList(state = state)
+        // v0.1.3 hotfix — surface the silent PACKAGE_USAGE_STATS denial that
+        // otherwise leaves every app's cacheSize / lastUsed at 0 and produces
+        // useless ("nothing to clean") suggestions.
+        UsageStatsAccessBanner(
+            visible      = !state.usageStatsGranted,
+            onGrantClick = onGrantUsageStats,
+        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            when {
+                state.isAnalyzing && state.report.suggestions.isEmpty() ->
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                state.report.suggestions.isEmpty() -> EmptyState(
+                    icon  = Icons.Outlined.AutoFixHigh,
+                    title = stringResource(R.string.smart_cleaner_empty_title),
+                    body  = stringResource(R.string.smart_cleaner_empty_body),
+                )
+                else -> SmartCleanerList(
+                    state             = state,
+                    onAppClick        = onAppClick,
+                    onUninstallClick  = onUninstallClick,
+                    onClearCacheClick = onClearCacheClick,
+                    onIgnoreClick     = onIgnoreClick,
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun SmartCleanerList(state: SmartCleanerViewModel.UiState) {
+private fun SmartCleanerList(
+    state: SmartCleanerViewModel.UiState,
+    onAppClick: (String) -> Unit,
+    onUninstallClick: (String) -> Unit,
+    onClearCacheClick: (String) -> Unit,
+    onIgnoreClick: (String) -> Unit,
+) {
     val context = LocalContext.current
     val totalLabel = remember(state.report.totalReclaimableBytes) {
         Formatter.formatShortFileSize(context, state.report.totalReclaimableBytes)
@@ -165,17 +261,34 @@ private fun SmartCleanerList(state: SmartCleanerViewModel.UiState) {
             }
         }
         items(items = state.report.suggestions, key = { it.appInfo.packageName + it.category.name }) { suggestion ->
-            SuggestionRow(suggestion = suggestion)
+            SuggestionRow(
+                suggestion       = suggestion,
+                onViewDetails    = { onAppClick(suggestion.appInfo.packageName) },
+                onUninstall      = { onUninstallClick(suggestion.appInfo.packageName) },
+                onClearCache     = { onClearCacheClick(suggestion.appInfo.packageName) },
+                onIgnore         = { onIgnoreClick(suggestion.appInfo.packageName) },
+            )
         }
     }
 }
 
 @Composable
-private fun SuggestionRow(suggestion: SmartSuggestion) {
+private fun SuggestionRow(
+    suggestion: SmartSuggestion,
+    onViewDetails: () -> Unit,
+    onUninstall: () -> Unit,
+    onClearCache: () -> Unit,
+    onIgnore: () -> Unit,
+) {
     val context = LocalContext.current
     val sizeLabel = remember(suggestion.reclaimableBytes) {
         Formatter.formatShortFileSize(context, suggestion.reclaimableBytes)
     }
+    var menuOpen by remember { mutableStateOf(false) }
+    // v0.1.3 — explicit 3-dots overflow menu instead of an implicit row-tap
+    // (the previous row-tap → AppDetail was confusing — user feedback
+    // "ça envoie vers device services"). Available actions adapt to the
+    // suggestion category.
     Row(
         modifier          = Modifier
             .fillMaxWidth()
@@ -218,6 +331,47 @@ private fun SuggestionRow(suggestion: SmartSuggestion) {
                     SmartSuggestion.RecommendedAction.REVIEW_AND_DECIDE  -> MaterialTheme.colorScheme.onSurfaceVariant
                 },
             )
+        }
+        Box {
+            IconButton(onClick = { menuOpen = true }) {
+                Icon(
+                    imageVector        = Icons.Outlined.MoreVert,
+                    contentDescription = stringResource(R.string.cd_more_options),
+                )
+            }
+            DropdownMenu(
+                expanded         = menuOpen,
+                onDismissRequest = { menuOpen = false },
+            ) {
+                DropdownMenuItem(
+                    text    = { Text(stringResource(R.string.action_view_details)) },
+                    onClick = {
+                        menuOpen = false
+                        onViewDetails()
+                    },
+                )
+                DropdownMenuItem(
+                    text    = { Text(stringResource(R.string.action_uninstall)) },
+                    onClick = {
+                        menuOpen = false
+                        onUninstall()
+                    },
+                )
+                DropdownMenuItem(
+                    text    = { Text(stringResource(R.string.action_clear_cache_menu)) },
+                    onClick = {
+                        menuOpen = false
+                        onClearCache()
+                    },
+                )
+                DropdownMenuItem(
+                    text    = { Text(stringResource(R.string.action_ignore)) },
+                    onClick = {
+                        menuOpen = false
+                        onIgnore()
+                    },
+                )
+            }
         }
     }
 }

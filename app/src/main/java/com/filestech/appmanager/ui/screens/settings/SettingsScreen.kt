@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.AppSortOrder
 import com.filestech.appmanager.domain.model.ThemeMode
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
 import com.filestech.appmanager.ui.components.settings.NavigationRow
 import com.filestech.appmanager.ui.components.settings.SectionHeader
@@ -95,7 +96,7 @@ fun SettingsScreen(
                         )
                     }
                 },
-                title = { Text(stringResource(R.string.screen_settings_title)) },
+                title = { BrandedTitle(stringResource(R.string.screen_settings_title)) },
             )
         },
     ) { innerPadding ->

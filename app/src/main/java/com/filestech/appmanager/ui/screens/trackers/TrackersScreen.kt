@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.TrackerReport
 import com.filestech.appmanager.ui.components.AppIcon
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.components.settings.ToggleRow
 import com.filestech.appmanager.ui.components.state.EmptyState
@@ -97,7 +98,7 @@ fun TrackersScreen(
                         )
                     }
                 },
-                title = { Text(stringResource(R.string.screen_trackers_title)) },
+                title = { BrandedTitle(stringResource(R.string.screen_trackers_title)) },
                 actions = {
                     IconButton(onClick = viewModel::rescan, enabled = !state.isScanning) {
                         Icon(

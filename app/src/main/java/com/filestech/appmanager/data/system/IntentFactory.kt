@@ -66,5 +66,25 @@ class IntentFactory @Inject constructor(
             .setData(Uri.fromParts("package", context.packageName, null))
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
+    /**
+     * OS Settings → Security screen, from where the user can drill into
+     * "Device admin apps" and disable individual administrators. Android
+     * does not let third-party apps revoke device-admin programmatically
+     * (signature/system permission), so opening this screen is the closest
+     * we can do.
+     */
+    fun deviceAdminSettingsIntent(): Intent =
+        Intent(Settings.ACTION_SECURITY_SETTINGS)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+    /**
+     * OS Settings → Accessibility, listing every app holding an
+     * AccessibilityService binding. The user can disable individual ones
+     * from there.
+     */
+    fun accessibilitySettingsIntent(): Intent =
+        Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
     private fun String.toPackageUri(): Uri = Uri.parse(this)
 }

@@ -42,6 +42,7 @@ class GetSmartSuggestionsUseCase @Inject constructor(
         neverOpenedGraceDays: Int = 7,
         cacheHogThresholdBytes: Long = 100L * 1024 * 1024, // 100 MB cache
         oversizedThresholdBytes: Long = 100L * 1024 * 1024, // 100 MB install + data + cache
+        includeSystemApps: Boolean = false,
     ): Outcome<SmartCleanerReport> = runCatchingOutcome(mapError = { AppError.Unknown(it) }) {
         val now = System.currentTimeMillis()
         val unusedCutoff = now - unusedThresholdDays * MS_PER_DAY
@@ -49,7 +50,7 @@ class GetSmartSuggestionsUseCase @Inject constructor(
 
         val ignored = ignoreList.observe().first()
 
-        val first = repository.observeApps(includeSystemApps = false)
+        val first = repository.observeApps(includeSystemApps = includeSystemApps)
             .first { it !is Outcome.Loading }
         val apps = when (first) {
             is Outcome.Success -> first.value

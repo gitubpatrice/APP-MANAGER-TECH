@@ -51,17 +51,25 @@ import com.filestech.appmanager.ui.components.settings.SectionHeader
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
-    onBack: () -> Unit,
+    /**
+     * Pop-back callback. `null` when the screen is rendered as a tab content
+     * inside the HomeShell bottom navigation (v0.1.3) — the back arrow then
+     * disappears because there is nothing to pop. Non-null when navigated to
+     * from Settings → "About App Manager Tech" or from the Tools grid.
+     */
+    onBack: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.cd_back),
-                        )
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.cd_back),
+                            )
+                        }
                     }
                 },
                 title = { Text(stringResource(R.string.screen_about_title)) },
@@ -80,12 +88,20 @@ private fun AboutBody(innerPadding: PaddingValues) {
     val issueUrl  = stringResource(R.string.about_url_report_issue)
 
     val openUrl: (String) -> Unit = { url ->
-        runCatching {
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            )
-        }.onFailure { Timber.w(it, "Failed to open URL %s", url) }
+        // v0.1.3 audit S-1 fix — defence in depth scheme whitelist. URLs come
+        // from hardcoded strings.xml entries so the risk is low, but a future
+        // overlay / accidental string edit could inject `javascript:`,
+        // `intent:`, `content:`, etc. Reject anything that isn't http(s).
+        if (url.startsWith("https://") || url.startsWith("http://")) {
+            runCatching {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }.onFailure { Timber.w(it, "Failed to open URL %s", url) }
+        } else {
+            Timber.w("Refused to open non-http(s) URL: %s", url)
+        }
     }
     Column(
         modifier = Modifier

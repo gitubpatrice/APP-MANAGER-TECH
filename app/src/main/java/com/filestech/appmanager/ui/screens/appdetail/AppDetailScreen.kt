@@ -68,6 +68,7 @@ import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.PrivacyScore
 import com.filestech.appmanager.domain.model.TrackerReport
 import com.filestech.appmanager.ui.components.AppIcon
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.PrivacyDataPanel
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
@@ -138,12 +139,10 @@ fun AppDetailScreen(
                     }
                 },
                 title          = {
-                    Text(
-                        text     = (state.detailOutcome as? Outcome.Success)
+                    BrandedTitle(
+                        screenTitle = (state.detailOutcome as? Outcome.Success)
                             ?.value?.info?.label
                             ?: stringResource(R.string.screen_app_detail_title),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 actions        = {

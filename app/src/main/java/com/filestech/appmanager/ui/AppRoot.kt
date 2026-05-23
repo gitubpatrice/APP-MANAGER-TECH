@@ -62,9 +62,10 @@ fun AppRoot() {
         startDestination = NavRoute.AppList.route,
     ) {
         composable(NavRoute.AppList.route) {
-            // v0.1.1 — Home shell hosts the 2-tab NavigationBar (Accueil / Outils).
-            // AppList moves under the "Accueil" tab; every other feature lives in
-            // the "Outils" grid + the Settings IconButton stays in the TopAppBar.
+            // v0.1.3 — Home shell hosts the 3-tab NavigationBar (Accueil / Outils / À propos).
+            // AppList lives under "Accueil", every secondary feature is in the
+            // "Outils" grid (incl. Paramètres + À propos shortcuts), and the
+            // "À propos" tab renders AboutScreen as tab content (no back arrow).
             HomeShell(
                 onNavigateToDetail           = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
                 onNavigateToStorage          = { navController.navigate(NavRoute.Storage.route) },
@@ -140,13 +141,19 @@ fun AppRoot() {
         }
 
         composable(NavRoute.SecurityAudit.route) {
-            SecurityAuditScreen(onBack = { navController.popBackStack() })
+            SecurityAuditScreen(
+                onBack       = { navController.popBackStack() },
+                onAppClick   = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+            )
         }
 
         // Phase IX — innovation screens (Smart Cleaner, Trackers, Transparency).
 
         composable(NavRoute.SmartCleaner.route) {
-            SmartCleanerScreen(onBack = { navController.popBackStack() })
+            SmartCleanerScreen(
+                onBack       = { navController.popBackStack() },
+                onAppClick   = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+            )
         }
 
         composable(NavRoute.Trackers.route) {

@@ -45,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.ExportFormat
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
 import com.filestech.appmanager.ui.components.settings.NavigationRow
 import com.filestech.appmanager.ui.components.settings.SectionHeader
@@ -106,7 +107,7 @@ fun ExportScreen(
                         )
                     }
                 },
-                title = { Text(stringResource(R.string.screen_export_title)) },
+                title = { BrandedTitle(stringResource(R.string.screen_export_title)) },
             )
         },
     ) { innerPadding ->

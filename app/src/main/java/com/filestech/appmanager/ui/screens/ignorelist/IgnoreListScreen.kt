@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.MAX_IGNORED_PACKAGES
 import com.filestech.appmanager.ui.components.AppIcon
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.state.EmptyState
 
 /**
@@ -59,7 +60,7 @@ fun IgnoreListScreen(
                         )
                     }
                 },
-                title = { Text(stringResource(R.string.screen_ignore_list_title)) },
+                title = { BrandedTitle(stringResource(R.string.screen_ignore_list_title)) },
             )
         },
     ) { innerPadding ->

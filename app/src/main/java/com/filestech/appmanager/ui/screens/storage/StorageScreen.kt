@@ -53,6 +53,7 @@ import com.filestech.appmanager.R
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppCategory
 import com.filestech.appmanager.domain.model.StorageReport
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.components.settings.ToggleRow
 import com.filestech.appmanager.ui.components.state.EmptyState
@@ -98,7 +99,7 @@ fun StorageScreen(
                         )
                     }
                 },
-                title = { Text(stringResource(R.string.screen_storage_title)) },
+                title = { BrandedTitle(stringResource(R.string.screen_storage_title)) },
                 actions = {
                     IconButton(onClick = viewModel::rescanAndAnalyze, enabled = !state.isRescanning) {
                         Icon(

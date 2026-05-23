@@ -41,6 +41,7 @@ import com.filestech.appmanager.R
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.ZombieApp
 import com.filestech.appmanager.ui.components.AppIcon
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
@@ -69,7 +70,7 @@ fun ZombiesScreen(
                         )
                     }
                 },
-                title = { Text(stringResource(R.string.screen_zombies_title)) },
+                title = { BrandedTitle(stringResource(R.string.screen_zombies_title)) },
                 actions = {
                     IconButton(onClick = viewModel::refresh, enabled = !state.isLoading) {
                         Icon(Icons.Outlined.Refresh, contentDescription = stringResource(R.string.cd_refresh))

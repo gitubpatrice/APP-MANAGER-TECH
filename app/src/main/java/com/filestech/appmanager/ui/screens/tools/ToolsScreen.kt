@@ -1,16 +1,19 @@
 package com.filestech.appmanager.ui.screens.tools
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
@@ -32,6 +35,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -45,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.filestech.appmanager.R
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.theme.BrandDanger
 
 /**
@@ -84,6 +89,9 @@ fun ToolsScreen(
 ) {
     // 12 tools — recomputed each composition (cheap; lambda keys change
     // identity across NavController recompositions anyway).
+    // v0.1.3: Settings + À propos removed from this grid per user feedback —
+    // both stay reachable via the bottom-nav "À propos" tab + the home
+    // toolbar overflow menu ("Paramètres").
     val tools = listOf(
         ToolEntry(R.string.screen_smart_cleaner_title,       R.string.tool_subtitle_smart_cleaner,    Icons.Outlined.AutoFixHigh,        ToolColors.Purple,    onSmartCleaner),
         ToolEntry(R.string.screen_trackers_title,            R.string.tool_subtitle_trackers,         Icons.Outlined.VisibilityOff,      ToolColors.Teal,      onTrackers),
@@ -97,12 +105,16 @@ fun ToolsScreen(
         ToolEntry(R.string.screen_export_title,              R.string.tool_subtitle_export,           Icons.Outlined.FileDownload,       ToolColors.DeepPurple,onExport),
         ToolEntry(R.string.screen_transparency_title,        R.string.tool_subtitle_transparency,     Icons.Outlined.VerifiedUser,       ToolColors.Cyan,      onTransparency),
         ToolEntry(R.string.settings_tools_trash,             R.string.tool_subtitle_trash,            Icons.Outlined.Delete,             BrandDanger,          onTrash),
+        // v0.1.3 user feedback — Settings + About removed from this grid;
+        // both stay reachable via the bottom-nav "À propos" tab + the home
+        // toolbar overflow menu ("Paramètres") + (for About) the Settings
+        // screen's "À propos" navigation row.
     )
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.tools_screen_title)) })
+            TopAppBar(title = { BrandedTitle(stringResource(R.string.tools_screen_title)) })
         },
     ) { innerPadding ->
         LazyVerticalGrid(
@@ -127,7 +139,12 @@ private fun ToolCard(entry: ToolEntry) {
     // v0.1.2 — ElevatedCard for the premium drop-shadow look RFT-style.
     ElevatedCard(
         onClick   = entry.onClick,
-        modifier  = Modifier.fillMaxWidth(),
+        // v0.1.3 user feedback — force square aspect ratio so all 12 cards have
+        // identical height regardless of subtitle line count. Without this,
+        // 1-line subtitles produce shorter cards than 2-line ones.
+        modifier  = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
     ) {
         Column(
@@ -137,12 +154,31 @@ private fun ToolCard(entry: ToolEntry) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Icon(
-                imageVector        = entry.icon,
-                contentDescription = null,
-                tint               = entry.tint,
-                modifier           = Modifier.size(36.dp),
-            )
+            // v0.1.3 user feedback — Material outlined icons have visibly
+            // different glyph proportions (e.g. SentimentSatisfied is smaller
+            // inside its bounding box than Apps), so just constraining
+            // `Modifier.size` doesn't yield uniformity. RFT-style fix: the
+            // visual uniformity comes from a coloured rounded container of
+            // fixed size — that's what the eye sees, not the icon glyph
+            // itself. The icon is centered inside at 22 dp; the 48-dp tinted
+            // surface gives the consistent "card icon" look.
+            Surface(
+                modifier = Modifier.size(48.dp),
+                shape    = RoundedCornerShape(12.dp),
+                color    = entry.tint.copy(alpha = 0.14f),
+            ) {
+                Box(
+                    modifier         = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector        = entry.icon,
+                        contentDescription = null,
+                        tint               = entry.tint,
+                        modifier           = Modifier.size(22.dp),
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text       = stringResource(entry.titleRes),
@@ -189,8 +225,8 @@ private object ToolColors {
     val Teal       = Color(0xFF00897B) // Material Teal 600 — AA on light + dark
     val Coral      = Color(0xFFD32F2F) // Material Red 700 — AA both, "danger-soft"
     val Blue       = Color(0xFF1976D2) // Material Blue 700
-    val Amber      = Color(0xFFFFB300)
-    val Brown      = Color(0xFF6D4C41) // Material Brown 600 — AA on light
+    val Amber      = Color(0xFFE65100) // Material Deep Orange 900 — 4.59:1 light, 7.2:1 dark (audit M-4 fix; was 0xFFFFB300 = 1.79:1 light fail)
+    val Brown      = Color(0xFF8D6E63) // Material Brown 400 — 4.05:1 light, 3.9:1 dark (audit L-5 fix; was 0xFF6D4C41 = 2.49:1 dark fail)
     val Indigo     = Color(0xFF3949AB) // Material Indigo 600 — AA both
     val Green      = Color(0xFF388E3C) // Material Green 700
     val SoftPurple = Color(0xFF8E24AA) // Material Purple 600 — AA both

@@ -25,16 +25,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material.icons.outlined.Deselect
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Icon
@@ -74,6 +78,7 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppSortOrder
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.ui.components.AppIcon
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
@@ -109,7 +114,6 @@ fun AppListScreen(
     val listState = rememberLazyListState()
 
     var showSortDialog by rememberSaveable { mutableStateOf(false) }
-    var showFilterDialog by rememberSaveable { mutableStateOf(false) }
     var batchDialog by rememberSaveable { mutableStateOf<BatchActionIntent?>(null) }
 
     // One-shot events → side effects.
@@ -125,8 +129,10 @@ fun AppListScreen(
                 }
                 is AppListViewModel.Event.BatchDone -> {
                     val r = event.result
-                    val msg = "${r.successCount}/${r.total} succeeded"
-                    snackbarHostState.showSnackbar(msg)
+                    // v0.1.3 audit M-2 fix — string externalised + translated FR/EN.
+                    snackbarHostState.showSnackbar(
+                        context.getString(R.string.batch_done_result, r.successCount, r.total),
+                    )
                 }
                 is AppListViewModel.Event.NavigateToDetail -> onNavigateToDetail(event.packageName)
             }
@@ -170,22 +176,14 @@ fun AppListScreen(
                 )
             } else {
                 MainTopBar(
-                    query              = state.searchQuery,
-                    onQueryChange      = viewModel::onSearchQueryChanged,
-                    onSortClick        = { showSortDialog = true },
-                    onFilterClick      = { showFilterDialog = true },
-                    onRefreshClick     = viewModel::refresh,
-                    refreshEnabled     = !state.isRefreshing,
-                    onSelectModeClick  = {
-                        // v0.1.2 — 1-tap entry into selection mode + select-all.
-                        // Saves the user from having to discover the long-press
-                        // gesture before they can act on the whole catalogue.
-                        val visible = (state.listOutcome as? Outcome.Success)?.value.orEmpty()
-                        if (visible.isNotEmpty()) viewModel.selectAll(visible)
-                    },
-                    selectModeEnabled  = state.listOutcome is Outcome.Success &&
-                                         (state.listOutcome as Outcome.Success).value.isNotEmpty(),
-                    onSettingsClick    = onNavigateToSettings,
+                    query                 = state.searchQuery,
+                    onQueryChange         = viewModel::onSearchQueryChanged,
+                    onSortClick           = { showSortDialog = true },
+                    includeSystemApps     = state.filterOptions.includeSystemApps,
+                    onToggleSystemApps    = { viewModel.onToggleSystemApps(!state.filterOptions.includeSystemApps) },
+                    onRefreshClick        = viewModel::refresh,
+                    refreshEnabled        = !state.isRefreshing,
+                    onSettingsClick       = onNavigateToSettings,
                 )
             }
         },
@@ -216,14 +214,6 @@ fun AppListScreen(
             labelOf  = { sortOrderLabel(it) },
             onSelect = viewModel::onSortOrderChanged,
             onDismiss = { showSortDialog = false },
-        )
-    }
-
-    if (showFilterDialog) {
-        FilterPickerDialog(
-            includeSystemApps = state.filterOptions.includeSystemApps,
-            onToggleSystem    = viewModel::onToggleSystemApps,
-            onDismiss         = { showFilterDialog = false },
         )
     }
 
@@ -282,40 +272,69 @@ private fun MainTopBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onSortClick: () -> Unit,
-    onFilterClick: () -> Unit,
+    includeSystemApps: Boolean,
+    onToggleSystemApps: () -> Unit,
     onRefreshClick: () -> Unit,
     refreshEnabled: Boolean,
-    onSelectModeClick: () -> Unit,
-    selectModeEnabled: Boolean,
     onSettingsClick: () -> Unit,
 ) {
+    var menuOpen by rememberSaveable { mutableStateOf(false) }
     Column {
         TopAppBar(
-            title   = { Text(stringResource(R.string.screen_app_list_title)) },
+            title   = { BrandedTitle(stringResource(R.string.screen_app_list_title)) },
             actions = {
-                // v0.1.2 — 1-tap "Select all" (also enters selection mode in
-                // one go, no long-press needed). Discoverability fix per user
-                // feedback ("il manque bouton tout cocher").
-                IconButton(onClick = onSelectModeClick, enabled = selectModeEnabled) {
-                    Icon(
-                        imageVector        = Icons.Outlined.SelectAll,
-                        contentDescription = stringResource(R.string.action_select_all),
-                    )
-                }
                 IconButton(onClick = onRefreshClick, enabled = refreshEnabled) {
                     Icon(
                         imageVector        = Icons.Outlined.Refresh,
                         contentDescription = stringResource(R.string.action_refresh_apps),
                     )
                 }
-                IconButton(onClick = onSortClick) {
-                    Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = stringResource(R.string.cd_sort))
+                // v0.1.3 — Sort + Filter + Settings consolidated in a 3-dots
+                // overflow menu per user request (less visual clutter).
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(
+                        imageVector        = Icons.Outlined.MoreVert,
+                        contentDescription = stringResource(R.string.cd_more_options),
+                    )
                 }
-                IconButton(onClick = onFilterClick) {
-                    Icon(Icons.Outlined.FilterList, contentDescription = stringResource(R.string.cd_filter))
-                }
-                IconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.cd_settings))
+                DropdownMenu(
+                    expanded         = menuOpen,
+                    onDismissRequest = { menuOpen = false },
+                ) {
+                    DropdownMenuItem(
+                        text        = { Text(stringResource(R.string.screen_settings_title)) },
+                        leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+                        onClick     = {
+                            menuOpen = false
+                            onSettingsClick()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text        = { Text(stringResource(R.string.sort_dialog_title)) },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = null) },
+                        onClick     = {
+                            menuOpen = false
+                            onSortClick()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text        = { Text(stringResource(R.string.filter_include_system_apps)) },
+                        leadingIcon = {
+                            // v0.1.3 audit N-2 fix — persistent leading icon
+                            // (CheckBox filled when ON, outline when OFF) so
+                            // the text doesn't shift horizontally on toggle
+                            // and the disabled state is also visible.
+                            Icon(
+                                imageVector = if (includeSystemApps) Icons.Outlined.CheckBox
+                                              else Icons.Outlined.CheckBoxOutlineBlank,
+                                contentDescription = null,
+                            )
+                        },
+                        onClick     = {
+                            menuOpen = false
+                            onToggleSystemApps()
+                        },
+                    )
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(),
@@ -644,37 +663,6 @@ private fun TagBadge(text: String, tint: androidx.compose.ui.graphics.Color? = n
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
         )
     }
-}
-
-// ---------------------------------------------------------------------------
-// Filter dialog (Phase V simple: single switch — Phase VIII can grow this)
-// ---------------------------------------------------------------------------
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun FilterPickerDialog(
-    includeSystemApps: Boolean,
-    onToggleSystem: (Boolean) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onDismiss,
-        title         = { Text(stringResource(R.string.filter_title)) },
-        text          = {
-            Column {
-                com.filestech.appmanager.ui.components.settings.ToggleRow(
-                    title           = stringResource(R.string.filter_include_system_apps),
-                    checked         = includeSystemApps,
-                    onCheckedChange = onToggleSystem,
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.dialog_close))
-            }
-        },
-    )
 }
 
 // ---------------------------------------------------------------------------

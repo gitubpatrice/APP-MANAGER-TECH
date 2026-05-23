@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -20,20 +21,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.filestech.appmanager.R
+import com.filestech.appmanager.ui.screens.about.AboutScreen
 import com.filestech.appmanager.ui.screens.applist.AppListScreen
 import com.filestech.appmanager.ui.screens.tools.ToolsScreen
 
 /**
- * Root shell with a 2-tab Material 3 [NavigationBar] (Accueil / Outils),
- * mirroring Read Files Tech UX so the user always has a clear discovery
- * path:
+ * Root shell with a 3-tab Material 3 [NavigationBar]
+ * (Accueil / Outils / À propos), mirroring Read Files Tech UX so the user
+ * always has a clear discovery path:
  *
  * - **Accueil** = the live installed-apps list (search, sort, filter, batch
  *   actions, refresh, pull-to-refresh).
- * - **Outils** = a 3-column grid of icon cards opening every secondary
+ * - **Outils** = a 2-column grid of icon cards opening every secondary
  *   feature (Smart Cleaner, Trackers, Security Audit, Rarely-used, Zombies,
  *   Permission filter, Storage, Cleaner, Exclusion list, Export, Transparency,
- *   **Corbeille**).
+ *   **Corbeille**, Paramètres, À propos).
+ * - **À propos** = AboutScreen rendered as tab content (no back arrow).
  *
  * Owns no business state — just the selected tab — and routes every
  * navigation intent to the host NavController via the [onNavigate*] callbacks.
@@ -69,7 +72,11 @@ fun HomeShell(
                         icon     = {
                             Icon(
                                 imageVector        = entry.icon,
-                                contentDescription = null,
+                                // v0.1.3 audit U-1 fix — explicit label as
+                                // contentDescription so TalkBack still
+                                // announces the tab even if the OS theme
+                                // overrides `alwaysShowLabel = false`.
+                                contentDescription = stringResource(entry.labelRes),
                             )
                         },
                         label    = { Text(stringResource(entry.labelRes)) },
@@ -109,6 +116,12 @@ fun HomeShell(
                     onTransparency    = onNavigateToTransparency,
                     onTrash           = onNavigateToTrash,
                 )
+                // v0.1.3 — About is a 3rd tab on the right of Outils. Reuses
+                // AboutScreen with `onBack = null` so the back arrow disappears
+                // (the user is already on the shell, nothing to pop). The same
+                // AboutScreen with a real onBack is still reachable from
+                // Settings → "About App Manager Tech" and from the Tools grid.
+                HomeTab.ABOUT -> AboutScreen()
             }
         }
     }
@@ -120,4 +133,5 @@ private enum class HomeTab(
 ) {
     HOME(Icons.Outlined.Apps, R.string.bottom_nav_home),
     TOOLS(Icons.Outlined.GridView, R.string.bottom_nav_tools),
+    ABOUT(Icons.Outlined.Info, R.string.screen_about_title),
 }

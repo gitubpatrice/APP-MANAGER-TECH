@@ -46,6 +46,7 @@ import com.filestech.appmanager.R
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.ui.components.AppIcon
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.settings.ToggleRow
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
@@ -77,7 +78,7 @@ fun PermissionFilterScreen(
                         )
                     }
                 },
-                title = { Text(stringResource(R.string.screen_permission_filter_title)) },
+                title = { BrandedTitle(stringResource(R.string.screen_permission_filter_title)) },
             )
         },
     ) { innerPadding ->

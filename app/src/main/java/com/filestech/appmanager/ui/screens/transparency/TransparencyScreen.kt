@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.filestech.appmanager.R
+import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.settings.NavigationRow
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.theme.BrandBlue
@@ -85,7 +86,7 @@ fun TransparencyScreen(
                         )
                     }
                 },
-                title = { Text(stringResource(R.string.screen_transparency_title)) },
+                title = { BrandedTitle(stringResource(R.string.screen_transparency_title)) },
             )
         },
     ) { innerPadding ->
