@@ -8,8 +8,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.filestech.appmanager.ui.screens.about.AboutScreen
 import com.filestech.appmanager.ui.screens.appdetail.AppDetailScreen
-import com.filestech.appmanager.ui.screens.applist.AppListScreen
 import com.filestech.appmanager.ui.screens.cleaner.CleanerSettingsScreen
+import com.filestech.appmanager.ui.shell.HomeShell
 import com.filestech.appmanager.ui.screens.export.ExportScreen
 import com.filestech.appmanager.ui.screens.ignorelist.IgnoreListScreen
 import com.filestech.appmanager.ui.screens.permissionfilter.PermissionFilterScreen
@@ -62,10 +62,24 @@ fun AppRoot() {
         startDestination = NavRoute.AppList.route,
     ) {
         composable(NavRoute.AppList.route) {
-            AppListScreen(
-                onNavigateToDetail   = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
-                onNavigateToStorage  = { navController.navigate(NavRoute.Storage.route) },
-                onNavigateToSettings = { navController.navigate(NavRoute.Settings.route) },
+            // v0.1.1 — Home shell hosts the 2-tab NavigationBar (Accueil / Outils).
+            // AppList moves under the "Accueil" tab; every other feature lives in
+            // the "Outils" grid + the Settings IconButton stays in the TopAppBar.
+            HomeShell(
+                onNavigateToDetail           = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+                onNavigateToStorage          = { navController.navigate(NavRoute.Storage.route) },
+                onNavigateToSettings         = { navController.navigate(NavRoute.Settings.route) },
+                onNavigateToSmartCleaner     = { navController.navigate(NavRoute.SmartCleaner.route) },
+                onNavigateToTrackers         = { navController.navigate(NavRoute.Trackers.route) },
+                onNavigateToSecurityAudit    = { navController.navigate(NavRoute.SecurityAudit.route) },
+                onNavigateToCleaner          = { navController.navigate(NavRoute.Cleaner.route) },
+                onNavigateToRarelyUsed       = { navController.navigate(NavRoute.RarelyUsed.route) { launchSingleTop = true } },
+                onNavigateToZombies          = { navController.navigate(NavRoute.Zombies.route) { launchSingleTop = true } },
+                onNavigateToPermissionFilter = { navController.navigate(NavRoute.PermissionFilter.route) { launchSingleTop = true } },
+                onNavigateToIgnoreList       = { navController.navigate(NavRoute.IgnoreList.route) },
+                onNavigateToExport           = { navController.navigate(NavRoute.Export.route) },
+                onNavigateToTransparency     = { navController.navigate(NavRoute.Transparency.route) },
+                onNavigateToTrash            = { navController.navigate(NavRoute.Trash.route) { launchSingleTop = true } },
             )
         }
 

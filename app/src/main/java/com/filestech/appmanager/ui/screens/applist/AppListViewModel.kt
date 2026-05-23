@@ -15,9 +15,11 @@ import com.filestech.appmanager.domain.model.AppAction
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.BatchActionResult
 import com.filestech.appmanager.domain.model.FilterOptions
+import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.BatchActionUseCase
 import com.filestech.appmanager.domain.usecase.ClearAppCacheUseCase
 import com.filestech.appmanager.domain.usecase.GetInstalledAppsUseCase
+import com.filestech.appmanager.domain.usecase.RescanAppsUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -61,6 +63,8 @@ class AppListViewModel @Inject constructor(
     private val uninstallApp: UninstallAppUseCase,
     private val clearAppCache: ClearAppCacheUseCase,
     private val batchAction: BatchActionUseCase,
+    private val rescanApps: RescanAppsUseCase,
+    private val appInfoRepo: AppInfoRepository,
     private val intents: IntentFactory,
 ) : ViewModel() {
 
@@ -72,6 +76,8 @@ class AppListViewModel @Inject constructor(
     private val _sortOrder = MutableStateFlow(AppSortOrder.NAME_ASC)
     private val _filterOptions = MutableStateFlow(FilterOptions.DEFAULT)
     private val _selectedPackages = MutableStateFlow<Set<String>>(emptySet())
+    private val _isRefreshing = MutableStateFlow(false)
+    private val _usageStatsGranted = MutableStateFlow(appInfoRepo.hasUsageStatsAccess())
 
     // -----------------------------------------------------------------------
     // Pipeline → final UiState
@@ -105,13 +111,24 @@ class AppListViewModel @Inject constructor(
         listFlow,
         _selectedPackages,
         pipeline,
-    ) { outcome, selected, p ->
+        _isRefreshing,
+        _usageStatsGranted,
+    ) { values ->
+        @Suppress("UNCHECKED_CAST")
+        val outcome = values[0] as Outcome<List<AppInfo>>
+        @Suppress("UNCHECKED_CAST")
+        val selected = values[1] as Set<String>
+        val p = values[2] as Pipeline
+        val refreshing = values[3] as Boolean
+        val usageGranted = values[4] as Boolean
         UiState(
-            listOutcome      = outcome,
-            searchQuery      = p.query,
-            sortOrder        = p.sort,
-            filterOptions    = p.filter,
-            selectedPackages = selected,
+            listOutcome        = outcome,
+            searchQuery        = p.query,
+            sortOrder          = p.sort,
+            filterOptions      = p.filter,
+            selectedPackages   = selected,
+            isRefreshing       = refreshing,
+            usageStatsGranted  = usageGranted,
         )
     }.stateIn(
         scope        = viewModelScope,
@@ -218,6 +235,48 @@ class AppListViewModel @Inject constructor(
         _events.trySend(Event.LaunchIntent(intents.usageAccessSettingsIntent()))
     }
 
+    /**
+     * Forces a full rescan. Wired to the toolbar Refresh button and to the
+     * Material 3 PullToRefreshBox. Idempotent — multiple rapid calls fold
+     * into a single in-flight scan thanks to the `_isRefreshing` guard.
+     */
+    fun refresh() {
+        // v0.1.1 audit M-3 fix — atomic compareAndSet so a simultaneous swipe
+        // (PullToRefreshBox) + tap (toolbar Refresh) on the same frame folds
+        // into a single in-flight scan instead of stacking two rescans.
+        if (!_isRefreshing.compareAndSet(expect = false, update = true)) return
+        viewModelScope.launch {
+            try {
+                when (val r = rescanApps()) {
+                    is Outcome.Success -> Timber.d("Manual rescan complete")
+                    is Outcome.Failure -> _events.trySend(Event.ShowError(r.error.toString()))
+                    Outcome.Loading    -> Unit
+                }
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    /**
+     * Called from the Composable on `ON_RESUME` — re-probes
+     * `PACKAGE_USAGE_STATS` (the user may have just granted it via OS Settings)
+     * and triggers an automatic rescan when the permission has just flipped
+     * from denied → granted. This guarantees that sizes / last-used dates
+     * appear without the user having to tap Refresh themselves.
+     */
+    fun onResumed() {
+        val wasGranted = _usageStatsGranted.value
+        val nowGranted = appInfoRepo.hasUsageStatsAccess()
+        if (wasGranted != nowGranted) {
+            _usageStatsGranted.value = nowGranted
+            if (nowGranted) {
+                Timber.i("PACKAGE_USAGE_STATS just granted — auto-rescan")
+                refresh()
+            }
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Search post-filter
     // -----------------------------------------------------------------------
@@ -243,6 +302,8 @@ class AppListViewModel @Inject constructor(
         val sortOrder: AppSortOrder = AppSortOrder.NAME_ASC,
         val filterOptions: FilterOptions = FilterOptions.DEFAULT,
         val selectedPackages: Set<String> = emptySet(),
+        val isRefreshing: Boolean = false,
+        val usageStatsGranted: Boolean = true,
     ) {
         val isInSelectionMode: Boolean get() = selectedPackages.isNotEmpty()
         val selectionCount: Int get() = selectedPackages.size

@@ -31,7 +31,9 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +54,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -67,6 +71,7 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppSortOrder
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.ui.components.AppIcon
+import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
@@ -92,7 +97,6 @@ import timber.log.Timber
 @Composable
 fun AppListScreen(
     onNavigateToDetail: (packageName: String) -> Unit,
-    onNavigateToStorage: () -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
@@ -131,7 +135,18 @@ fun AppListScreen(
         viewModel.clearSelection()
     }
 
+    // v0.1.1 — re-probe PACKAGE_USAGE_STATS on ON_RESUME so a freshly-granted
+    // permission triggers an immediate rescan without the user tapping Refresh.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onResumed()
+    }
+
     Scaffold(
+        // v0.1.1 audit H-1 fix — empty contentWindowInsets so we do not
+        // re-apply the navigation-bar insets that the parent HomeShell already
+        // consumed for its BottomBar (otherwise the last LazyColumn item is
+        // hidden behind the NavigationBar on gesture-nav devices).
+        contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar       = {
             if (state.isInSelectionMode) {
@@ -148,7 +163,8 @@ fun AppListScreen(
                     onQueryChange      = viewModel::onSearchQueryChanged,
                     onSortClick        = { showSortDialog = true },
                     onFilterClick      = { showFilterDialog = true },
-                    onStorageClick     = onNavigateToStorage,
+                    onRefreshClick     = viewModel::refresh,
+                    refreshEnabled     = !state.isRefreshing,
                     onSettingsClick    = onNavigateToSettings,
                 )
             }
@@ -167,6 +183,8 @@ fun AppListScreen(
                 // Re-emit current sortOrder to re-trigger the flatMapLatest pipeline.
                 viewModel.onSortOrderChanged(state.sortOrder)
             },
+            onRefresh         = viewModel::refresh,
+            onGrantUsageStats = viewModel::requestUsageStatsPermission,
         )
     }
 
@@ -245,21 +263,27 @@ private fun MainTopBar(
     onQueryChange: (String) -> Unit,
     onSortClick: () -> Unit,
     onFilterClick: () -> Unit,
-    onStorageClick: () -> Unit,
+    onRefreshClick: () -> Unit,
+    refreshEnabled: Boolean,
     onSettingsClick: () -> Unit,
 ) {
     Column {
         TopAppBar(
             title   = { Text(stringResource(R.string.screen_app_list_title)) },
             actions = {
+                // v0.1.1 — manual refresh button (forces rescan). The Storage entry
+                // moved to the "Outils" tab so the toolbar stays under 4 actions.
+                IconButton(onClick = onRefreshClick, enabled = refreshEnabled) {
+                    Icon(
+                        imageVector        = Icons.Outlined.Refresh,
+                        contentDescription = stringResource(R.string.action_refresh_apps),
+                    )
+                }
                 IconButton(onClick = onSortClick) {
                     Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = stringResource(R.string.cd_sort))
                 }
                 IconButton(onClick = onFilterClick) {
                     Icon(Icons.Outlined.FilterList, contentDescription = stringResource(R.string.cd_filter))
-                }
-                IconButton(onClick = onStorageClick) {
-                    Icon(Icons.Outlined.Apps, contentDescription = stringResource(R.string.storage_title))
                 }
                 IconButton(onClick = onSettingsClick) {
                     Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.cd_settings))
@@ -327,6 +351,7 @@ private fun SelectionTopBar(
 // Body
 // ---------------------------------------------------------------------------
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AppListBody(
     state: AppListViewModel.UiState,
@@ -335,41 +360,59 @@ private fun AppListBody(
     onItemClick: (AppInfo) -> Unit,
     onItemLongClick: (AppInfo) -> Unit,
     onRetry: () -> Unit,
+    onRefresh: () -> Unit,
+    onGrantUsageStats: () -> Unit,
 ) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
     ) {
-        when (val o = state.listOutcome) {
-            Outcome.Loading -> LoadingState()
-            is Outcome.Failure -> ErrorState(
-                message = o.error.toString(),
-                onRetry = onRetry,
-            )
-            is Outcome.Success -> {
-                if (o.value.isEmpty()) {
-                    EmptyState(
-                        icon = Icons.Outlined.Apps,
-                        title = stringResource(R.string.app_list_empty_title),
-                        body  = stringResource(R.string.app_list_empty_body),
-                    )
-                } else {
-                    LazyColumn(
-                        state    = listState,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        items(
-                            items = o.value,
-                            key   = { it.packageName },
-                        ) { app ->
-                            val isSelected = app.packageName in state.selectedPackages
-                            AppListItem(
-                                app           = app,
-                                isSelected    = isSelected,
-                                onClick       = { onItemClick(app) },
-                                onLongClick   = { onItemLongClick(app) },
-                            )
+        // v0.1.1 — surfaces the silent PACKAGE_USAGE_STATS denial that
+        // otherwise leaves every size at 0 and every "last used" at —.
+        UsageStatsAccessBanner(
+            visible      = !state.usageStatsGranted,
+            onGrantClick = onGrantUsageStats,
+        )
+
+        // v0.1.1 — Material 3 PullToRefreshBox: gesture-driven rescan in
+        // addition to the toolbar Refresh button.
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh    = onRefresh,
+            modifier     = Modifier
+                .fillMaxSize(),
+        ) {
+            when (val o = state.listOutcome) {
+                Outcome.Loading -> LoadingState()
+                is Outcome.Failure -> ErrorState(
+                    message = o.error.toString(),
+                    onRetry = onRetry,
+                )
+                is Outcome.Success -> {
+                    if (o.value.isEmpty()) {
+                        EmptyState(
+                            icon  = Icons.Outlined.Apps,
+                            title = stringResource(R.string.app_list_empty_title),
+                            body  = stringResource(R.string.app_list_empty_body),
+                        )
+                    } else {
+                        LazyColumn(
+                            state    = listState,
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            items(
+                                items = o.value,
+                                key   = { it.packageName },
+                            ) { app ->
+                                val isSelected = app.packageName in state.selectedPackages
+                                AppListItem(
+                                    app           = app,
+                                    isSelected    = isSelected,
+                                    onClick       = { onItemClick(app) },
+                                    onLongClick   = { onItemLongClick(app) },
+                                )
+                            }
                         }
                     }
                 }

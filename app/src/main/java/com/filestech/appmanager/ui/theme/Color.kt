@@ -64,31 +64,58 @@ private val LightPalette = lightColorScheme(
     inverseOnSurface      = SnackbarOn,
 )
 
+// ---------------------------------------------------------------------------
+// GitHub-style dark palette (v0.1.1 — mirrors Read Files Tech)
+// ---------------------------------------------------------------------------
+//
+// Inspired by github.com/settings/appearance "Dark" theme. Neutral very-dark
+// blue-grey background, slightly elevated surfaces, hairline outlines, off-
+// white text. Brand accents (BrandDanger for destructive, BrandBlueDark for
+// primary actions) are preserved so the Files Tech identity carries over.
+//
+// Hex values picked to match GitHub's published Primer design tokens
+// (canonical-dark theme) — see https://primer.style/foundations/color.
+private val GitHubBackground       = Color(0xFF0D1117)
+private val GitHubSurface          = Color(0xFF161B22)
+private val GitHubSurfaceContainer = Color(0xFF1C2128)
+private val GitHubSurfaceHigh      = Color(0xFF21262D)
+private val GitHubOutline          = Color(0xFF30363D)
+private val GitHubOutlineFaint     = Color(0xFF21262D)
+private val GitHubTextPrimary      = Color(0xFFC9D1D9)
+private val GitHubTextSecondary    = Color(0xFF8B949E)
+private val GitHubAccentBlue       = Color(0xFF58A6FF) // GitHub primary link / button
+private val GitHubAccentRed        = Color(0xFFF85149) // GitHub danger text (used for error tier only)
+
 private val DarkPalette = darkColorScheme(
-    primary               = BrandBlueDark,
-    onPrimary             = Color(0xFF00315E),
-    primaryContainer      = Color(0xFF004788),
-    onPrimaryContainer    = Color(0xFFD7E3FF),
-    secondary             = Color(0xFFBDC7DC),
-    onSecondary           = Color(0xFF273141),
-    secondaryContainer    = Color(0xFF3D4758),
-    onSecondaryContainer  = Color(0xFFD9E3F8),
-    tertiary              = Color(0xFFDEBCDF),
-    onTertiary            = Color(0xFF3F2844),
-    tertiaryContainer     = Color(0xFF573E5C),
-    onTertiaryContainer   = Color(0xFFFAD8FC),
-    error                 = Color(0xFFFFB4AB),
-    onError               = Color(0xFF690005),
-    errorContainer        = Color(0xFF93000A),
+    primary               = GitHubAccentBlue,
+    onPrimary             = GitHubBackground,
+    primaryContainer      = Color(0xFF1F6FEB),
+    onPrimaryContainer    = Color(0xFFE6F0FF),
+    secondary             = GitHubTextSecondary,
+    onSecondary           = GitHubBackground,
+    secondaryContainer    = GitHubSurfaceHigh,
+    onSecondaryContainer  = GitHubTextPrimary,
+    tertiary              = Color(0xFFBC8CFF),
+    onTertiary            = GitHubBackground,
+    tertiaryContainer     = Color(0xFF6E40C9),
+    onTertiaryContainer   = Color(0xFFEDE0FF),
+    error                 = GitHubAccentRed,
+    onError               = GitHubBackground,
+    errorContainer        = Color(0xFF8E1519),
     onErrorContainer      = Color(0xFFFFDAD6),
-    background            = Color(0xFF1B1B1F),
-    onBackground          = Color(0xFFE3E2E6),
-    surface               = Color(0xFF1B1B1F),
-    onSurface             = Color(0xFFE3E2E6),
-    surfaceVariant        = Color(0xFF44464F),
-    onSurfaceVariant      = Color(0xFFC4C6D0),
-    outline               = Color(0xFF8E9099),
-    outlineVariant        = Color(0xFF44464F),
+    background            = GitHubBackground,
+    onBackground          = GitHubTextPrimary,
+    surface               = GitHubBackground,
+    onSurface             = GitHubTextPrimary,
+    surfaceVariant        = GitHubSurfaceHigh,
+    onSurfaceVariant      = GitHubTextSecondary,
+    surfaceContainerLowest = GitHubBackground,
+    surfaceContainerLow   = GitHubSurface,
+    surfaceContainer      = GitHubSurfaceContainer,
+    surfaceContainerHigh  = GitHubSurfaceHigh,
+    surfaceContainerHighest = Color(0xFF2D333B),
+    outline               = GitHubOutline,
+    outlineVariant        = GitHubOutlineFaint,
     scrim                 = Color.Black,
     inverseSurface        = SnackbarBg,
     inverseOnSurface      = SnackbarOn,

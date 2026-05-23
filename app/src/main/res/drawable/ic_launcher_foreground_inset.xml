@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive-icon foreground wrapper.
+
+  Android 8+ adaptive icons require the foreground content to fit inside the
+  central 66×66dp "safe zone" of the 108×108dp adaptive frame; anything
+  outside risks being cropped by launcher masking (round, squircle, teardrop).
+  Our raw foreground bitmap (`@mipmap/ic_launcher_foreground`) fills the
+  entire frame, so the launcher zooms and crops the text "App Manager Tech".
+
+  This inset wrapper pushes the bitmap inward by 16% on each side, giving a
+  76×76dp visible area that fits comfortably inside both the square preview
+  and circular launcher mask. Reused by themed-icon `<monochrome>` as well.
+
+  v0.1.1 fix.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@mipmap/ic_launcher_foreground"
+    android:inset="16%" />

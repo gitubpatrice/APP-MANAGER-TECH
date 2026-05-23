@@ -56,7 +56,7 @@
     <!-- ================================================================ -->
     <!-- Theme mode labels                                                 -->
     <!-- ================================================================ -->
-    <string name="settings_theme_system">Follow system</string>
+    <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
 
@@ -377,6 +377,17 @@
     <!-- AppDetail Ignore action (Phase X) -->
     <string name="appdetail_ignore_action">Add to exclusion list</string>
     <string name="appdetail_unignore_action">Remove from exclusion list</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.1.1 — Bottom navigation + Tools tab                            -->
+    <!-- ================================================================ -->
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_tools">Tools</string>
+    <string name="tools_screen_title">Tools</string>
+
+    <!-- v0.1.1 — Manual refresh + pull-to-refresh -->
+    <string name="action_refresh_apps">Refresh apps</string>
+    <string name="action_refresh_refreshing">Refreshing…</string>
 
     <!-- ================================================================ -->
     <!-- Phase X.B — Rarely-used screen                                    -->

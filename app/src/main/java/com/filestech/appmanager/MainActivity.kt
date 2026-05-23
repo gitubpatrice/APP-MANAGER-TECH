@@ -5,11 +5,15 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.domain.model.ThemeMode
 import com.filestech.appmanager.ui.AppRoot
 import com.filestech.appmanager.ui.theme.AppManagerTechTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -63,7 +67,31 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            AppManagerTechTheme {
+            // v0.1.1 fix: collect the live settings so the theme toggle in
+            // Settings actually takes effect (previously the picker wrote to
+            // DataStore but the value never flowed back into MaterialTheme,
+            // leaving the dark-mode switch dead).
+            // collectAsStateWithLifecycle (vs raw collectAsState) so the
+            // DataStore subscription is paused while the Activity is in
+            // background — mirrors the FLAG_SECURE observer above and avoids
+            // a background-process battery drain on Android 14+.
+            val appearance by settings.flow
+                .map { it.appearance }
+                .distinctUntilChanged()
+                .collectAsStateWithLifecycle(initialValue = null)
+
+            val resolvedDarkTheme = when (appearance?.themeMode) {
+                ThemeMode.LIGHT  -> false
+                ThemeMode.DARK   -> true
+                ThemeMode.SYSTEM,
+                null             -> isSystemInDarkTheme()
+            }
+            val resolvedDynamicColor = appearance?.dynamicColor ?: true
+
+            AppManagerTechTheme(
+                darkTheme    = resolvedDarkTheme,
+                dynamicColor = resolvedDynamicColor,
+            ) {
                 AppRoot()
             }
         }

@@ -18,18 +18,16 @@
         Splash theme (androidx.core.splashscreen compat for API 26–30; native
         SplashScreen API on 31+).
 
-        Mirrors the SMS Tech pattern:
-        - windowSplashScreenBackground = neutral window background
-        - windowSplashScreenAnimatedIcon = transparent drawable so the
-          Android-12+ circular mask is invisible and only the background
-          flashes briefly. The Activity's first Compose frame renders the
-          actual brand logo via AppManagerTechTheme.
-        - postSplashScreenTheme rebinds the Activity to the regular theme
-          once the splash window is dismissed.
+        v0.1.1 — the launcher icon foreground (inset 16% per side per the
+        adaptive-icon safe zone) is reused as the splash icon so users see
+        the brand logo for the ~600ms cold-start splash window. Previous
+        builds used a transparent drawable copied from SMS Tech — that
+        choice made the splash literally invisible and was reported as
+        "no splash" by the first tester.
     -->
     <style name="Theme.AppManagerTech.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/window_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_transparent</item>
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_inset</item>
         <item name="postSplashScreenTheme">@style/Theme.AppManagerTech</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
     </style>

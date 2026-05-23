@@ -1,0 +1,10 @@
+v0.1.1 — first-launch UX hotfix
+
+- Auto-rescan at first launch (home no longer empty)
+- "Grant Usage access" banner — sizes now visible
+- Refresh button + pull-to-refresh
+- BottomNav: Home / Tools (icon grid)
+- Theme picker now actually applies
+- Dark theme: GitHub-style palette
+- Launcher icon: 16% inset (text no longer cropped)
+- Splash screen shows the logo

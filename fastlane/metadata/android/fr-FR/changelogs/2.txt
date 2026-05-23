@@ -1,0 +1,10 @@
+v0.1.1 — correctif UX 1er lancement
+
+- Analyse auto au 1er lancement (accueil plus vide)
+- Bannière « Accorder Accès à l'utilisation » (tailles visibles)
+- Bouton Actualiser + tirer vers le bas
+- BottomNav : Accueil / Outils (grille d'icônes)
+- Sélecteur de thème s'applique réellement
+- Thème sombre : palette GitHub
+- Icône appli : marge 16% (texte plus coupé)
+- Splash affiche le logo

@@ -21,7 +21,20 @@ Binaries: https://github.com/gitubpatrice/APP-MANAGER-TECH/releases/download/v%v
 Builds:
   - versionName: 0.1.0
     versionCode: 1
-    commit: REPLACE_WITH_FIRST_RELEASE_COMMIT_HASH
+    commit: v0.1.0
+    subdir: app
+    gradle:
+      - yes
+    rm:
+      - app/lint-baseline.xml
+    prebuild:
+      - sed -i -e '/keystoreProperties = Properties/,/}/d' build.gradle.kts
+      - sed -i -e '/signingConfigs/,/}\s*$/d' build.gradle.kts
+      - sed -i -e '/if (keystorePropertiesFile.exists()) {/,/}/d' build.gradle.kts
+
+  - versionName: 0.1.1
+    versionCode: 2
+    commit: v0.1.1
     subdir: app
     gradle:
       - yes
@@ -41,5 +54,5 @@ AllowedAPKSigningKeys: 76e8772e09951369405f58e70c4afffd41c4687553c6cfa03d08145ff
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: 'app/build.gradle.kts|versionName\s*=\s*"(.*?)"|.|versionCode\s*=\s*(\d+)'
-CurrentVersion: 0.1.0
-CurrentVersionCode: 1
+CurrentVersion: 0.1.1
+CurrentVersionCode: 2
