@@ -7,8 +7,10 @@ import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
+import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.IntentFactory
 import com.filestech.appmanager.domain.model.AppDetail
+import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.model.PrivacyScore
 import com.filestech.appmanager.domain.model.TrackerReport
 import com.filestech.appmanager.domain.repository.IgnoreListRepository
@@ -19,7 +21,12 @@ import com.filestech.appmanager.domain.usecase.ForceStopAppUseCase
 import com.filestech.appmanager.domain.usecase.GetAppDetailUseCase
 import com.filestech.appmanager.domain.usecase.GetPrivacyScoreUseCase
 import com.filestech.appmanager.domain.usecase.MoveAppToTrashUseCase
+import com.filestech.appmanager.domain.usecase.QuarantineAppUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
+import com.filestech.appmanager.domain.model.QuarantineMode
+import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import android.net.Uri
+import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -54,7 +61,10 @@ class AppDetailViewModel @Inject constructor(
     private val clearCache: ClearAppCacheUseCase,
     private val forceStopApp: ForceStopAppUseCase,
     private val disableEnable: DisableEnableAppUseCase,
+    private val quarantineApp: QuarantineAppUseCase,
     private val ignoreList: IgnoreListRepository,
+    private val settings: SettingsRepository,
+    private val criticalDetector: CriticalAppDetector,
     private val intents: IntentFactory,
 ) : ViewModel() {
 
@@ -102,7 +112,27 @@ class AppDetailViewModel @Inject constructor(
     // Actions
     // -----------------------------------------------------------------------
 
-    fun uninstall() = withPackage { pkg ->
+    /**
+     * Trigger the system uninstall flow.
+     *
+     * v0.2.0 Safety Guardrails: if [criticalDetector] classifies the current
+     * package (authenticator, password manager, banking app, etc.) we DO NOT
+     * launch the intent immediately — we emit [Event.RequiresCriticalConfirmation]
+     * so the screen surfaces a hold-3s warning dialog. The user can then
+     * cancel or re-invoke with [bypassCriticalCheck] = true to proceed.
+     */
+    fun uninstall(bypassCriticalCheck: Boolean = false) = withPackage { pkg ->
+        if (!bypassCriticalCheck) {
+            criticalDetector.classify(pkg)?.let { classification ->
+                _events.trySend(
+                    Event.RequiresCriticalConfirmation(
+                        classification = classification,
+                        action         = CriticalAction.UNINSTALL,
+                    ),
+                )
+                return@withPackage
+            }
+        }
         uninstallApp(pkg).getOrNull()?.let { intent ->
             _events.trySend(Event.LaunchIntent(intent))
         } ?: _events.trySend(Event.ShowError("Cannot uninstall $pkg"))
@@ -171,8 +201,90 @@ class AppDetailViewModel @Inject constructor(
         _events.trySend(Event.LaunchIntent(intents.appDetailsSettingsIntent(pkg)))
     }
 
+    /**
+     * v0.2.0 — Deep-link straight to the OS Settings → App → Permissions
+     * sub-page for the current package. Used by the AppDetail Permissions
+     * card and (downstream) by the drift-row action dialog so the user can
+     * re-grant a revoked permission in one tap.
+     */
+    fun openAppPermissionsSettings() = withPackage { pkg ->
+        _events.trySend(Event.LaunchIntentChain(intents.appPermissionsSettingsChain(pkg)))
+    }
+
     fun openUsageAccessSettings() {
         _events.trySend(Event.LaunchIntent(intents.usageAccessSettingsIntent()))
+    }
+
+    /**
+     * v0.2.0 — Quarantine the current app with the user-chosen mode + duration.
+     *
+     * HARD mode requires a SAF backup folder; if the user has not picked one
+     * yet, we surface a typed event so the UI can prompt them to do so
+     * (Settings → Quarantine → APK backup folder).
+     *
+     * SOFT mode never needs the backup folder.
+     *
+     * On success, the use case returns an [Intent] (uninstall confirm in HARD
+     * mode, app-info deep-link in SOFT mode). We forward it to the UI via
+     * [Event.LaunchIntent] — Android shows its own confirm step, never
+     * bypassed.
+     */
+    fun quarantine(mode: QuarantineMode, durationDays: Int, bypassCriticalCheck: Boolean = false) {
+        val pkg = currentPackage() ?: return
+        val label = (_state.value.detailOutcome as? Outcome.Success)?.value?.info?.label ?: pkg
+
+        // v0.2.0 Safety Guardrails — HARD mode wipes app data (Android non-
+        // root limit) so it deserves the same friction as a raw uninstall.
+        // SOFT mode is just a reminder, no destruction → no check needed.
+        if (!bypassCriticalCheck && mode == QuarantineMode.HARD_UNINSTALL) {
+            criticalDetector.classify(pkg)?.let { classification ->
+                _events.trySend(
+                    Event.RequiresCriticalConfirmation(
+                        classification = classification,
+                        action         = CriticalAction.QUARANTINE_HARD,
+                        durationDays   = durationDays,
+                    ),
+                )
+                return
+            }
+        }
+
+        viewModelScope.launch {
+            val backupTreeUri = if (mode == QuarantineMode.HARD_UNINSTALL) {
+                settings.flow.first().quarantine.backupTreeUri?.let { Uri.parse(it) }
+            } else null
+
+            if (mode == QuarantineMode.HARD_UNINSTALL && backupTreeUri == null) {
+                _events.trySend(Event.NeedsBackupFolder)
+                return@launch
+            }
+
+            val result = quarantineApp(
+                packageName   = pkg,
+                mode          = mode,
+                durationDays  = durationDays,
+                backupTreeUri = backupTreeUri,
+            )
+            when (result) {
+                is QuarantineAppUseCase.Result.HardReady ->
+                    _events.trySend(Event.LaunchIntent(result.uninstallIntent))
+                is QuarantineAppUseCase.Result.SoftReady ->
+                    // v0.2.0 UX fix — SOFT mode no longer auto-opens Settings.
+                    // We surface an explanation dialog first so the user knows
+                    // they must tap DESACTIVER (or ARCHIVER) themselves in the
+                    // OS App-info page. Without it, users were dropped on the
+                    // System screen with no context.
+                    _events.trySend(
+                        Event.SoftQuarantineCreated(
+                            intent       = result.appDetailsIntent,
+                            label        = label,
+                            durationDays = durationDays,
+                        ),
+                    )
+                is QuarantineAppUseCase.Result.Failure ->
+                    _events.trySend(Event.ShowError(result.message))
+            }
+        }
     }
 
     /** Phase X — add or remove the current package from the ignore list. */
@@ -214,9 +326,46 @@ class AppDetailViewModel @Inject constructor(
 
     sealed interface Event {
         data class LaunchIntent(val intent: Intent) : Event
+        /**
+         * v0.2.0 — ORDERED intent chain (try each in order, falling through on
+         * ActivityNotFoundException). Used for deep-links where Android 11+
+         * package visibility can lie about handler availability (cf.
+         * [com.filestech.appmanager.data.system.IntentFactory.appPermissionsSettingsChain]).
+         */
+        data class LaunchIntentChain(val intents: List<Intent>) : Event
         data class ActionDone(val message: String) : Event
         data class ShowError(val message: String) : Event
         /** Phase X — fired when the app has been staged into the Trash (no system intent launched). */
         data class MovedToTrash(val label: String) : Event
+        /** v0.2.0 — HARD-mode quarantine requested but the user has not picked a backup folder yet. */
+        data object NeedsBackupFolder : Event
+        /**
+         * v0.2.0 — SOFT-mode quarantine successfully persisted. Carries the
+         * intent to deep-link the user to the OS App-info screen + label/days
+         * for the explanatory dialog. The UI must NOT auto-launch [intent] —
+         * it shows the explanation dialog first so the user knows to tap
+         * DESACTIVER / ARCHIVER themselves.
+         */
+        data class SoftQuarantineCreated(
+            val intent: Intent,
+            val label: String,
+            val durationDays: Int,
+        ) : Event
+        /**
+         * v0.2.0 Safety Guardrails — the user attempted a destructive action
+         * on a CRITICAL app (authenticator, banking, etc.). The screen MUST
+         * show [com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog]
+         * and only re-invoke the matching action method with
+         * `bypassCriticalCheck = true` on hold-3s confirm.
+         */
+        data class RequiresCriticalConfirmation(
+            val classification: CriticalClassification,
+            val action: CriticalAction,
+            /** Carried only for [CriticalAction.QUARANTINE_HARD]. */
+            val durationDays: Int = 0,
+        ) : Event
     }
+
+    /** Actions that trigger the Safety Guardrails dialog. */
+    enum class CriticalAction { UNINSTALL, QUARANTINE_HARD }
 }

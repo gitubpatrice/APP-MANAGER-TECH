@@ -131,6 +131,38 @@
     <string name="app_detail_action_force_stop">Forcer l\'arrêt</string>
     <string name="app_detail_action_disable">Désactiver</string>
     <string name="app_detail_action_enable">Activer</string>
+    <string name="app_detail_action_quarantine">Mettre en quarantaine</string>
+    <string name="app_detail_open_android_permissions">Modifier dans Paramètres Android</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.2.0 — Sécurité (avertissement app sensible)                   -->
+    <!-- ================================================================ -->
+    <string name="critical_action_uninstall">Désinstaller</string>
+    <string name="critical_action_quarantine_hard">Mettre en quarantaine (désinstall + sauvegarde APK)</string>
+    <string name="critical_warning_hold_hint">Pour votre protection, le bouton de confirmation demande une pression de 3 secondes. Relâchez pour annuler.</string>
+    <string name="critical_warning_hold_action">Pressez 3 secondes pour %1$s</string>
+
+    <!-- Titres + corps par catégorie. %1$s en titre = label app ; %1$s en corps = action. -->
+    <string name="critical_title_auth">%1$s est une application d\'authentification (2FA)</string>
+    <string name="critical_body_auth">Si vous %1$s cette application, vous perdrez l\'accès à tous les comptes dont elle stocke les codes 2FA — sauf si vous avez exporté les clés ailleurs. La récupération peut prendre plusieurs jours.</string>
+
+    <string name="critical_title_pwd">%1$s est un gestionnaire de mots de passe</string>
+    <string name="critical_body_pwd">Si vous %1$s cette application sans avoir exporté votre coffre, vous perdrez l\'accès à tous les mots de passe enregistrés et le déverrouillage biométrique.</string>
+
+    <string name="critical_title_bank">%1$s est une application bancaire</string>
+    <string name="critical_body_bank">Si vous %1$s cette application, vous perdrez les cartes enregistrées, la validation biométrique et la configuration des paiements récurrents. Vous devrez peut-être ré-enrôler votre appareil auprès de la banque.</string>
+
+    <string name="critical_title_health">%1$s est une application de santé</string>
+    <string name="critical_body_health">Si vous %1$s cette application, vous pouvez perdre les données synchronisées, l\'historique des prescriptions ou les liens Health Connect attachés à cet appareil.</string>
+
+    <string name="critical_title_msg">%1$s est une messagerie chiffrée de bout en bout</string>
+    <string name="critical_body_msg">Si vous %1$s cette application sans exporter une sauvegarde au préalable, tous les messages locaux et la clé de chiffrement seront définitivement perdus.</string>
+
+    <string name="critical_title_transport">%1$s est une application de transport / billetterie</string>
+    <string name="critical_body_transport">Si vous %1$s cette application, les billets stockés, le lien Navigo et les renouvellements de pass peuvent être invalidés. Un ré-enregistrement peut prendre 24–48h.</string>
+
+    <string name="critical_title_user">%1$s est dans votre liste protégée</string>
+    <string name="critical_body_user">Vous avez ajouté cette application à votre liste protégée. Êtes-vous sûr de vouloir %1$s ?</string>
     <string name="app_detail_action_open_settings">Ouvrir les paramètres de l\'app</string>
 
     <!-- ================================================================ -->
@@ -500,5 +532,114 @@
     <string name="cd_close">Fermer</string>
     <string name="cd_app_logo">Logo App Manager Tech</string>
     <string name="cd_view_details">Voir les détails de l\'application</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.2.0 — Suivi des permissions                                   -->
+    <!-- ================================================================ -->
+    <string name="screen_permission_drift_title">Changements de permissions</string>
+    <string name="tool_subtitle_permission_drift">Historique des octrois et révocations</string>
+    <string name="drift_action_capture_now">Capturer maintenant</string>
+    <string name="drift_window_30_days">30 jours</string>
+    <string name="drift_window_90_days">90 jours</string>
+    <string name="drift_window_all">Tout</string>
+    <string name="drift_badge_gained">Accordée</string>
+    <string name="drift_badge_lost">Révoquée</string>
+    <string name="drift_empty_title">Aucun changement détecté</string>
+    <string name="drift_empty_body">Touchez le bouton bleu de la carte ci-dessus pour enregistrer un premier instantané. Ensuite modifiez une permission dans Paramètres Android (par ex. retirez Caméra à une app) puis re-touchez Capturer — le changement apparaîtra ici.\n\nOu activez Paramètres → Suivi vie privée → Suivre les changements de permissions pour un instantané quotidien automatique.</string>
+    <string name="drift_empty_title_after_capture">Aucun changement depuis la dernière capture</string>
+    <string name="drift_empty_body_after_capture">La surveillance est active. Pour voir un changement ici :\n\n1. Ouvrez Paramètres Android\n2. Apps → choisissez une app installée par vous (Firefox, Telegram… pas une app système)\n3. Permissions → activez ou désactivez une permission (Caméra, Micro, etc.)\n4. Revenez dans App Manager et touchez le bouton bleu « Capturer maintenant » ci-dessus</string>
+    <string name="drift_status_active">Surveillance active</string>
+    <string name="drift_status_inactive">Surveillance pas encore démarrée</string>
+    <string name="drift_status_inactive_hint">Touchez « Démarrer la surveillance » pour prendre un premier instantané de référence.</string>
+    <string name="drift_status_counts">%1$d permissions surveillées sur %2$d applications</string>
+    <string name="drift_status_last_capture">Dernière capture : %1$s</string>
+    <string name="drift_action_capture_first">Démarrer la surveillance</string>
+    <string name="drift_capture_no_change">Aucun changement détecté — modifiez une permission dans Paramètres Android puis re-touchez Capturer</string>
+    <string name="drift_capture_changes">%1$d changement(s) détecté(s)</string>
+    <string name="drift_capture_baseline">Instantané de référence enregistré (%1$d permissions). Modifiez une permission dans Paramètres Android, puis touchez à nouveau Capturer pour voir le changement ici.</string>
+    <plurals name="notif_drift_body">
+        <item quantity="one">%d permission a changé depuis le dernier instantané. Toucher pour examiner.</item>
+        <item quantity="other">%d permissions ont changé depuis le dernier instantané. Toucher pour examiner.</item>
+    </plurals>
+    <string name="notif_drift_title">Changements de permissions</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.2.0 — Quarantaine                                             -->
+    <!-- ================================================================ -->
+    <string name="screen_quarantine_title">Quarantaine</string>
+    <string name="screen_quarantine_picker_title">Mettre en quarantaine</string>
+    <string name="tool_subtitle_quarantine">Mettre une app en attente avec une date de réexamen</string>
+    <string name="quarantine_fab_add">Mettre une appli en quarantaine</string>
+    <string name="quarantine_empty_title">Aucune appli en quarantaine</string>
+    <string name="quarantine_empty_body">Touchez le bouton ci-dessous pour choisir une app et fixer une date de réexamen. Nous vous le rappellerons une fois le délai écoulé.</string>
+    <string name="quarantine_picker_search_placeholder">Rechercher une appli installée</string>
+    <string name="quarantine_picker_empty_title">Aucune appli disponible</string>
+    <string name="quarantine_picker_empty_body">Toutes les applications non-système sont soit déjà en quarantaine, soit exclues par votre recherche.</string>
+    <string name="quarantine_config_title">Mettre %1$s en quarantaine</string>
+    <string name="quarantine_config_mode_section">Mode</string>
+    <string name="quarantine_config_duration_section">Réexaminer dans</string>
+    <string name="quarantine_config_duration_value">%1$d jours</string>
+    <string name="quarantine_config_confirm">Mettre en quarantaine</string>
+    <string name="quarantine_mode_soft">Rappel seul</string>
+    <string name="quarantine_mode_soft_desc">Vous désactivez l\'app vous-même dans les Paramètres Android ; nous garderons juste la trace pour vous rappeler.</string>
+    <string name="quarantine_mode_hard">Vraie quarantaine (désinstallation)</string>
+    <string name="quarantine_mode_hard_desc">Sauvegarde de l\'APK puis lancement de la désinstallation OS.</string>
+    <string name="quarantine_hard_data_loss_warning">Les données de l\'app (préférences, comptes, fichiers) seront perdues définitivement à la désinstallation. Android ne permet pas de désactiver une app utilisateur sans root. Seul l\'APK pourra être restauré plus tard.</string>
+    <string name="quarantine_action_restore">Restaurer</string>
+    <string name="quarantine_action_drop">Supprimer</string>
+    <string name="quarantine_badge_hard">Désinstallée</string>
+    <string name="quarantine_badge_soft">Rappel</string>
+    <string name="quarantine_badge_expired">À réexaminer</string>
+    <string name="quarantine_row_restore_on">À réexaminer le %1$s</string>
+    <string name="quarantine_row_expired_on">À réexaminer depuis le %1$s</string>
+    <string name="quarantine_dialog_restore_title">Restaurer %1$s ?</string>
+    <string name="quarantine_dialog_restore_body_hard">Le PackageInstaller Android va réinstaller l\'app depuis l\'APK sauvegardé. Les données de l\'app repartiront à zéro.</string>
+    <string name="quarantine_dialog_restore_body_soft">Ouvre les Paramètres Android pour réactiver l\'app. L\'entrée de quarantaine sera supprimée.</string>
+    <string name="quarantine_dialog_drop_title">Supprimer %1$s ?</string>
+    <string name="quarantine_dialog_drop_body">Retire l\'entrée de la liste. Si l\'app est actuellement désinstallée (mode HARD), l\'APK de sauvegarde reste sur le disque — restaurez-le depuis votre gestionnaire de fichiers si besoin.</string>
+    <string name="quarantine_dialog_drop_confirm">Supprimer l\'entrée</string>
+    <string name="quarantine_dialog_backup_missing_title">Sauvegarde APK introuvable</string>
+    <string name="quarantine_dialog_backup_missing_body">L\'APK enregistré pour cette entrée n\'est plus dans votre dossier de sauvegarde — il a peut-être été supprimé ou l\'accès au dossier a été révoqué. Vous pouvez supprimer l\'entrée pour nettoyer la liste.</string>
+    <string name="quarantine_dialog_backup_missing_drop">Supprimer l\'entrée</string>
+    <string name="quarantine_error_needs_backup_folder">Choisissez un dossier de sauvegarde dans Paramètres avant d\'utiliser le mode HARD.</string>
+
+    <!-- Dialogue d'explication post-confirmation mode SOFT (v0.2.0 UX fix) -->
+    <string name="quarantine_soft_action_title">%1$s mise en quarantaine</string>
+    <string name="quarantine_soft_action_body_summary">Nous vous le rappellerons dans %1$d jour(s). Pour que la quarantaine soit effective, vous devez désactiver l\'app vous-même dans les Paramètres Android — App Manager Tech ne peut pas le faire à votre place (restriction de sécurité Android).</string>
+    <string name="quarantine_soft_action_body_step1">1. Touchez « Ouvrir Paramètres » ci-dessous.</string>
+    <string name="quarantine_soft_action_body_step2">2. Sur la page Infos de l\'application qui s\'ouvre, touchez DÉSACTIVER (ou ARCHIVER si disponible — Android 14+).</string>
+    <string name="quarantine_soft_action_body_step3">3. C\'est fait — l\'app est mise en pause jusqu\'à la date de réexamen.</string>
+    <string name="quarantine_soft_action_open_settings">Ouvrir Paramètres</string>
+    <string name="quarantine_soft_action_later">Plus tard</string>
+    <string name="action_keep">Conserver</string>
+    <string name="notif_quarantine_title">À réexaminer — %1$s</string>
+    <string name="notif_quarantine_body">La date de réexamen de %1$s est passée. Toucher pour restaurer ou supprimer l\'entrée.</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.2.0 — Sections Paramètres                                     -->
+    <!-- ================================================================ -->
+    <string name="settings_section_privacy_monitor">Suivi vie privée</string>
+    <string name="settings_privacy_monitor_drift_title">Suivre les changements de permissions</string>
+    <string name="settings_privacy_monitor_drift_desc">Capture quotidienne des permissions dangereuses de chaque application ; les octrois / révocations sont surfacés dans l\'outil « Changements de permissions ».</string>
+    <string name="settings_privacy_monitor_retention_title">Conservation de l\'historique</string>
+    <string name="settings_privacy_monitor_retention_desc">%1$d jours</string>
+    <string name="settings_privacy_monitor_include_system_title">Inclure les apps système</string>
+    <string name="settings_privacy_monitor_include_system_desc">Par défaut, seules les apps installées par vous sont suivies.</string>
+    <string name="settings_privacy_monitor_notify_title">Notifier les changements</string>
+    <string name="settings_privacy_monitor_notify_desc">Envoyer une notification quand un tick d\'instantané détecte au moins un changement.</string>
+
+    <string name="settings_section_quarantine">Quarantaine</string>
+    <string name="settings_quarantine_backup_folder_title">Dossier de sauvegarde APK</string>
+    <string name="settings_quarantine_backup_folder_none">Aucun dossier choisi. Le mode HARD est désactivé.</string>
+    <string name="settings_quarantine_backup_folder_pick">Choisir un dossier</string>
+    <string name="settings_quarantine_backup_folder_change">Changer de dossier</string>
+    <string name="settings_quarantine_reminder_title">Rappels de réexamen</string>
+    <string name="settings_quarantine_reminder_desc">Envoyer une notification quand une entrée de quarantaine dépasse sa date de réexamen.</string>
+
+    <string name="settings_retention_30_days">30 jours</string>
+    <string name="settings_retention_90_days">90 jours</string>
+    <string name="settings_retention_180_days">180 jours</string>
+    <string name="settings_retention_365_days">1 an</string>
+    <string name="settings_retention_picker_title">Conservation de l\'historique</string>
 
 </resources>

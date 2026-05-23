@@ -1,0 +1,8 @@
+v0.2.0 — Suivi des permissions + Quarantaine + Apps protégées
+
+- Nouveau : Changements de permissions — historique des octrois/révocations
+- Nouveau : Quarantaine — mettre une app en pause (rappel ou désinstall+APK)
+- Apps protégées : avertissement (hold 3s) pour 2FA, banque, mots de passe…
+- Bouton « Modifier dans Paramètres Android » dans la fiche app
+- Migration Room v3→v4 additive avec test
+- Plus de couleurs cohérentes (rouge = destructif, bleu = confirmation)

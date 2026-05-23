@@ -1,5 +1,8 @@
 package com.filestech.appmanager.ui.screens.settings
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +20,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.SentimentSatisfied
@@ -37,6 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -81,9 +86,27 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var themeDialog by rememberSaveable { mutableStateOf(false) }
     var sortDialog by rememberSaveable { mutableStateOf(false) }
+    var retentionDialog by rememberSaveable { mutableStateOf(false) }
+
+    // SAF folder picker for the HARD-mode APK backup destination.
+    // OPEN_DOCUMENT_TREE returns a content:// tree URI; we take a persistable
+    // read+write grant so subsequent process restarts can still write into it
+    // without re-prompting the user.
+    val backupFolderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+    ) { uri ->
+        if (uri != null) {
+            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+            }
+            viewModel.setQuarantineBackupTreeUri(uri.toString())
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -110,6 +133,14 @@ fun SettingsScreen(
             onAutoScanChange     = viewModel::setAutoScanOnLaunch,
             onFlagSecureChange   = viewModel::setFlagSecure,
             onConfirmDeleteChange = viewModel::setConfirmBeforeDelete,
+            // v0.2.0 — Privacy monitor
+            onPermissionDriftEnabledChange = viewModel::setPermissionDriftEnabled,
+            onPermissionDriftRetentionClick = { retentionDialog = true },
+            onPermissionDriftIncludeSystemChange = viewModel::setPermissionDriftIncludeSystemApps,
+            onPermissionDriftNotifyChange = viewModel::setPermissionDriftNotify,
+            // v0.2.0 — Quarantine
+            onPickBackupFolderClick = { backupFolderLauncher.launch(null) },
+            onQuarantineReminderChange = viewModel::setQuarantineRestoreReminderEnabled,
             onAboutClick         = onOpenAbout,
             onCleanerClick       = onOpenCleaner,
             onIgnoreListClick    = onOpenIgnoreList,
@@ -146,6 +177,35 @@ fun SettingsScreen(
             onDismiss = { sortDialog = false },
         )
     }
+
+    if (retentionDialog) {
+        RadioPickerDialog(
+            title    = stringResource(R.string.settings_retention_picker_title),
+            options  = RetentionOption.entries.toList(),
+            selected = RetentionOption.closestTo(settings.privacyMonitor.permissionDriftRetentionDays),
+            labelOf  = { stringResource(it.labelRes) },
+            onSelect = { viewModel.setPermissionDriftRetentionDays(it.days) },
+            onDismiss = { retentionDialog = false },
+        )
+    }
+}
+
+/**
+ * Discrete retention choices exposed in the Settings UI. Backed by the integer
+ * setting; selection on open is the closest exposed option (defensively
+ * handles arbitrary persisted ints — e.g. if a future build exposes a slider
+ * and downgrades to a discrete-only build).
+ */
+private enum class RetentionOption(val days: Int, val labelRes: Int) {
+    DAYS_30(30, R.string.settings_retention_30_days),
+    DAYS_90(90, R.string.settings_retention_90_days),
+    DAYS_180(180, R.string.settings_retention_180_days),
+    DAYS_365(365, R.string.settings_retention_365_days);
+
+    companion object {
+        fun closestTo(target: Int): RetentionOption =
+            entries.minBy { kotlin.math.abs(it.days - target) }
+    }
 }
 
 @Composable
@@ -159,6 +219,12 @@ private fun SettingsBody(
     onAutoScanChange: (Boolean) -> Unit,
     onFlagSecureChange: (Boolean) -> Unit,
     onConfirmDeleteChange: (Boolean) -> Unit,
+    onPermissionDriftEnabledChange: (Boolean) -> Unit,
+    onPermissionDriftRetentionClick: () -> Unit,
+    onPermissionDriftIncludeSystemChange: (Boolean) -> Unit,
+    onPermissionDriftNotifyChange: (Boolean) -> Unit,
+    onPickBackupFolderClick: () -> Unit,
+    onQuarantineReminderChange: (Boolean) -> Unit,
     onAboutClick: () -> Unit,
     onCleanerClick: () -> Unit,
     onIgnoreListClick: () -> Unit,
@@ -231,6 +297,59 @@ private fun SettingsBody(
                 description    = stringResource(R.string.settings_confirm_delete_desc),
                 checked        = settings.privacy.confirmBeforeDelete,
                 onCheckedChange = onConfirmDeleteChange,
+            )
+        }
+
+        // v0.2.0 — Privacy monitor (Permission Drift Tracker preferences)
+        SectionHeader(stringResource(R.string.settings_section_privacy_monitor))
+        SettingsCard {
+            ToggleRow(
+                title          = stringResource(R.string.settings_privacy_monitor_drift_title),
+                description    = stringResource(R.string.settings_privacy_monitor_drift_desc),
+                checked        = settings.privacyMonitor.permissionDriftEnabled,
+                onCheckedChange = onPermissionDriftEnabledChange,
+            )
+            NavigationRow(
+                title          = stringResource(R.string.settings_privacy_monitor_retention_title),
+                currentValue   = stringResource(
+                    R.string.settings_privacy_monitor_retention_desc,
+                    settings.privacyMonitor.permissionDriftRetentionDays,
+                ),
+                onClick        = onPermissionDriftRetentionClick,
+            )
+            ToggleRow(
+                title          = stringResource(R.string.settings_privacy_monitor_include_system_title),
+                description    = stringResource(R.string.settings_privacy_monitor_include_system_desc),
+                checked        = settings.privacyMonitor.permissionDriftIncludeSystemApps,
+                onCheckedChange = onPermissionDriftIncludeSystemChange,
+            )
+            ToggleRow(
+                title          = stringResource(R.string.settings_privacy_monitor_notify_title),
+                description    = stringResource(R.string.settings_privacy_monitor_notify_desc),
+                checked        = settings.privacyMonitor.permissionDriftNotify,
+                onCheckedChange = onPermissionDriftNotifyChange,
+            )
+        }
+
+        // v0.2.0 — Quarantine
+        SectionHeader(stringResource(R.string.settings_section_quarantine))
+        SettingsCard {
+            val backupUri = settings.quarantine.backupTreeUri
+            NavigationRow(
+                title          = stringResource(R.string.settings_quarantine_backup_folder_title),
+                description    = backupUri ?: stringResource(R.string.settings_quarantine_backup_folder_none),
+                leadingIcon    = Icons.Outlined.Inventory2,
+                currentValue   = stringResource(
+                    if (backupUri == null) R.string.settings_quarantine_backup_folder_pick
+                    else R.string.settings_quarantine_backup_folder_change,
+                ),
+                onClick        = onPickBackupFolderClick,
+            )
+            ToggleRow(
+                title          = stringResource(R.string.settings_quarantine_reminder_title),
+                description    = stringResource(R.string.settings_quarantine_reminder_desc),
+                checked        = settings.quarantine.restoreReminderEnabled,
+                onCheckedChange = onQuarantineReminderChange,
             )
         }
 

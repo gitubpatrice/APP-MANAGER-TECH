@@ -38,21 +38,52 @@ class NotificationChannels @Inject constructor(
     fun ensureRegistered() {
         val mgr = ContextCompat.getSystemService(context, NotificationManager::class.java)
             ?: return
+
         // VIII L-5 fix: no early-return on existing channel — Android dedupes
         // by ID and merges modifiable properties on re-create (importance is
         // locked once set by the user, but description/group/etc. update).
-        val channel = NotificationChannel(
-            SCAN_CHANNEL_ID,
-            "Background scan",
-            NotificationManager.IMPORTANCE_DEFAULT,
-        ).apply {
-            description = "Notifications fired by the periodic catalogue scan worker."
-            setShowBadge(false)
-        }
-        mgr.createNotificationChannel(channel)
+        mgr.createNotificationChannel(
+            NotificationChannel(
+                SCAN_CHANNEL_ID,
+                "Background scan",
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
+                description = "Notifications fired by the periodic catalogue scan worker."
+                setShowBadge(false)
+            },
+        )
+
+        // v0.2.0 — Permission Drift Tracker. IMPORTANCE_DEFAULT so a drift
+        // produces a heads-up the user can dismiss easily — never high-priority
+        // (these are advisory, not actionable emergencies).
+        mgr.createNotificationChannel(
+            NotificationChannel(
+                DRIFT_CHANNEL_ID,
+                "Permission changes",
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
+                description = "Fired when an installed app's permissions change between snapshots."
+                setShowBadge(true)
+            },
+        )
+
+        // v0.2.0 — App Quarantine expiry reminders. Same importance — a
+        // missed reminder is annoying, not catastrophic.
+        mgr.createNotificationChannel(
+            NotificationChannel(
+                QUARANTINE_CHANNEL_ID,
+                "Quarantine reminders",
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
+                description = "Fired when a quarantined app's review date has passed."
+                setShowBadge(true)
+            },
+        )
     }
 
     companion object {
-        const val SCAN_CHANNEL_ID = "scan"
+        const val SCAN_CHANNEL_ID       = "scan"
+        const val DRIFT_CHANNEL_ID      = "permission_drift"
+        const val QUARANTINE_CHANNEL_ID = "quarantine"
     }
 }

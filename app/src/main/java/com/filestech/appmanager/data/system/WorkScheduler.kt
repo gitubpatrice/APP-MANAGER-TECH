@@ -8,6 +8,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.filestech.appmanager.domain.model.ScanInterval
 import com.filestech.appmanager.data.system.workers.BackgroundScanWorker
+import com.filestech.appmanager.data.system.workers.PermissionSnapshotWorker
+import com.filestech.appmanager.data.system.workers.QuarantineRestoreWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
@@ -67,7 +69,76 @@ class WorkScheduler @Inject constructor(
         Timber.i("Background scan scheduled every %d hours", repeatHours)
     }
 
+    /**
+     * v0.2.0 — schedules / cancels the [PermissionSnapshotWorker].
+     *
+     * Idempotent ([ExistingPeriodicWorkPolicy.UPDATE]) — re-applying with the
+     * same [enabled] value is a no-op. When [enabled] is false, the unique
+     * work is cancelled outright.
+     */
+    fun applyPermissionSnapshotTracking(enabled: Boolean) {
+        if (!enabled) {
+            workManager.cancelUniqueWork(UNIQUE_PERMISSION_DRIFT)
+            Timber.i("Permission Drift snapshot worker cancelled")
+            return
+        }
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val request = PeriodicWorkRequestBuilder<PermissionSnapshotWorker>(
+            24L,
+            TimeUnit.HOURS,
+        )
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            UNIQUE_PERMISSION_DRIFT,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            request,
+        )
+        Timber.i("Permission Drift snapshot worker scheduled (24h)")
+    }
+
+    /**
+     * v0.2.0 — schedules / cancels the [QuarantineRestoreWorker].
+     *
+     * The reminder worker is cheap (one Room query + 0..N notifs) so it runs
+     * unconstrained except for `setRequiresBatteryNotLow`. Disabling it stops
+     * the expiry notifs but the entries themselves stay persisted — the in-
+     * app Quarantine screen remains the source of truth.
+     */
+    fun applyQuarantineRestoreScheduling(enabled: Boolean) {
+        if (!enabled) {
+            workManager.cancelUniqueWork(UNIQUE_QUARANTINE)
+            Timber.i("Quarantine restore worker cancelled")
+            return
+        }
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val request = PeriodicWorkRequestBuilder<QuarantineRestoreWorker>(
+            24L,
+            TimeUnit.HOURS,
+        )
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            UNIQUE_QUARANTINE,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            request,
+        )
+        Timber.i("Quarantine restore worker scheduled (24h)")
+    }
+
     private companion object {
-        const val UNIQUE_NAME = "app_manager_tech_background_scan"
+        const val UNIQUE_NAME             = "app_manager_tech_background_scan"
+        const val UNIQUE_PERMISSION_DRIFT = "app_manager_tech_permission_drift"
+        const val UNIQUE_QUARANTINE       = "app_manager_tech_quarantine_restore"
     }
 }

@@ -68,6 +68,16 @@ class SettingsRepositoryImpl @Inject constructor(
         val FLAG_SECURE                = booleanPreferencesKey("privacy_flag_secure")
         val CONFIRM_BEFORE_DELETE      = booleanPreferencesKey("privacy_confirm_before_delete")
 
+        // Privacy Monitor (v0.2.0 — Permission Drift Tracker)
+        val PMON_DRIFT_ENABLED         = booleanPreferencesKey("privacy_monitor_drift_enabled")
+        val PMON_DRIFT_RETENTION_DAYS  = intPreferencesKey("privacy_monitor_drift_retention_days")
+        val PMON_DRIFT_INCLUDE_SYSTEM  = booleanPreferencesKey("privacy_monitor_drift_include_system")
+        val PMON_DRIFT_NOTIFY          = booleanPreferencesKey("privacy_monitor_drift_notify")
+
+        // Quarantine (v0.2.0)
+        val QUAR_BACKUP_TREE_URI       = stringPreferencesKey("quarantine_backup_tree_uri")
+        val QUAR_RESTORE_REMINDER      = booleanPreferencesKey("quarantine_restore_reminder")
+
         // Ignore list (Phase VI)
         val IGNORED_PACKAGES           = stringSetPreferencesKey("ignored_packages")
     }
@@ -114,6 +124,23 @@ class SettingsRepositoryImpl @Inject constructor(
                 confirmBeforeDelete = this[Keys.CONFIRM_BEFORE_DELETE]
                     ?: defaults.privacy.confirmBeforeDelete,
             ),
+            privacyMonitor = AppSettings.PrivacyMonitor(
+                permissionDriftEnabled = this[Keys.PMON_DRIFT_ENABLED]
+                    ?: defaults.privacyMonitor.permissionDriftEnabled,
+                permissionDriftRetentionDays = this[Keys.PMON_DRIFT_RETENTION_DAYS]
+                    ?.coerceIn(MIN_RETENTION_DAYS, MAX_RETENTION_DAYS)
+                    ?: defaults.privacyMonitor.permissionDriftRetentionDays,
+                permissionDriftIncludeSystemApps = this[Keys.PMON_DRIFT_INCLUDE_SYSTEM]
+                    ?: defaults.privacyMonitor.permissionDriftIncludeSystemApps,
+                permissionDriftNotify = this[Keys.PMON_DRIFT_NOTIFY]
+                    ?: defaults.privacyMonitor.permissionDriftNotify,
+            ),
+            quarantine = AppSettings.Quarantine(
+                backupTreeUri = this[Keys.QUAR_BACKUP_TREE_URI]
+                    ?: defaults.quarantine.backupTreeUri,
+                restoreReminderEnabled = this[Keys.QUAR_RESTORE_REMINDER]
+                    ?: defaults.quarantine.restoreReminderEnabled,
+            ),
             ignoredPackages = this[Keys.IGNORED_PACKAGES]
                 ?: defaults.ignoredPackages,
         )
@@ -145,7 +172,32 @@ class SettingsRepositoryImpl @Inject constructor(
             prefs[Keys.EXPORT_FORMAT]              = updated.scanner.exportFormat.name
             prefs[Keys.FLAG_SECURE]                = updated.privacy.flagSecure
             prefs[Keys.CONFIRM_BEFORE_DELETE]      = updated.privacy.confirmBeforeDelete
+
+            // Privacy Monitor
+            prefs[Keys.PMON_DRIFT_ENABLED]         = updated.privacyMonitor.permissionDriftEnabled
+            prefs[Keys.PMON_DRIFT_RETENTION_DAYS]  = updated.privacyMonitor.permissionDriftRetentionDays
+                .coerceIn(MIN_RETENTION_DAYS, MAX_RETENTION_DAYS)
+            prefs[Keys.PMON_DRIFT_INCLUDE_SYSTEM]  = updated.privacyMonitor.permissionDriftIncludeSystemApps
+            prefs[Keys.PMON_DRIFT_NOTIFY]          = updated.privacyMonitor.permissionDriftNotify
+
+            // Quarantine — string keys can't hold null, so we remove the key
+            // when the URI is null instead of writing an empty string (which
+            // would later deserialize as a non-null empty Uri).
+            val treeUri = updated.quarantine.backupTreeUri
+            if (treeUri.isNullOrBlank()) {
+                prefs.remove(Keys.QUAR_BACKUP_TREE_URI)
+            } else {
+                prefs[Keys.QUAR_BACKUP_TREE_URI] = treeUri
+            }
+            prefs[Keys.QUAR_RESTORE_REMINDER]      = updated.quarantine.restoreReminderEnabled
+
             prefs[Keys.IGNORED_PACKAGES]           = updated.ignoredPackages
         }
+    }
+
+    private companion object {
+        /** UX-clamped retention range for the drift tracker (defensive read+write). */
+        const val MIN_RETENTION_DAYS = 7
+        const val MAX_RETENTION_DAYS = 365
     }
 }

@@ -25,6 +25,8 @@ import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.SentimentSatisfied
 import androidx.compose.material.icons.outlined.VerifiedUser
@@ -86,6 +88,8 @@ fun ToolsScreen(
     onExport: () -> Unit,
     onTransparency: () -> Unit,
     onTrash: () -> Unit,
+    onPermissionDrift: () -> Unit,
+    onQuarantine: () -> Unit,
 ) {
     // 12 tools — recomputed each composition (cheap; lambda keys change
     // identity across NavController recompositions anyway).
@@ -105,10 +109,13 @@ fun ToolsScreen(
         ToolEntry(R.string.screen_export_title,              R.string.tool_subtitle_export,           Icons.Outlined.FileDownload,       ToolColors.DeepPurple,onExport),
         ToolEntry(R.string.screen_transparency_title,        R.string.tool_subtitle_transparency,     Icons.Outlined.VerifiedUser,       ToolColors.Cyan,      onTransparency),
         ToolEntry(R.string.settings_tools_trash,             R.string.tool_subtitle_trash,            Icons.Outlined.Delete,             BrandDanger,          onTrash),
-        // v0.1.3 user feedback — Settings + About removed from this grid;
-        // both stay reachable via the bottom-nav "À propos" tab + the home
-        // toolbar overflow menu ("Paramètres") + (for About) the Settings
-        // screen's "À propos" navigation row.
+        // v0.2.0 — Permission Drift Tracker + App Quarantine (two new
+        // privacy-first tools). Drift uses History/Indigo, Quarantine uses
+        // Inventory2/Coral-soft (kept slightly different from the Security
+        // Audit coral to avoid visual confusion between the two security
+        // tools).
+        ToolEntry(R.string.screen_permission_drift_title,    R.string.tool_subtitle_permission_drift, Icons.Outlined.History,            ToolColors.IndigoDeep, onPermissionDrift),
+        ToolEntry(R.string.screen_quarantine_title,          R.string.tool_subtitle_quarantine,       Icons.Outlined.Inventory2,         ToolColors.Slate,      onQuarantine),
     )
 
     Scaffold(
@@ -232,5 +239,8 @@ private object ToolColors {
     val SoftPurple = Color(0xFF8E24AA) // Material Purple 600 — AA both
     val DeepPurple = Color(0xFF512DA8) // Material Deep Purple 700 (was duplicate of Purple)
     val Cyan       = Color(0xFF0097A7) // Material Cyan 700
+    // v0.2.0 additions — both ≥4.5:1 on Material's light + dark surfaceContainerLow:
+    val IndigoDeep = Color(0xFF283593) // Material Indigo 800 — distinct from Indigo (600) used by PermissionFilter
+    val Slate      = Color(0xFF455A64) // Material Blue Grey 700 — neutral / utilitarian
 }
 

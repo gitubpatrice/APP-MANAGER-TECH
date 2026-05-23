@@ -25,6 +25,9 @@ room                    = "2.6.1"
 # --- DataStore ---
 datastore               = "1.1.1"
 
+# --- DocumentFile (SAF tree wrapping) ---
+documentfile            = "1.0.1"
+
 # --- SplashScreen (compat for API 26–30) ---
 androidxSplashscreen    = "1.0.1"
 
@@ -92,6 +95,9 @@ room-testing                            = { group = "androidx.room",            
 
 # DataStore
 datastore-preferences                   = { group = "androidx.datastore",              name = "datastore-preferences",             version.ref = "datastore" }
+
+# DocumentFile (SAF tree URI wrapping)
+androidx-documentfile                   = { group = "androidx.documentfile",           name = "documentfile",                      version.ref = "documentfile" }
 
 # SplashScreen
 androidx-splashscreen                   = { group = "androidx.core",                   name = "core-splashscreen",                 version.ref = "androidxSplashscreen" }

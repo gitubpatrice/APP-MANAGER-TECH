@@ -5,6 +5,8 @@ import androidx.room.Room
 import com.filestech.appmanager.data.local.db.AppDatabase
 import com.filestech.appmanager.data.local.db.Migrations
 import com.filestech.appmanager.data.local.db.dao.AppInfoDao
+import com.filestech.appmanager.data.local.db.dao.PermissionSnapshotDao
+import com.filestech.appmanager.data.local.db.dao.QuarantineEntryDao
 import com.filestech.appmanager.data.local.db.dao.TrashItemDao
 import dagger.Module
 import dagger.Provides
@@ -42,4 +44,12 @@ object DatabaseModule {
 
     @Provides
     fun provideTrashItemDao(db: AppDatabase): TrashItemDao = db.trashItemDao()
+
+    @Provides
+    fun providePermissionSnapshotDao(db: AppDatabase): PermissionSnapshotDao =
+        db.permissionSnapshotDao()
+
+    @Provides
+    fun provideQuarantineEntryDao(db: AppDatabase): QuarantineEntryDao =
+        db.quarantineEntryDao()
 }

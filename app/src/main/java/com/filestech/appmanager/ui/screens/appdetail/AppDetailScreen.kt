@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Settings
@@ -72,7 +73,12 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.PrivacyDataPanel
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
+import com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog
+import com.filestech.appmanager.ui.components.dialogs.QuarantineConfigDialog
+import com.filestech.appmanager.ui.components.dialogs.SoftQuarantineActionDialog
 import com.filestech.appmanager.ui.components.dialogs.UninstallChoiceDialog
+import com.filestech.appmanager.domain.model.CriticalClassification
+import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
@@ -105,6 +111,12 @@ fun AppDetailScreen(
     val scope = rememberCoroutineScope()
 
     var confirmDialog by rememberSaveable { mutableStateOf<ConfirmIntent?>(null) }
+    var quarantineDialogOpen by rememberSaveable { mutableStateOf(false) }
+    // Intent is Parcelable not Serializable — `remember` instead of
+    // rememberSaveable. A mid-dialog rotation drops the dialog; acceptable
+    // for a transient prompt (the quarantine entry is already persisted).
+    var softQuarantinePending by remember { mutableStateOf<SoftQuarantinePrompt?>(null) }
+    var criticalConfirm by remember { mutableStateOf<CriticalConfirmState?>(null) }
 
     LaunchedEffect(packageName) {
         viewModel.load(packageName)
@@ -121,6 +133,28 @@ fun AppDetailScreen(
                 is AppDetailViewModel.Event.MovedToTrash ->
                     snackbarHostState.showSnackbar(
                         context.getString(R.string.trash_moved_snackbar, event.label),
+                    )
+                AppDetailViewModel.Event.NeedsBackupFolder ->
+                    snackbarHostState.showSnackbar(
+                        context.getString(R.string.quarantine_error_needs_backup_folder),
+                    )
+                is AppDetailViewModel.Event.LaunchIntentChain ->
+                    if (!launchIntentChain(context, event.intents)) {
+                        snackbarHostState.showSnackbar(context.getString(R.string.error_no_handler))
+                    }
+                is AppDetailViewModel.Event.SoftQuarantineCreated ->
+                    softQuarantinePending = SoftQuarantinePrompt(
+                        intent       = event.intent,
+                        label        = event.label,
+                        durationDays = event.durationDays,
+                    )
+                is AppDetailViewModel.Event.RequiresCriticalConfirmation ->
+                    criticalConfirm = CriticalConfirmState(
+                        classification = event.classification,
+                        action         = event.action,
+                        durationDays   = event.durationDays,
+                        appLabel       = (state.detailOutcome as? Outcome.Success)?.value?.info?.label
+                            ?: event.classification.packageName,
                     )
             }
         }
@@ -178,7 +212,9 @@ fun AppDetailScreen(
             onToggleEnabled = { newEnabled ->
                 confirmDialog = if (newEnabled) ConfirmIntent.Enable else ConfirmIntent.Disable
             },
-            onToggleIgnore  = viewModel::toggleIgnore,
+            onQuarantine             = { quarantineDialogOpen = true },
+            onOpenPermissionsSettings = viewModel::openAppPermissionsSettings,
+            onToggleIgnore           = viewModel::toggleIgnore,
         )
     }
 
@@ -233,9 +269,83 @@ fun AppDetailScreen(
         )
         null -> Unit
     }
+
+    if (quarantineDialogOpen) {
+        val label = (state.detailOutcome as? Outcome.Success)?.value?.info?.label ?: packageName
+        QuarantineConfigDialog(
+            label     = label,
+            isWorking = false,
+            onDismiss = { quarantineDialogOpen = false },
+            onConfirm = { mode, days ->
+                viewModel.quarantine(mode, days)
+                quarantineDialogOpen = false
+            },
+        )
+    }
+
+    softQuarantinePending?.let { prompt ->
+        SoftQuarantineActionDialog(
+            label        = prompt.label,
+            durationDays = prompt.durationDays,
+            onOpenSettings = {
+                launchIntent(context, prompt.intent)
+                softQuarantinePending = null
+            },
+            onLater = { softQuarantinePending = null },
+        )
+    }
+
+    criticalConfirm?.let { state ->
+        val actionLabel = stringResource(
+            when (state.action) {
+                AppDetailViewModel.CriticalAction.UNINSTALL       -> R.string.critical_action_uninstall
+                AppDetailViewModel.CriticalAction.QUARANTINE_HARD -> R.string.critical_action_quarantine_hard
+            },
+        )
+        CriticalWarningDialog(
+            appLabel    = state.appLabel,
+            actionLabel = actionLabel,
+            category    = state.classification.category,
+            onConfirm = {
+                when (state.action) {
+                    AppDetailViewModel.CriticalAction.UNINSTALL ->
+                        viewModel.uninstall(bypassCriticalCheck = true)
+                    AppDetailViewModel.CriticalAction.QUARANTINE_HARD ->
+                        viewModel.quarantine(
+                            mode = QuarantineMode.HARD_UNINSTALL,
+                            durationDays = state.durationDays,
+                            bypassCriticalCheck = true,
+                        )
+                }
+                criticalConfirm = null
+            },
+            onCancel = { criticalConfirm = null },
+        )
+    }
     // Hint kotlin scope is used (rememberCoroutineScope keeps for future Phase VI batch flows).
     @Suppress("UNUSED_EXPRESSION") scope
 }
+
+/** State holder for the post-event-fire Safety Guardrails dialog. */
+private data class CriticalConfirmState(
+    val classification: CriticalClassification,
+    val action: AppDetailViewModel.CriticalAction,
+    val durationDays: Int,
+    val appLabel: String,
+)
+
+/**
+ * Holds the data needed to render the SOFT-mode post-quarantine explanation
+ * dialog. NOT [java.io.Serializable] because [Intent] is Parcelable, not
+ * Serializable — the wrapping state uses plain `remember`, so a config change
+ * during the dialog drops it (the quarantine entry is already persisted, so
+ * the user can re-trigger from the Quarantine list).
+ */
+private data class SoftQuarantinePrompt(
+    val intent: Intent,
+    val label: String,
+    val durationDays: Int,
+)
 
 // ---------------------------------------------------------------------------
 // Body
@@ -250,6 +360,8 @@ private fun AppDetailBody(
     onClearCache: () -> Unit,
     onForceStop: () -> Unit,
     onToggleEnabled: (Boolean) -> Unit,
+    onQuarantine: () -> Unit,
+    onOpenPermissionsSettings: () -> Unit,
     onToggleIgnore: () -> Unit,
 ) {
     Box(
@@ -264,15 +376,17 @@ private fun AppDetailBody(
                 onRetry = onRetry,
             )
             is Outcome.Success -> AppDetailContent(
-                detail            = o.value,
-                privacyScore      = state.privacyScore,
-                trackerReport     = state.trackerReport,
-                isIgnored         = state.isIgnored,
-                onUninstall       = onUninstall,
-                onClearCache      = onClearCache,
-                onForceStop       = onForceStop,
-                onToggleEnabled   = onToggleEnabled,
-                onToggleIgnore    = onToggleIgnore,
+                detail                    = o.value,
+                privacyScore              = state.privacyScore,
+                trackerReport             = state.trackerReport,
+                isIgnored                 = state.isIgnored,
+                onUninstall               = onUninstall,
+                onClearCache              = onClearCache,
+                onForceStop               = onForceStop,
+                onToggleEnabled           = onToggleEnabled,
+                onQuarantine              = onQuarantine,
+                onOpenPermissionsSettings = onOpenPermissionsSettings,
+                onToggleIgnore            = onToggleIgnore,
             )
         }
     }
@@ -288,6 +402,8 @@ private fun AppDetailContent(
     onClearCache: () -> Unit,
     onForceStop: () -> Unit,
     onToggleEnabled: (Boolean) -> Unit,
+    onQuarantine: () -> Unit,
+    onOpenPermissionsSettings: () -> Unit,
     onToggleIgnore: () -> Unit,
 ) {
     Column(
@@ -316,10 +432,14 @@ private fun AppDetailContent(
             onClearCache    = onClearCache,
             onForceStop     = onForceStop,
             onToggleEnabled = onToggleEnabled,
+            onQuarantine    = onQuarantine,
             onToggleIgnore  = onToggleIgnore,
         )
         SectionHeader(stringResource(R.string.app_detail_section_permissions))
-        PermissionsCard(detail)
+        PermissionsCard(
+            detail                    = detail,
+            onOpenPermissionsSettings = onOpenPermissionsSettings,
+        )
         SectionHeader(stringResource(R.string.app_detail_section_install_info))
         InstallInfoCard(detail.info)
     }
@@ -452,6 +572,7 @@ private fun ActionsCard(
     onClearCache: () -> Unit,
     onForceStop: () -> Unit,
     onToggleEnabled: (Boolean) -> Unit,
+    onQuarantine: () -> Unit,
     onToggleIgnore: () -> Unit,
 ) {
     SectionCard {
@@ -496,6 +617,18 @@ private fun ActionsCard(
                     else stringResource(R.string.app_detail_action_enable),
                 )
             }
+            // v0.2.0 — Quarantine this app. Opens the shared QuarantineConfigDialog
+            // (mode picker + duration slider). HARD mode requires the user to
+            // have picked a backup folder in Settings → Quarantine; if not, the
+            // VM emits NeedsBackupFolder and the snackbar guides the user there.
+            OutlinedButton(
+                onClick  = onQuarantine,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Outlined.Inventory2, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.app_detail_action_quarantine))
+            }
             // Phase X — Ignore / Unignore (whitelist this app from batch actions and notifications)
             OutlinedButton(
                 onClick  = onToggleIgnore,
@@ -516,7 +649,10 @@ private fun ActionsCard(
 }
 
 @Composable
-private fun PermissionsCard(detail: AppDetail) {
+private fun PermissionsCard(
+    detail: AppDetail,
+    onOpenPermissionsSettings: () -> Unit,
+) {
     SectionCard {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -547,6 +683,19 @@ private fun PermissionsCard(detail: AppDetail) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            // v0.2.0 — one-tap deep-link to OS Permissions sub-page for this
+            // app. Direct response to feedback "qui me renvoie au bon endroit
+            // sans chercher 2 heures" — used after a permission drift to
+            // re-grant without navigating through 3 Settings screens.
+            Spacer(modifier = Modifier.height(12.dp))
+            FilledTonalButton(
+                onClick  = onOpenPermissionsSettings,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Outlined.Settings, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.app_detail_open_android_permissions))
             }
             if (detail.requestedPermissions.isNotEmpty()) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -687,4 +836,26 @@ private fun launchIntent(context: android.content.Context, intent: Intent) {
     runCatching {
         context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }.onFailure { Timber.w(it, "Failed to launch intent %s", intent) }
+}
+
+/**
+ * Tries each intent in order, returns true on the first that launches.
+ * Catches ActivityNotFoundException + SecurityException — both mean "this
+ * handler is not usable", fall through to the next candidate. Used for
+ * deep-links where Android 11+ package visibility can lie about handler
+ * availability (cf. IntentFactory.appPermissionsSettingsChain).
+ */
+private fun launchIntentChain(context: android.content.Context, intents: List<Intent>): Boolean {
+    for (intent in intents) {
+        try {
+            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            return true
+        } catch (e: android.content.ActivityNotFoundException) {
+            Timber.w(e, "AppDetail: no handler for %s, trying next", intent.action)
+        } catch (e: SecurityException) {
+            Timber.w(e, "AppDetail: security denial for %s, trying next", intent.action)
+        }
+    }
+    Timber.e("AppDetail: NO handler available across %d candidates", intents.size)
+    return false
 }

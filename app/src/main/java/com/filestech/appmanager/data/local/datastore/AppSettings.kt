@@ -26,6 +26,10 @@ data class AppSettings(
     val appearance: Appearance = Appearance(),
     val scanner: Scanner = Scanner(),
     val privacy: Privacy = Privacy(),
+    /** v0.2.0 — Permission Drift Tracker preferences. */
+    val privacyMonitor: PrivacyMonitor = PrivacyMonitor(),
+    /** v0.2.0 — App Quarantine preferences. */
+    val quarantine: Quarantine = Quarantine(),
     /**
      * Packages explicitly excluded from batch actions (uninstall, force stop,
      * cache clean) and from background-scan notifications. Phase VI feature.
@@ -83,5 +87,43 @@ data class AppSettings(
         val flagSecure: Boolean = false,
         /** Confirm before deleting cache. */
         val confirmBeforeDelete: Boolean = true,
+    )
+
+    /**
+     * v0.2.0 — Permission Drift Tracker preferences.
+     *
+     * The Permission Drift feature is **opt-in** (default OFF) for two reasons:
+     *  1. Battery: even a 24-h periodic worker is overhead users should
+     *     consciously accept.
+     *  2. Mental model: the feed is most useful for users who actually want
+     *     to monitor supply-chain-style permission changes. Pushing it on by
+     *     default would feel noisy to a casual user.
+     */
+    data class PrivacyMonitor(
+        /** Master switch — schedules / cancels the snapshot worker. */
+        val permissionDriftEnabled: Boolean = false,
+        /** Days of history to keep before purging. Defaults to 90. Clamped [7, 365] in UI. */
+        val permissionDriftRetentionDays: Int = 90,
+        /** Include system apps in the drift feed. Default false (noise reduction). */
+        val permissionDriftIncludeSystemApps: Boolean = false,
+        /** Fire a notification on detected drifts. */
+        val permissionDriftNotify: Boolean = true,
+    )
+
+    /**
+     * v0.2.0 — App Quarantine preferences.
+     *
+     * [backupTreeUri] is the persistable SAF tree URI the user picked once
+     * via OPEN_DOCUMENT_TREE for HARD-mode APK backups. Stored as a string
+     * (the [android.net.Uri] is parsed at use site). Null = user never picked
+     * a folder; UI surfaces a CTA to pick one before allowing HARD mode.
+     *
+     * [restoreReminderEnabled] gates the [com.filestech.appmanager.data.system.workers.QuarantineRestoreWorker]
+     * scheduling. If the user disables reminders, expired entries still sit
+     * in the list (in-app surface), but no notif fires.
+     */
+    data class Quarantine(
+        val backupTreeUri: String? = null,
+        val restoreReminderEnabled: Boolean = true,
     )
 }

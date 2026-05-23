@@ -1,0 +1,8 @@
+v0.2.0 — Permission Drift + Quarantine + Safety Guardrails
+
+- New: Permission Drift — history of granted/revoked permissions per app
+- New: Quarantine — set apps aside (reminder mode or uninstall+APK backup)
+- Safety Guardrails: 3s hold-to-confirm for 2FA, banking, password apps…
+- "Modify in Android Settings" button on app detail screen
+- Additive Room v3→v4 migration with test
+- Consistent action colours (red = destructive, blue = confirm)

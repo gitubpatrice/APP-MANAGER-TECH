@@ -1,6 +1,6 @@
 # App Manager Tech — Security model
 
-Current release: **v0.1.0**
+Current release: **v0.2.0**
 
 ## Signing certificate
 
@@ -36,6 +36,10 @@ Primary threats and mitigations:
 | Tracker SDK supply-chain | Zero Google Mobile Services, zero analytics, zero crash reporter — every dependency is Apache 2.0 / MIT / BSD open source |
 | Cert pinning bypass | N/A — no network requests are made (no INTERNET permission) |
 | Tampering with the soft-delete Trash | `MoveAppToTrashUseCase` wraps Room writes in try/catch → typed `AppError.DatabaseError` ; upsert is idempotent (REPLACE) so double-tap is safe |
+| **v0.2.0** — Permission Drift snapshot tampering | Read-only access to `PackageInfo.requestedPermissionsFlags` via PackageManager; no write path to other apps' permission state; Room writes append-only on internal DB |
+| **v0.2.0** — Quarantine APK backup exfiltration | User explicitly picks the backup folder via SAF `OpenDocumentTree` (persistable grant) — backup lives outside the app's private dir but in user-owned storage; filename whitelisted to `[a-zA-Z0-9._-]` (no path traversal); MIME pinned to `application/vnd.android.package-archive` |
+| **v0.2.0** — Accidental destructive action on critical app | `CriticalAppDetector` whitelist-classifies authenticators / banking / password managers / health / E2E messaging / transport apps; `CriticalWarningDialog` requires a 3-second hold-to-confirm with drag-cancel (touchSlop), aligned with SMS Tech EmergencyHoldButton pattern |
+| **v0.2.0** — Quarantine HARD data wipe surprise | Pre-confirm dialog explicitly states "App data will be permanently lost on uninstall" with the confirm button repainted in BrandDanger; SOFT mode (reminder only, no destruction) is the default selection |
 
 ---
 
@@ -69,6 +73,7 @@ Tink AEAD (AES-256-GCM). No home-grown crypto.
 
 | Version | Date | Scope | Findings |
 |---|---|---|---|
+| v0.2.0 | 2026-05-23 | v0.2.0 delta — Permission Drift Tracker + App Quarantine (HARD APK backup + SOFT reminder) + Safety Guardrails (`CriticalAppDetector` + `CriticalWarningDialog` hold-3s) + Room v3→v4 migration + new IntentFactory.appPermissionsSettingsChain + SAF backup folder | 0 CRITICAL, 1 HIGH (USER_PROTECTED enum phantom — fixed by adding empty Set + ranking entry), 4 MEDIUM (notif hash collision 0x7FFF → full 32-bit, restore HARD ConfirmDialog → DestructiveDialog, detectTapGestures no drag-cancel → pointerInput awaitPointerEventScope with touchSlop, label resolution cap deferred v0.2.1) + 5 LOW — **all blocking findings fixed before tag** |
 | v0.1.0 | 2026-05-23 | Phase X final — Trash feature (Room v3 migration + 3-way uninstall dialog) + batch confirmation dialogs + 3 list-by-criterion screens (Rarely-used / Zombies / Permission-filter) + brand-discipline red | 0 CRITICAL, 1 HIGH (MigrationTest_2_3 missing — fixed), 6 MEDIUM (try/catch dao.upsert, fillMaxWidth(0f) invisible label, Spacer.padding anti-pattern, 3 IconButton contentDescription, dead strings settings_trash_default_*, UninstallChoiceDialog M3-deviation doc) + 4 LOW — **all fixed before tag** |
 | v0.1.0 | 2026-05-23 | Phases I→IX — scaffold + Room v2 + Storage analyser + WorkManager + Smart Cleaner + Trackers scan + Transparency screen + i18n FR+EN + signed release infra | All audit findings resolved per phase (see git history) |
 

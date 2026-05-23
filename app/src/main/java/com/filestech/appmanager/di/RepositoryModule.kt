@@ -4,9 +4,13 @@ import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.data.local.datastore.SettingsRepositoryImpl
 import com.filestech.appmanager.data.repository.AppInfoRepositoryImpl
 import com.filestech.appmanager.data.repository.IgnoreListRepositoryImpl
+import com.filestech.appmanager.data.repository.PermissionSnapshotRepositoryImpl
+import com.filestech.appmanager.data.repository.QuarantineRepositoryImpl
 import com.filestech.appmanager.data.repository.TrashRepositoryImpl
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.repository.IgnoreListRepository
+import com.filestech.appmanager.domain.repository.PermissionSnapshotRepository
+import com.filestech.appmanager.domain.repository.QuarantineRepository
 import com.filestech.appmanager.domain.repository.TrashRepository
 import dagger.Binds
 import dagger.Module
@@ -48,4 +52,16 @@ abstract class RepositoryModule {
     abstract fun bindTrashRepository(
         impl: TrashRepositoryImpl,
     ): TrashRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPermissionSnapshotRepository(
+        impl: PermissionSnapshotRepositoryImpl,
+    ): PermissionSnapshotRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindQuarantineRepository(
+        impl: QuarantineRepositoryImpl,
+    ): QuarantineRepository
 }

@@ -6,6 +6,7 @@ import androidx.work.Configuration
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.data.system.NotificationChannels
+import com.filestech.appmanager.data.system.WorkScheduler
 import com.filestech.appmanager.di.ApplicationScope
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import dagger.hilt.android.HiltAndroidApp
@@ -41,6 +42,7 @@ class MainApplication : Application(), Configuration.Provider {
     @Inject lateinit var notificationChannels: NotificationChannels
     @Inject lateinit var appInfoRepository: AppInfoRepository
     @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject lateinit var workScheduler: WorkScheduler
     @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
     override val workManagerConfiguration: Configuration
@@ -57,6 +59,40 @@ class MainApplication : Application(), Configuration.Provider {
         }
         notificationChannels.ensureRegistered()
         triggerInitialScanIfNeeded()
+        syncBackgroundWorkers()
+    }
+
+    /**
+     * Aligns the WorkManager schedule with persisted user settings at every
+     * cold start. Idempotent (UPDATE policy) — re-applying does not duplicate
+     * scheduled instances.
+     *
+     * Why at startup (not e.g. at toggle time)?
+     *  - Toggle time IS already wired: the Settings screen calls the scheduler
+     *    when the user flips a switch.
+     *  - Startup re-sync recovers from edge cases: device reboot wiped
+     *    WorkManager state, app upgrade dropped existing work, OEM aggressive
+     *    process killer purged scheduled work overnight.
+     *
+     * Runs on [appScope] so it does not block onCreate.
+     */
+    private fun syncBackgroundWorkers() {
+        appScope.launch {
+            try {
+                val settings = withTimeout(SETTINGS_LOAD_TIMEOUT_MS) {
+                    settingsRepository.flow.first()
+                }
+                workScheduler.apply(settings.scanner.autoScanInterval)
+                workScheduler.applyPermissionSnapshotTracking(
+                    enabled = settings.privacyMonitor.permissionDriftEnabled,
+                )
+                workScheduler.applyQuarantineRestoreScheduling(
+                    enabled = settings.quarantine.restoreReminderEnabled,
+                )
+            } catch (e: TimeoutCancellationException) {
+                Timber.w(e, "syncBackgroundWorkers: settings load timed out")
+            }
+        }
     }
 
     /**

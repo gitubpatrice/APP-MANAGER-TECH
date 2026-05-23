@@ -59,6 +59,8 @@ fun HomeShell(
     onNavigateToExport: () -> Unit,
     onNavigateToTransparency: () -> Unit,
     onNavigateToTrash: () -> Unit,
+    onNavigateToPermissionDrift: () -> Unit,
+    onNavigateToQuarantine: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableStateOf(HomeTab.HOME) }
 
@@ -115,6 +117,8 @@ fun HomeShell(
                     onExport          = onNavigateToExport,
                     onTransparency    = onNavigateToTransparency,
                     onTrash           = onNavigateToTrash,
+                    onPermissionDrift = onNavigateToPermissionDrift,
+                    onQuarantine      = onNavigateToQuarantine,
                 )
                 // v0.1.3 — About is a 3rd tab on the right of Outils. Reuses
                 // AboutScreen with `onBack = null` so the back arrow disappears

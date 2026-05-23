@@ -7,6 +7,101 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.2.0] — 2026-05-23 — Permission Drift + Quarantine + Safety Guardrails
+
+### Added — Permission Drift Tracker (new tool)
+- Daily snapshot of every user-app's dangerous-protection permissions, stored
+  append-only in a new Room `permission_snapshot` table (schema v4).
+- Chronological feed showing every permission GAINED / LOST event between
+  snapshots, with 30 / 90 / all-days window picker.
+- Always-visible "Surveillance active" status card with capture stats
+  (N permissions × M apps + last capture date) and prominent
+  "Démarrer la surveillance" / "Capturer maintenant" button (replaces
+  the icon-only refresh that was easy to miss).
+- Tap on a drift row deep-links straight to Android Settings → App →
+  Permissions for that app (one-tap path to re-grant). Multi-handler
+  runtime discovery via `queryIntentActivities` covers AOSP + Samsung
+  One UI + Google permission-controller variants, with App Info as the
+  always-available fallback.
+- Snapshot capture distinguishes **baselines** (first-ever row for a
+  (pkg, perm) pair — not a drift) from **drifts** (actual change). The
+  3 snackbar cases cover: drift detected / first-capture baseline / no
+  change since last capture (each with action guidance in French).
+- Opt-in periodic worker (24h, withTimeout 8 min) drives daily snapshots
+  + retention purge (configurable 30 / 90 / 180 / 365 days). Notification
+  fires only on real drifts, never on baseline-only ticks.
+
+### Added — App Quarantine (new tool, hybrid HARD / SOFT)
+- New `quarantine_entry` Room table holds apps set aside with a review date.
+- **HARD_UNINSTALL** mode: backs up the app's base APK to a user-picked
+  SAF folder (`OpenDocumentTree` with persistable read+write grant), then
+  fires the OS uninstall intent. Restore = `ACTION_VIEW` on the backup APK
+  → PackageInstaller reinstall. App data is permanently lost — the in-
+  dialog warning makes this explicit.
+- **SOFT_REMINDER** mode: just persists the entry + dedicated post-confirm
+  explanation dialog (3-step guide "1. Touchez Ouvrir Paramètres, 2. tap
+  DÉSACTIVER ou ARCHIVER, 3. l'app est en pause") so the user knows what
+  to do when they land on the OS App-info page. No data loss.
+- Picker screen with search + already-quarantined exclusion filter.
+- Restore dialog uses `DestructiveDialog` (red) for HARD restore (launches
+  PackageInstaller, modifies device state), `ConfirmDialog` (blue) for SOFT.
+- Backup-missing edge case: dedicated dialog offering "Drop entry" recovery.
+- Periodic worker (24h, withTimeout 2 min) fires expiry notifs once per
+  entry (unique 32-bit stable ID per package name — collision-free).
+
+### Added — Safety Guardrails (cross-feature)
+- New `CriticalAppDetector` classifies installed apps against curated FR
+  whitelists per category: AUTHENTICATION (Aegis / andOTP / Microsoft
+  Authenticator / Authy / etc.), PASSWORD_MANAGERS (Bitwarden / KeePassDX
+  / 1Password / Proton Pass), BANKING_FR (BNP / Boursorama / Crédit
+  Agricole / CIC / Société Générale / Revolut / Lydia / etc.), HEALTH
+  (Health Connect / Samsung Health / Doctolib / Mon Espace Santé),
+  MESSAGING_E2E (Signal / WhatsApp / Telegram / Threema / Element / Molly
+  / SimpleX / Briar), TRANSPORT_FR (SNCF Connect / RATP / IDFM / Navigo
+  / BlaBlaCar). Plus a USER_PROTECTED placeholder for v0.3.0 customisation.
+- Before any **uninstall** or **quarantine HARD** of a classified app,
+  a `CriticalWarningDialog` appears: red warning icon, category-specific
+  body explaining what will be lost, and a **3-second hold-to-confirm**
+  button (with `touchSlop` drag-cancel — release or finger-glide cancels).
+  Anti-tap-réflexe pattern aligned with SMS Tech's EmergencyHoldButton.
+
+### Added — Misc
+- AppDetail Permissions section gets a prominent "Modifier dans Paramètres
+  Android" button — one-tap deep-link via `appPermissionsSettingsChain`.
+- AppDetail Actions card gets a "Mettre en quarantaine" row right under
+  "Désactiver" (replaces having to go to Quarantine → FAB).
+- Settings → 2 new sections: "Suivi vie privée" (drift toggle + retention
+  picker + include-system + notify) and "Quarantaine" (SAF folder picker
+  + restore reminders toggle).
+- 3 new bottom-tools cards: "Changements de permissions" + "Quarantaine".
+
+### Schema migration — Room v3 → v4
+- Additive only: 2 new tables (`permission_snapshot` + `quarantine_entry`)
+  with 3 indices. `MIGRATION_3_4` ships with a matching `MigrationTest`
+  verifying preserve-data + inserts + index presence.
+
+### Audit fixes applied pre-tag (3-axes 0 CRITICAL / 1 HIGH / 6 MEDIUM / 5 LOW)
+- H-1: `USER_PROTECTED` enum branch was referenced in dialog + strings but
+  never alimented — added to `WHITELISTS` + `CategoryRanking` with empty
+  Set placeholder so end-to-end plumbing exists (v0.3.0 will load the
+  user-customised set from DataStore).
+- M-1: notif IDs were masked to 15 bits (`hashCode() and 0x7FFF` =
+  birthday collision at ~180 packages). Now full 32-bit hash + non-
+  overlapping base offsets.
+- M-4: restore HARD now uses `DestructiveDialog` (red) instead of
+  `ConfirmDialog` (blue) — restore launches PackageInstaller, brand
+  discipline requires red.
+- M-5: `CriticalWarningDialog` hold-3s used `detectTapGestures` which
+  didn't detect finger-slide → drag-during-hold still fired confirm.
+  Replaced with `pointerInput { awaitPointerEventScope }` + touchSlop
+  check, matching SMS Tech EmergencyHoldButton pattern.
+
+### Dependencies
+- `androidx.documentfile:documentfile:1.0.1` (SAF tree URI wrapping for
+  APK backups — Apache 2.0, F-Droid friendly).
+
+---
+
 ## [0.1.3] — 2026-05-23 — UI polish & a11y
 
 ### Added

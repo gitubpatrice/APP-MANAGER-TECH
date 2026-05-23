@@ -12,7 +12,10 @@ import com.filestech.appmanager.ui.screens.cleaner.CleanerSettingsScreen
 import com.filestech.appmanager.ui.shell.HomeShell
 import com.filestech.appmanager.ui.screens.export.ExportScreen
 import com.filestech.appmanager.ui.screens.ignorelist.IgnoreListScreen
+import com.filestech.appmanager.ui.screens.permissiondrift.PermissionDriftScreen
 import com.filestech.appmanager.ui.screens.permissionfilter.PermissionFilterScreen
+import com.filestech.appmanager.ui.screens.quarantine.QuarantinePickerScreen
+import com.filestech.appmanager.ui.screens.quarantine.QuarantineScreen
 import com.filestech.appmanager.ui.screens.rarelyused.RarelyUsedScreen
 import com.filestech.appmanager.ui.screens.securityaudit.SecurityAuditScreen
 import com.filestech.appmanager.ui.screens.settings.SettingsScreen
@@ -81,6 +84,8 @@ fun AppRoot() {
                 onNavigateToExport           = { navController.navigate(NavRoute.Export.route) },
                 onNavigateToTransparency     = { navController.navigate(NavRoute.Transparency.route) },
                 onNavigateToTrash            = { navController.navigate(NavRoute.Trash.route) { launchSingleTop = true } },
+                onNavigateToPermissionDrift  = { navController.navigate(NavRoute.PermissionDrift.route) { launchSingleTop = true } },
+                onNavigateToQuarantine       = { navController.navigate(NavRoute.Quarantine.route) { launchSingleTop = true } },
             )
         }
 
@@ -190,6 +195,25 @@ fun AppRoot() {
         composable(NavRoute.Trash.route) {
             TrashScreen(onBack = { navController.popBackStack() })
         }
+
+        // v0.2.0 — Permission Drift Tracker + App Quarantine
+        composable(NavRoute.PermissionDrift.route) {
+            PermissionDriftScreen(
+                onBack     = { navController.popBackStack() },
+                onAppClick = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+            )
+        }
+
+        composable(NavRoute.Quarantine.route) {
+            QuarantineScreen(
+                onBack     = { navController.popBackStack() },
+                onPickApp  = { navController.navigate(NavRoute.QuarantinePicker.route) { launchSingleTop = true } },
+            )
+        }
+
+        composable(NavRoute.QuarantinePicker.route) {
+            QuarantinePickerScreen(onBack = { navController.popBackStack() })
+        }
     }
 }
 
@@ -236,4 +260,9 @@ sealed class NavRoute(val route: String) {
     data object Zombies : NavRoute("zombies")
     data object PermissionFilter : NavRoute("permission_filter")
     data object Trash : NavRoute("trash")
+
+    // v0.2.0 routes
+    data object PermissionDrift : NavRoute("permission_drift")
+    data object Quarantine : NavRoute("quarantine")
+    data object QuarantinePicker : NavRoute("quarantine_picker")
 }

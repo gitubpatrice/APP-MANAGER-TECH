@@ -3,8 +3,12 @@ package com.filestech.appmanager.data.local.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.filestech.appmanager.data.local.db.dao.AppInfoDao
+import com.filestech.appmanager.data.local.db.dao.PermissionSnapshotDao
+import com.filestech.appmanager.data.local.db.dao.QuarantineEntryDao
 import com.filestech.appmanager.data.local.db.dao.TrashItemDao
 import com.filestech.appmanager.data.local.db.entity.AppInfoEntity
+import com.filestech.appmanager.data.local.db.entity.PermissionSnapshotEntity
+import com.filestech.appmanager.data.local.db.entity.QuarantineEntryEntity
 import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
 
 /**
@@ -32,6 +36,17 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
  *     system intent. Indexed on `added_at` for chronological listing.
  *     Migration `MIGRATION_2_3`: CREATE TABLE + CREATE INDEX IF NOT EXISTS.
  *
+ * - v4 (v0.2.0 — Permission Drift Tracker + App Quarantine)
+ *     Adds TWO independent tables in a single migration (one release, one
+ *     schema bump):
+ *     - `permission_snapshot` — append-only history of dangerous-permission
+ *       state per (package, permission). Powers the Drift Tracker feature.
+ *       Indexed on `(package_name, captured_at)` and `captured_at`.
+ *     - `quarantine_entry`   — one row per quarantined app. Powers the App
+ *       Quarantine feature (HARD_UNINSTALL with APK backup + SOFT_REMINDER).
+ *       Indexed on `restore_at` for the worker's expiry sweep.
+ *     Migration `MIGRATION_3_4`: 2× CREATE TABLE + 3× CREATE INDEX IF NOT EXISTS.
+ *
  * Migration rules (STRICT — enforced by code review):
  * - Every version bump MUST ship an additive Migration in [Migrations].
  * - Only `ALTER TABLE ... ADD COLUMN`, `CREATE INDEX IF NOT EXISTS`, `CREATE TABLE` are allowed.
@@ -45,15 +60,19 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
     entities = [
         AppInfoEntity::class,
         TrashItemEntity::class,
+        PermissionSnapshotEntity::class,
+        QuarantineEntryEntity::class,
     ],
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun appInfoDao(): AppInfoDao
     abstract fun trashItemDao(): TrashItemDao
+    abstract fun permissionSnapshotDao(): PermissionSnapshotDao
+    abstract fun quarantineEntryDao(): QuarantineEntryDao
 
     companion object {
         const val DATABASE_NAME = "app_manager_tech.db"
-        const val SCHEMA_VERSION = 3
+        const val SCHEMA_VERSION = 4
     }
 }
