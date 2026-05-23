@@ -1,0 +1,9 @@
+v0.1.3 — Polish UI + accessibilité
+
+- BrandedTitle : damier + nom app + titre écran (16 écrans)
+- Onglet "À propos" en 3e tab bottom-nav
+- Smart Cleaner + Audit sécurité : 3-dots menu + timeout + snackbar
+- "Inclure apps système" dans Smart Cleaner
+- Refresh button fonctionnel avec feedback Snackbar
+- Logo : VectorDrawable (économie 1 MB RAM)
+- TalkBack : plus d'épellation lettre par lettre
