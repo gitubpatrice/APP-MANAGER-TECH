@@ -1,0 +1,11 @@
+v0.1.0 — first public release
+
+Local app manager / cleaner. F-Droid only, no INTERNET, no tracker.
+
+- App inventory (sizes, source, perms, signature)
+- Batch uninstall / clear cache / force stop with confirmations
+- Smart Cleaner, Trackers scan, Security audit
+- Rarely-used, Zombies, Permission filter
+- Trash — review before real uninstall
+- Exclusion list, JSON/CSV export, Transparency
+- Material You, FR + EN

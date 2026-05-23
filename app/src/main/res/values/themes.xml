@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        Post-splash app theme. Compose owns the visual identity via
+        AppManagerTechTheme; this XML style only has to keep the window
+        chromeless and provide a sane background colour so there is no white
+        flash on dark mode.
+    -->
+    <style name="Theme.AppManagerTech" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!--
+        Splash theme (androidx.core.splashscreen compat for API 26–30; native
+        SplashScreen API on 31+).
+
+        Mirrors the SMS Tech pattern:
+        - windowSplashScreenBackground = neutral window background
+        - windowSplashScreenAnimatedIcon = transparent drawable so the
+          Android-12+ circular mask is invisible and only the background
+          flashes briefly. The Activity's first Compose frame renders the
+          actual brand logo via AppManagerTechTheme.
+        - postSplashScreenTheme rebinds the Activity to the regular theme
+          once the splash window is dismissed.
+    -->
+    <style name="Theme.AppManagerTech.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/window_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.AppManagerTech</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+    </style>
+
+</resources>

@@ -1,0 +1,41 @@
+App Manager Tech est un gestionnaire et nettoyeur d'applications Android entièrement local, inspiré de SD Maid. Inspectez chaque app installée, agissez en lot sur des sélections, videz les caches, auditez les privilèges système — sans qu'aucune donnée ne quitte votre appareil.
+
+Fonctionnalités
+===============
+
+• Inventaire des apps installées — nom, version, taille d'installation, données, cache, dernière utilisation, source d'installation (Play / F-Droid / Aurora / hors magasin), état activé, catégorie
+• Actions par lot multi-sélection — désinstaller, vider le cache, forcer l'arrêt. Le système affiche sa confirmation par app ; nous ne la contournons jamais
+• Analyseur de stockage — répartition par catégorie, top-N des apps les plus volumineuses, top-N des plus gros caches, barres empilées
+• Analyse en arrière-plan — tâche WorkManager périodique qui actualise le catalogue chaque jour ou chaque semaine et envoie une notification locale lorsque le cache total dépasse un seuil configuré
+• Liste d'ignorance — exclure certains paquets des actions par lot et des notifications (limite 500 entrées)
+• Export — rapport de stockage en JSON ou CSV via le Storage Access Framework. Aucune permission MANAGE_EXTERNAL_STORAGE nécessaire
+• Audit de sécurité — apps avec privilèges d'administrateur d'appareil ou services d'accessibilité activés, vecteurs d'abus fréquents
+• Apps rarement utilisées — repérage des apps inutilisées depuis 7 / 14 / 30 / 60 / 90 / 180 jours
+• Apps zombies — apps jamais ouvertes ou inutilisées depuis longtemps que vous pouvez nettoyer
+• Filtre par permission — liste des apps qui déclarent une permission donnée (CAMERA, LOCATION, RECORD_AUDIO, …)
+• Détail d'une app — répartition stockage, permissions accordées vs déclarées, infos d'installation, empreinte SHA-256 du certificat de signature
+• Extraction APK — copier le base APK d'une app installée vers Documents via SAF
+• Historique des actions — journal local de chaque action destructrice déclenchée, pour audit
+• Material You — couleurs dynamiques Android 12+, thème Clair / Sombre / Système
+• Interface française et anglaise
+• Option FLAG_SECURE pour bloquer les captures d'écran et les aperçus du sélecteur de tâches
+
+Vie privée
+==========
+
+• Aucune analytique, aucun rapporteur de crash, aucun SDK tiers de tracking
+• Aucune permission INTERNET — l'app n'ouvre jamais de socket réseau
+• Licence Apache 2.0 — code source : https://github.com/gitubpatrice/APP-MANAGER-TECH
+• Modèle de sécurité documenté : https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/SECURITY.md
+
+Permissions expliquées
+======================
+
+QUERY_ALL_PACKAGES — énumérer les apps installées via PackageManager
+PACKAGE_USAGE_STATS — dates de dernière utilisation et tailles précises cache / données via StorageStatsManager (nécessite l'accord de l'utilisateur dans les Paramètres système ; l'app fonctionne dégradée si refusé)
+GET_PACKAGE_SIZE — tailles installation / données / cache
+REQUEST_DELETE_PACKAGES — déclencher la boîte de dialogue système de désinstallation (l'utilisateur confirme)
+KILL_BACKGROUND_PROCESSES — arrêt forcé en mode meilleur effort des processus en arrière-plan
+POST_NOTIFICATIONS (Android 13+) — afficher la notification de seuil de cache, accordée à la première utilisation
+
+Site du projet : https://files-tech.com/app-manager-tech.php

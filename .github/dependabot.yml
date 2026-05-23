@@ -1,0 +1,40 @@
+version: 2
+
+updates:
+  # --- Gradle dependencies (app + gradle plugin ecosystem) ---
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "gradle"
+    # Group patch bumps to reduce PR noise.
+    groups:
+      androidx-patch:
+        patterns:
+          - "androidx.*"
+        update-types:
+          - "patch"
+      compose-patch:
+        patterns:
+          - "androidx.compose.*"
+        update-types:
+          - "patch"
+
+  # --- GitHub Actions ---
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"

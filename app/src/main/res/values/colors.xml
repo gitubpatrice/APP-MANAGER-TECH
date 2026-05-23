@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Window background used before Compose takes over.
+        Matches LightPalette.background (BrandBlue-friendly neutral).
+        A dark variant is provided in res/values-night/colors.xml (Phase VIII).
+    -->
+    <color name="window_background">#FFFDFCFF</color>
+
+    <!--
+        Launcher background tile — Files Tech BrandBlue (mirrors SMS Tech).
+        Single source of truth: ui/theme/Color.kt also holds 0xFF2460AB.
+        Keep both in sync when re-branding.
+    -->
+    <color name="ic_launcher_background">#FF2460AB</color>
+</resources>

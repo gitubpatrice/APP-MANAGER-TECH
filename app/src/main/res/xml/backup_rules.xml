@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+ full-backup rules.
+    Policy: exclude sensitive DataStore preferences from cloud backup.
+    The app has no cloud-synced secrets in Phase I; expand as needed.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="app_manager_tech_settings.preferences_pb" />
+</full-backup-content>

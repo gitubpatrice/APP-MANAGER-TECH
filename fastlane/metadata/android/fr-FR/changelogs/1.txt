@@ -1,0 +1,11 @@
+v0.1.0 — première version publique
+
+Gestionnaire / nettoyeur d'apps local. F-Droid only, pas d'INTERNET, zéro pisteur.
+
+- Inventaire (tailles, source, permissions, signature)
+- Actions par lot (désinstaller, vider cache, arrêter) avec dialogues
+- Nettoyeur intelligent, Pisteurs, Audit sécurité
+- Apps rarement utilisées, Zombies, Filtre par permission
+- Corbeille — vérifier avant la vraie désinstallation
+- Liste d'exclusions, export JSON/CSV, Transparence
+- Material You, FR + EN

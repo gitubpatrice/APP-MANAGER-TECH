@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Splash icon — fully transparent rectangle.
+
+  Android 12+ SplashScreen API masks `windowSplashScreenAnimatedIcon` with a
+  circle. Supplying a transparent drawable keeps the circle invisible so only
+  the solid `windowSplashScreenBackground` flashes briefly before the Activity
+  takes over. Mirrors the SMS Tech v1.14.7 fix that eliminated the circle
+  cropping a square brand logo on subsequent launches.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/transparent" />
+</shape>

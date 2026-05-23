@@ -1,0 +1,46 @@
+# === Secrets / Signing ===
+keystore.properties
+*.keystore
+*.jks
+
+# === Android local config ===
+local.properties
+
+# === Gradle ===
+.gradle/
+build/
+**/build/
+
+# === IDE ===
+.idea/
+*.iml
+*.eml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# === Android Studio ===
+captures/
+.cxx/
+*.ap_
+*.dex
+*.class
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Kotlin / Java compiled ===
+out/
+
+# === NDK ===
+obj/
+
+# === Room schema — kept in version control (intentional) ===
+# schemas/ is NOT ignored — export schema must be committed
+
+# === Fastlane — changelogs committed, metadata not ===
+fastlane/metadata/android/*/images/

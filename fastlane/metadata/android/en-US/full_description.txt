@@ -1,0 +1,41 @@
+App Manager Tech is a fully local Android app manager and cleaner inspired by SD Maid. Inspect every installed app, batch-act on selections, clean caches, audit elevated privileges — without sending a single byte off your device.
+
+Features
+========
+
+• Installed-apps inventory — label, version, install size, data, cache, last-used date, install source (Play / F-Droid / Aurora / sideload), enabled state, category
+• Multi-select batch actions — uninstall, clear cache, force stop. The OS shows its own confirmation per app; we never bypass it
+• Storage analyser — per-category breakdown, top-N largest apps, top-N cache hogs, pie-style stacked bars
+• Background scan — periodic WorkManager job that refreshes the catalogue daily or weekly and posts a single local notification when total cache crosses a user-configured threshold
+• Ignore list — opt out specific packages from batch actions and notifications (capped at 500 entries)
+• Export — storage report to JSON or CSV via Storage Access Framework. No MANAGE_EXTERNAL_STORAGE required
+• Security audit — apps with Device Administrator privileges or enabled Accessibility services, common abuse vectors
+• Apps rarely used — flag apps unused for 7 / 14 / 30 / 60 / 90 / 180 days
+• Zombie apps — never-opened or long-unused apps you can clean
+• Permission filter — list apps that declare a specific permission (CAMERA, LOCATION, RECORD_AUDIO, …)
+• App detail — storage breakdown, granted vs declared permissions, install info, signing certificate SHA-256
+• APK extract — copy the base APK of any installed app to your Documents via SAF
+• Action history — local log of every destructive action you triggered, for audit
+• Material You — dynamic colour scheme on Android 12+, Light / Dark / System theme
+• French and English UI
+• FLAG_SECURE opt-in to block screenshots and recents previews
+
+Privacy
+=======
+
+• No analytics, no crash reporters, no third-party tracking SDK
+• No INTERNET permission — the app never opens a network socket
+• Apache License 2.0 — source code at https://github.com/gitubpatrice/APP-MANAGER-TECH
+• Security model documented at https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/SECURITY.md
+
+Permissions explained
+=====================
+
+QUERY_ALL_PACKAGES — enumerate installed apps via PackageManager
+PACKAGE_USAGE_STATS — last-used timestamps and accurate cache / data sizes via StorageStatsManager (requires user grant in OS Settings; the app degrades gracefully if denied)
+GET_PACKAGE_SIZE — install / data / cache sizes
+REQUEST_DELETE_PACKAGES — trigger the system uninstall dialog (user confirms)
+KILL_BACKGROUND_PROCESSES — best-effort force-stop of background-only processes
+POST_NOTIFICATIONS (Android 13+) — show the cache-threshold notification, granted on first use
+
+Project home: https://files-tech.com/app-manager-tech.php

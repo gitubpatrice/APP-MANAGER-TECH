@@ -1,0 +1,218 @@
+package com.filestech.appmanager.ui
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.filestech.appmanager.ui.screens.about.AboutScreen
+import com.filestech.appmanager.ui.screens.appdetail.AppDetailScreen
+import com.filestech.appmanager.ui.screens.applist.AppListScreen
+import com.filestech.appmanager.ui.screens.cleaner.CleanerSettingsScreen
+import com.filestech.appmanager.ui.screens.export.ExportScreen
+import com.filestech.appmanager.ui.screens.ignorelist.IgnoreListScreen
+import com.filestech.appmanager.ui.screens.permissionfilter.PermissionFilterScreen
+import com.filestech.appmanager.ui.screens.rarelyused.RarelyUsedScreen
+import com.filestech.appmanager.ui.screens.securityaudit.SecurityAuditScreen
+import com.filestech.appmanager.ui.screens.settings.SettingsScreen
+import com.filestech.appmanager.ui.screens.smartcleaner.SmartCleanerScreen
+import com.filestech.appmanager.ui.screens.storage.StorageScreen
+import com.filestech.appmanager.ui.screens.trackers.TrackersScreen
+import com.filestech.appmanager.ui.screens.transparency.TransparencyScreen
+import com.filestech.appmanager.ui.screens.trash.TrashScreen
+import com.filestech.appmanager.ui.screens.zombies.ZombiesScreen
+
+/**
+ * Root composable — owns the [NavHost] and defines all navigation routes.
+ *
+ * Navigation graph (Phase X final):
+ *
+ *   AppList (start) ──► AppDetail(packageName)
+ *        └──────────► Storage
+ *        └──────────► Settings ──► About
+ *                              ├──► Cleaner             (Phase VIII.B)
+ *                              ├──► IgnoreList          (Phase VIII.B)
+ *                              ├──► Export              (Phase VIII.B)
+ *                              ├──► SecurityAudit       (Phase VIII.B)
+ *                              ├──► SmartCleaner        (Phase IX innovation)
+ *                              ├──► Trackers            (Phase IX innovation)
+ *                              ├──► Transparency        (Phase IX innovation)
+ *                              ├──► RarelyUsed          (Phase X — list-by-criterion)
+ *                              ├──► Zombies             (Phase X — list-by-criterion)
+ *                              ├──► PermissionFilter    (Phase X — list-by-criterion)
+ *                              └──► Trash               (Phase X — soft-delete staging)
+ *
+ * From RarelyUsed / Zombies / PermissionFilter the user can drill down into
+ * AppDetail(packageName) — same destination as from the main app list.
+ *
+ * Route arguments use `Uri.encode`/auto-decode via Nav-Compose for safety
+ * against package names with reserved URI characters.
+ *
+ * `launchSingleTop = true` is applied to the Phase X tool routes (RarelyUsed,
+ * Zombies, PermissionFilter, Trash) so a double-tap from Settings does not
+ * stack two copies on the back stack.
+ */
+@Composable
+fun AppRoot() {
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = NavRoute.AppList.route,
+    ) {
+        composable(NavRoute.AppList.route) {
+            AppListScreen(
+                onNavigateToDetail   = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+                onNavigateToStorage  = { navController.navigate(NavRoute.Storage.route) },
+                onNavigateToSettings = { navController.navigate(NavRoute.Settings.route) },
+            )
+        }
+
+        composable(
+            route = NavRoute.AppDetail.route,
+            arguments = listOf(
+                navArgument(NavRoute.AppDetail.ARG_PACKAGE) { type = NavType.StringType },
+            ),
+        ) { backStackEntry ->
+            val pkg = backStackEntry.arguments
+                ?.getString(NavRoute.AppDetail.ARG_PACKAGE)
+                .orEmpty()
+            AppDetailScreen(
+                packageName = pkg,
+                onBack      = { navController.popBackStack() },
+            )
+        }
+
+        composable(NavRoute.Storage.route) {
+            StorageScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(NavRoute.Settings.route) {
+            SettingsScreen(
+                onBack               = { navController.popBackStack() },
+                onOpenAbout          = { navController.navigate(NavRoute.About.route) },
+                onOpenCleaner        = { navController.navigate(NavRoute.Cleaner.route) },
+                onOpenIgnoreList     = { navController.navigate(NavRoute.IgnoreList.route) },
+                onOpenExport         = { navController.navigate(NavRoute.Export.route) },
+                onOpenSecurityAudit  = { navController.navigate(NavRoute.SecurityAudit.route) },
+                onOpenSmartCleaner   = { navController.navigate(NavRoute.SmartCleaner.route) },
+                onOpenTrackers       = { navController.navigate(NavRoute.Trackers.route) },
+                onOpenTransparency   = { navController.navigate(NavRoute.Transparency.route) },
+                // Phase X tools — launchSingleTop so a double-tap doesn't stack copies.
+                onOpenRarelyUsed     = { navController.navigate(NavRoute.RarelyUsed.route) { launchSingleTop = true } },
+                onOpenZombies        = { navController.navigate(NavRoute.Zombies.route) { launchSingleTop = true } },
+                onOpenPermissionFilter = { navController.navigate(NavRoute.PermissionFilter.route) { launchSingleTop = true } },
+                onOpenTrash          = { navController.navigate(NavRoute.Trash.route) { launchSingleTop = true } },
+            )
+        }
+
+        composable(NavRoute.About.route) {
+            AboutScreen(onBack = { navController.popBackStack() })
+        }
+
+        // Phase VIII.B — dedicated screens for advanced features.
+
+        composable(NavRoute.Cleaner.route) {
+            CleanerSettingsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(NavRoute.IgnoreList.route) {
+            IgnoreListScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(NavRoute.Export.route) {
+            ExportScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(NavRoute.SecurityAudit.route) {
+            SecurityAuditScreen(onBack = { navController.popBackStack() })
+        }
+
+        // Phase IX — innovation screens (Smart Cleaner, Trackers, Transparency).
+
+        composable(NavRoute.SmartCleaner.route) {
+            SmartCleanerScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(NavRoute.Trackers.route) {
+            TrackersScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(NavRoute.Transparency.route) {
+            TransparencyScreen(onBack = { navController.popBackStack() })
+        }
+
+        // Phase X — list / filter / trash screens (use cases already shipped, screens new).
+
+        composable(NavRoute.RarelyUsed.route) {
+            RarelyUsedScreen(
+                onBack      = { navController.popBackStack() },
+                onItemClick = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+            )
+        }
+
+        composable(NavRoute.Zombies.route) {
+            ZombiesScreen(
+                onBack      = { navController.popBackStack() },
+                onItemClick = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+            )
+        }
+
+        composable(NavRoute.PermissionFilter.route) {
+            PermissionFilterScreen(
+                onBack      = { navController.popBackStack() },
+                onItemClick = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+            )
+        }
+
+        composable(NavRoute.Trash.route) {
+            TrashScreen(onBack = { navController.popBackStack() })
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Type-safe navigation routes
+// ---------------------------------------------------------------------------
+
+/**
+ * A navigation destination.
+ *
+ * For destinations with arguments, [route] holds the Navigation-Compose pattern
+ * (e.g. `"app_detail/{packageName}"`) used by `composable(route)`, and
+ * `buildRoute(...)` returns the concrete URI used by `navController.navigate(...)`.
+ */
+sealed class NavRoute(val route: String) {
+
+    data object AppList : NavRoute("app_list")
+
+    data object AppDetail : NavRoute("app_detail/{packageName}") {
+        const val ARG_PACKAGE = "packageName"
+
+        /** Builds the concrete route URI; encodes [packageName] for navigation safety. */
+        fun buildRoute(packageName: String): String =
+            "app_detail/${android.net.Uri.encode(packageName)}"
+    }
+
+    data object Storage : NavRoute("storage")
+    data object Settings : NavRoute("settings")
+    data object About : NavRoute("about")
+
+    // Phase VIII.B routes
+    data object Cleaner : NavRoute("cleaner")
+    data object IgnoreList : NavRoute("ignore_list")
+    data object Export : NavRoute("export")
+    data object SecurityAudit : NavRoute("security_audit")
+
+    // Phase IX routes (innovation)
+    data object SmartCleaner : NavRoute("smart_cleaner")
+    data object Trackers : NavRoute("trackers")
+    data object Transparency : NavRoute("transparency")
+
+    // Phase X routes (list-by-criterion + trash)
+    data object RarelyUsed : NavRoute("rarely_used")
+    data object Zombies : NavRoute("zombies")
+    data object PermissionFilter : NavRoute("permission_filter")
+    data object Trash : NavRoute("trash")
+}

@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ================================================================ -->
+    <!-- App identity                                                     -->
+    <!-- ================================================================ -->
+    <string name="app_name">App Manager Tech</string>
+
+    <!-- ================================================================ -->
+    <!-- Common actions / dialog labels                                   -->
+    <!-- ================================================================ -->
+    <string name="action_back">Retour</string>
+    <string name="action_refresh">Actualiser</string>
+    <string name="action_search">Rechercher</string>
+    <string name="action_clear">Effacer</string>
+    <string name="action_settings">Paramètres</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_confirm">Confirmer</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_clear_cache">Vider le cache</string>
+    <string name="action_retry">Réessayer</string>
+    <string name="action_select_all">Tout sélectionner</string>
+    <string name="action_unselect_all">Tout désélectionner</string>
+    <string name="action_open_settings">Ouvrir les paramètres de l\'app</string>
+    <string name="action_open_usage_access">Ouvrir Accès à l\'utilisation</string>
+    <string name="action_rescan">Réanalyser</string>
+
+    <string name="dialog_confirm">Confirmer</string>
+    <string name="dialog_cancel">Annuler</string>
+    <string name="dialog_close">Fermer</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_yes">Oui</string>
+    <string name="dialog_no">Non</string>
+
+    <!-- ================================================================ -->
+    <!-- Screen titles                                                    -->
+    <!-- ================================================================ -->
+    <string name="screen_app_list_placeholder">Liste des applications — bientôt disponible</string>
+    <string name="screen_settings_placeholder">Paramètres — bientôt disponible</string>
+    <string name="screen_app_list_title">Applications installées</string>
+    <string name="screen_app_detail_title">Détails de l\'application</string>
+    <string name="screen_storage_title">Stockage</string>
+    <string name="screen_settings_title">Paramètres</string>
+    <string name="screen_about_title">À propos</string>
+
+    <!-- ================================================================ -->
+    <!-- Sort orders                                                       -->
+    <!-- ================================================================ -->
+    <string name="sort_dialog_title">Trier par</string>
+    <string name="sort_name_asc">Nom (A–Z)</string>
+    <string name="sort_name_desc">Nom (Z–A)</string>
+    <string name="sort_size_desc">Plus grand en premier</string>
+    <string name="sort_last_used_desc">Utilisé récemment</string>
+    <string name="sort_install_date_desc">Installé récemment</string>
+
+    <!-- ================================================================ -->
+    <!-- Theme mode labels                                                 -->
+    <!-- ================================================================ -->
+    <string name="settings_theme_system">Suivre le système</string>
+    <string name="settings_theme_light">Clair</string>
+    <string name="settings_theme_dark">Sombre</string>
+
+    <!-- ================================================================ -->
+    <!-- Categories                                                        -->
+    <!-- ================================================================ -->
+    <string name="category_games">Jeux</string>
+    <string name="category_audio">Audio</string>
+    <string name="category_video">Vidéo</string>
+    <string name="category_image">Image</string>
+    <string name="category_social">Social</string>
+    <string name="category_news">Actualités</string>
+    <string name="category_maps">Cartes</string>
+    <string name="category_productivity">Productivité</string>
+    <string name="category_accessibility">Accessibilité</string>
+    <string name="category_other">Autre</string>
+    <string name="category_undefined">Sans catégorie</string>
+
+    <!-- ================================================================ -->
+    <!-- Installer source                                                  -->
+    <!-- ================================================================ -->
+    <string name="installer_play_store">Play Store</string>
+    <string name="installer_f_droid">F-Droid</string>
+    <string name="installer_aurora">Aurora Store</string>
+    <string name="installer_sideload">Hors magasin</string>
+    <string name="installer_other">Autre magasin</string>
+    <string name="installer_unknown">Inconnu</string>
+
+    <!-- ================================================================ -->
+    <!-- App list screen                                                   -->
+    <!-- ================================================================ -->
+    <string name="app_list_title">Applications installées</string>
+    <string name="app_list_search_placeholder">Rechercher une application…</string>
+    <string name="app_list_empty">Aucune application trouvée.</string>
+    <string name="app_list_empty_title">Aucune application à afficher</string>
+    <string name="app_list_empty_body">Ajustez les filtres ou tirez vers le bas pour rafraîchir le catalogue.</string>
+    <string name="app_list_loading">Chargement des applications…</string>
+    <string name="app_list_error">Impossible de charger les applications.</string>
+    <string name="app_list_count_one">%d application</string>
+    <string name="app_list_count_other">%d applications</string>
+    <string name="app_list_system_badge">Système</string>
+    <string name="app_list_disabled_badge">Désactivée</string>
+    <string name="app_list_selection_count">%d sélectionnée(s)</string>
+    <string name="app_list_action_uninstall_selected">Désinstaller la sélection</string>
+    <string name="app_list_action_clear_cache_selected">Vider le cache pour la sélection</string>
+    <string name="app_list_action_force_stop_selected">Forcer l\'arrêt pour la sélection</string>
+
+    <!-- ================================================================ -->
+    <!-- App detail screen                                                 -->
+    <!-- ================================================================ -->
+    <string name="app_detail_title">Détails de l\'application</string>
+    <string name="app_detail_version">Version %1$s (%2$d)</string>
+    <string name="app_detail_section_storage">Stockage</string>
+    <string name="app_detail_section_permissions">Permissions</string>
+    <string name="app_detail_section_actions">Actions</string>
+    <string name="app_detail_section_install_info">Informations d\'installation</string>
+    <string name="app_detail_install_size">Taille d\'installation</string>
+    <string name="app_detail_cache_size">Cache</string>
+    <string name="app_detail_data_size">Données</string>
+    <string name="app_detail_total_size">Total</string>
+    <string name="app_detail_installed">Installée le</string>
+    <string name="app_detail_last_updated">Mise à jour le</string>
+    <string name="app_detail_last_used">Dernière utilisation</string>
+    <string name="app_detail_never_used">Jamais utilisée</string>
+    <string name="app_detail_installer">Source d\'installation</string>
+    <string name="app_detail_signature">Signature SHA-256</string>
+    <string name="app_detail_perms_granted">Accordées (%d)</string>
+    <string name="app_detail_perms_requested">Déclarées (%d)</string>
+    <string name="app_detail_action_uninstall">Désinstaller</string>
+    <string name="app_detail_action_clear_cache">Vider le cache</string>
+    <string name="app_detail_action_clear_data">Effacer les données</string>
+    <string name="app_detail_action_force_stop">Forcer l\'arrêt</string>
+    <string name="app_detail_action_disable">Désactiver</string>
+    <string name="app_detail_action_enable">Activer</string>
+    <string name="app_detail_action_open_settings">Ouvrir les paramètres de l\'app</string>
+
+    <!-- ================================================================ -->
+    <!-- Storage screen                                                    -->
+    <!-- ================================================================ -->
+    <string name="storage_title">Stockage</string>
+    <string name="storage_subtitle">%d application(s) en cache</string>
+    <string name="storage_total_apps">Applications</string>
+    <string name="storage_total_install">Installation</string>
+    <string name="storage_total_data">Données</string>
+    <string name="storage_total_cache">Cache</string>
+    <string name="storage_total_grand">Total général</string>
+    <string name="storage_top_by_total">Plus volumineuses</string>
+    <string name="storage_top_by_cache">Plus gros caches</string>
+    <string name="storage_per_category">Par catégorie</string>
+    <string name="storage_rescan_button">Réanalyser l\'appareil</string>
+    <string name="storage_empty_title">Aucune donnée</string>
+    <string name="storage_empty_body">Touchez Réanalyser pour scanner les applications installées et générer le rapport.</string>
+
+    <!-- ================================================================ -->
+    <!-- Settings screen                                                   -->
+    <!-- ================================================================ -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_appearance_title">Apparence</string>
+    <string name="settings_dynamic_color_title">Couleur dynamique (Material You)</string>
+    <string name="settings_dynamic_color_desc">Suivre les couleurs du fond d\'écran (Android 12+)</string>
+    <string name="settings_theme_mode_title">Thème</string>
+    <string name="settings_default_sort_title">Tri par défaut</string>
+    <string name="settings_scanner_title">Analyse</string>
+    <string name="settings_include_system_apps_title">Inclure les apps système</string>
+    <string name="settings_include_system_apps_desc">Afficher les applications préinstallées</string>
+    <string name="settings_auto_scan_title">Analyser au lancement</string>
+    <string name="settings_auto_scan_desc">Lancer automatiquement l\'analyse à l\'ouverture</string>
+    <string name="settings_privacy_title">Confidentialité</string>
+    <string name="settings_flag_secure_title">Bloquer les captures d\'écran</string>
+    <string name="settings_flag_secure_desc">Empêcher les captures et les aperçus dans le sélecteur de tâches</string>
+    <string name="settings_confirm_delete_title">Confirmer avant suppression</string>
+    <string name="settings_confirm_delete_desc">Demander confirmation avant de vider le cache</string>
+    <string name="settings_about_title">À propos de App Manager Tech</string>
+    <string name="settings_about_desc">Version, licence, code source, F-Droid</string>
+
+    <!-- ================================================================ -->
+    <!-- About screen                                                      -->
+    <!-- ================================================================ -->
+    <string name="about_subtitle">Gestionnaire d\'applications local, dans la lignée de SD Maid pour appareils non rootés.</string>
+    <string name="about_version_label">Version</string>
+    <string name="about_section_about">À propos</string>
+    <string name="about_section_links">Liens</string>
+    <string name="about_section_licence">Licence</string>
+    <string name="about_section_permissions">Permissions</string>
+    <string name="about_description">App Manager Tech est une application libre et open source qui vous permet d\'inspecter, nettoyer et gérer chaque application Android installée sur votre appareil. Aucune donnée n\'est jamais envoyée à l\'extérieur.</string>
+    <string name="about_link_source_code">Code source (GitHub)</string>
+    <string name="about_link_fdroid">Page F-Droid</string>
+    <string name="about_link_report_issue">Signaler un problème</string>
+    <string name="about_licence_text">Distribué sous licence Apache 2.0. Voir LICENCE dans le dépôt source.</string>
+    <string name="about_permissions_text">App Manager Tech ne demande que les permissions nécessaires à sa fonction principale : énumérer les applications installées, lire leurs tailles de stockage et leurs dates de dernière utilisation. Aucune permission Internet n\'est demandée.</string>
+    <string name="about_made_in">Files Tech — France</string>
+
+    <!-- ================================================================ -->
+    <!-- Filter dialog                                                     -->
+    <!-- ================================================================ -->
+    <string name="filter_title">Filtres</string>
+    <string name="filter_section_visibility">Visibilité</string>
+    <string name="filter_section_installer">Source</string>
+    <string name="filter_include_system_apps">Inclure les apps système</string>
+    <string name="filter_include_user_apps">Inclure les apps utilisateur</string>
+    <string name="filter_include_disabled">Inclure les apps désactivées</string>
+    <string name="filter_installer_any">Toutes les sources</string>
+    <string name="filter_apply">Appliquer</string>
+    <string name="filter_reset">Réinitialiser</string>
+
+    <!-- ================================================================ -->
+    <!-- Confirmation dialogs                                              -->
+    <!-- ================================================================ -->
+    <string name="dialog_uninstall_title">Désinstaller %1$s ?</string>
+    <string name="dialog_uninstall_body">Le système demandera confirmation. L\'application et ses données seront supprimées.</string>
+    <string name="dialog_clear_cache_title">Vider le cache pour %1$s ?</string>
+    <string name="dialog_clear_cache_body">Android exige que vous touchiez vous-même « Vider le cache ». L\'écran suivant ouvrira la page d\'informations de l\'application.</string>
+    <string name="dialog_force_stop_title">Forcer l\'arrêt de %1$s ?</string>
+    <string name="dialog_force_stop_body">Les processus en arrière-plan de cette application seront arrêtés. Les apps visibles ou en avant-plan ne peuvent pas être forcées à l\'arrêt sans permissions système.</string>
+    <string name="dialog_disable_title">Désactiver %1$s ?</string>
+    <string name="dialog_disable_body">La désactivation nécessite des permissions privilégiées. L\'écran suivant ouvrira la page d\'informations de l\'application pour le faire manuellement.</string>
+    <string name="dialog_enable_title">Activer %1$s ?</string>
+    <string name="dialog_enable_body">L\'activation nécessite des permissions privilégiées. L\'écran suivant ouvrira la page d\'informations de l\'application pour le faire manuellement.</string>
+    <string name="dialog_batch_uninstall_title">Désinstaller %1$d applications ?</string>
+    <string name="dialog_batch_uninstall_body">Le système affichera une boîte de dialogue de confirmation pour chaque application, l\'une après l\'autre.</string>
+    <string name="dialog_batch_clear_cache_title">Vider le cache pour %1$d applications ?</string>
+    <string name="dialog_batch_clear_cache_body">La page d\'informations de l\'application s\'ouvrira pour chacune — touchez « Vider le cache » à chaque fois.</string>
+    <string name="dialog_batch_force_stop_title">Forcer l\'arrêt de %1$d applications ?</string>
+    <string name="dialog_batch_force_stop_body">Les processus en arrière-plan seront arrêtés silencieusement pour chaque application.</string>
+
+    <!-- ================================================================ -->
+    <!-- UsageStats permission warning                                     -->
+    <!-- ================================================================ -->
+    <string name="usage_stats_warning_title">Accès à l\'utilisation requis</string>
+    <string name="usage_stats_warning_body">Sans cela, les tailles d\'application et les dates de dernière utilisation restent à 0. Touchez le bouton pour l\'accorder dans les Paramètres système.</string>
+    <string name="usage_stats_grant_button">Accorder l\'accès à l\'utilisation</string>
+
+    <!-- ================================================================ -->
+    <!-- Analyse en arrière-plan + notifications (Phase VI)                -->
+    <!-- ================================================================ -->
+    <string name="notif_cache_title">Seuil de cache atteint</string>
+    <string name="notif_cache_body">La taille totale du cache (%1$s) dépasse votre seuil de %2$d Mo. Touchez pour vérifier et nettoyer.</string>
+    <string name="scan_interval_off">Désactivé</string>
+    <string name="scan_interval_daily">Quotidien</string>
+    <string name="scan_interval_weekly">Hebdomadaire</string>
+    <string name="export_format_json">JSON</string>
+    <string name="export_format_csv">CSV</string>
+    <string name="zombie_reason_never_opened">Jamais ouverte</string>
+    <string name="zombie_reason_unused_since">Inutilisée depuis %1$d jours</string>
+
+    <!-- ================================================================ -->
+    <!-- Phase VIII.B — écrans dédiés                                       -->
+    <!-- ================================================================ -->
+
+    <!-- Cleaner settings -->
+    <string name="screen_cleaner_title">Nettoyeur</string>
+    <string name="cleaner_section_scan">Analyse en arrière-plan</string>
+    <string name="cleaner_section_threshold">Seuil de cache</string>
+    <string name="cleaner_section_export">Export</string>
+    <string name="cleaner_scan_interval_title">Cadence d\'analyse</string>
+    <string name="cleaner_scan_interval_desc">Fréquence d\'actualisation du catalogue et de vérification des seuils de cache</string>
+    <string name="cleaner_threshold_title">Notifier au-delà de</string>
+    <string name="cleaner_threshold_desc">0 désactive les notifications</string>
+    <string name="cleaner_threshold_value">%1$d Mo</string>
+    <string name="cleaner_threshold_disabled">Désactivé</string>
+    <string name="cleaner_rarely_used_title">Seuil « rarement utilisée »</string>
+    <string name="cleaner_rarely_used_desc">Jours sans utilisation avant qu\'une app soit signalée</string>
+    <string name="cleaner_rarely_used_value">%1$d jours</string>
+    <string name="cleaner_export_format_title">Format d\'export</string>
+    <string name="cleaner_export_format_desc">Format de fichier préféré pour les rapports de stockage</string>
+
+    <!-- Ignore list -->
+    <string name="screen_ignore_list_title">Apps ignorées</string>
+    <string name="ignore_list_subtitle">%1$d sur %2$d max</string>
+    <string name="ignore_list_empty_title">Aucune app ignorée</string>
+    <string name="ignore_list_empty_body">Les apps ajoutées ici sont exclues des actions par lot (désinstallation, arrêt forcé, vidage de cache) et des notifications d\'analyse en arrière-plan.</string>
+    <string name="ignore_list_remove">Retirer de la liste</string>
+
+    <!-- Export screen -->
+    <string name="screen_export_title">Exporter le rapport de stockage</string>
+    <string name="export_description">Choisissez un format et une destination. Le rapport contient chaque application installée avec ses tailles, sa date d\'installation et sa source.</string>
+    <string name="export_action">Exporter maintenant</string>
+    <string name="export_success">%1$d applications exportées (%2$s)</string>
+    <string name="export_no_handler">Aucune app sur cet appareil ne peut gérer le format demandé. Installez un gestionnaire de fichiers compatible SAF.</string>
+
+    <!-- Security audit -->
+    <string name="screen_security_audit_title">Audit de sécurité</string>
+    <string name="security_audit_subtitle">Apps avec des privilèges système élevés. Vérifiez-les régulièrement.</string>
+    <string name="security_audit_section_device_admin">Administrateurs de l\'appareil</string>
+    <string name="security_audit_section_accessibility">Services d\'accessibilité</string>
+    <string name="security_audit_device_admin_desc">Peuvent bloquer leur propre désinstallation et imposer une politique sur l\'appareil.</string>
+    <string name="security_audit_accessibility_desc">Peuvent lire le contenu de l\'écran et générer des entrées. Vecteur d\'abus fréquent.</string>
+    <string name="security_audit_empty">Aucune app dans cette catégorie.</string>
+
+    <!-- About links (Phase VIII.B Intent.ACTION_VIEW wired) -->
+    <string name="about_url_source_code">https://github.com/gitubpatrice/APP-MANAGER-TECH</string>
+    <string name="about_url_fdroid">https://f-droid.org/packages/com.filestech.appmanager/</string>
+    <string name="about_url_report_issue">https://github.com/gitubpatrice/APP-MANAGER-TECH/issues</string>
+
+    <!-- ================================================================ -->
+    <!-- Phase IX — écran Pisteurs (innovation : scan local style Exodus) -->
+    <!-- ================================================================ -->
+    <string name="screen_trackers_title">Pisteurs</string>
+    <string name="trackers_scanning">Analyse des apps installées en cours…</string>
+    <string name="trackers_empty_title">Rien à analyser</string>
+    <string name="trackers_empty_body">Aucune application installée n\'a été trouvée.</string>
+    <string name="trackers_summary_contamination">apps avec pisteurs</string>
+    <string name="trackers_summary_subtitle">%1$d apps sur %2$d contiennent des pisteurs · %3$d détections au total</string>
+    <string name="trackers_summary_categories">Par catégorie</string>
+    <string name="trackers_section_with_trackers">Apps avec pisteurs (%1$d)</string>
+    <string name="trackers_section_clean">Apps propres (%1$d)</string>
+
+    <string name="privacy_score_label">Score vie privée</string>
+    <string name="privacy_score_tier_red">Empreinte importante</string>
+    <string name="privacy_score_tier_orange">Préoccupante</string>
+    <string name="privacy_score_tier_yellow">Moyenne</string>
+    <string name="privacy_score_tier_green">Minimale</string>
+
+    <string name="screen_smart_cleaner_title">Nettoyeur intelligent</string>
+    <string name="smart_cleaner_subtitle">%1$s récupérables sur %2$d suggestion(s)</string>
+    <string name="smart_cleaner_empty_title">Rien à nettoyer</string>
+    <string name="smart_cleaner_empty_body">Vos applications installées sont toutes en bon état. Relancez l\'analyseur après avoir installé ou utilisé de nouvelles apps.</string>
+    <string name="smart_cleaner_action_uninstall">Désinstaller</string>
+    <string name="smart_cleaner_action_clear_cache">Vider le cache</string>
+    <string name="smart_cleaner_action_review">Vérifier</string>
+    <string name="smart_cleaner_category_zombie_never">Jamais ouverte</string>
+    <string name="smart_cleaner_category_zombie_unused">Inutilisée depuis longtemps</string>
+    <string name="smart_cleaner_category_cache_hog">Cache volumineux</string>
+    <string name="smart_cleaner_category_oversized">Grande + rarement utilisée</string>
+    <string name="smart_cleaner_category_duplicate">Catégorie en doublon</string>
+
+    <string name="screen_transparency_title">Transparence</string>
+    <string name="transparency_intro">App Manager Tech fonctionne entièrement en local. Voici la liste exhaustive de ce que cette app lit, stocke et envoie. Il n\'y a rien d\'autre.</string>
+    <string name="transparency_section_reads">Ce que nous lisons sur votre appareil</string>
+    <string name="transparency_reads_packages">La liste des apps installées (nom, version, package, dates d\'installation / mise à jour / dernière utilisation, source d\'installation, permissions déclarées, certificat de signature). Sources : Android PackageManager + StorageStatsManager + UsageStatsManager.</string>
+    <string name="transparency_reads_sizes">Tailles des apps : octets d\'installation / données / cache par paquet. Nécessite PACKAGE_USAGE_STATS accordée dans les Paramètres OS.</string>
+    <string name="transparency_section_stores">Ce que nous stockons sur votre appareil</string>
+    <string name="transparency_stores_room">Un cache du catalogue dans une base SQLite privée (Room). Rafraîchie par le worker d\'analyse en arrière-plan ou à la demande. Exclue de la sauvegarde cloud.</string>
+    <string name="transparency_stores_prefs">Vos préférences (thème, cadence d\'analyse, liste d\'ignorance, etc.) dans DataStore Preferences. Exclues de la sauvegarde cloud.</string>
+    <string name="transparency_section_sends">Ce que nous envoyons hors de votre appareil</string>
+    <string name="transparency_sends_nothing">Rien. L\'app ne demande pas la permission INTERNET. Elle ne peut pas ouvrir de socket réseau — Android l\'applique au niveau OS.</string>
+    <string name="transparency_section_third_parties">SDK tiers intégrés</string>
+    <string name="transparency_third_parties_none">Zéro. Pas de Google Mobile Services, pas de Firebase, pas d\'analytique, pas de rapporteur de crash qui téléverse, aucune bibliothèque publicitaire. Chaque dépendance est open source sous Apache 2.0 / MIT / BSD. Liste complète dans THIRD_PARTY_NOTICES.</string>
+    <string name="transparency_section_open_source">Open source</string>
+    <string name="transparency_open_source_body">Le code source, la recette de build, le modèle de menace et le changelog sont publics sur GitHub. N\'importe qui peut auditer, reproduire le build à l\'octet près, forker et redistribuer sous Apache 2.0.</string>
+    <string name="transparency_link_privacy">Politique de confidentialité</string>
+    <string name="transparency_link_terms">Conditions d\'utilisation</string>
+    <string name="transparency_link_security">Modèle de sécurité</string>
+    <string name="transparency_link_third_parties">Notices tiers</string>
+
+    <string name="appdetail_privacy_panel_title">Ce que fait cette app</string>
+    <string name="appdetail_privacy_panel_no_dangerous">Aucune permission dangereuse accordée.</string>
+    <string name="appdetail_privacy_panel_trackers_clean">Aucun pisteur connu détecté dans les composants déclarés.</string>
+    <string name="appdetail_privacy_panel_trackers_count">%1$d pisteur(s) détecté(s)</string>
+    <string name="appdetail_privacy_panel_can">Cette app peut :</string>
+    <string name="appdetail_ignore_action">Ajouter à la liste des exclusions</string>
+    <string name="appdetail_unignore_action">Retirer de la liste des exclusions</string>
+
+    <!-- ================================================================ -->
+    <!-- Phase X.B — Écran « Rarement utilisées »                          -->
+    <!-- ================================================================ -->
+    <string name="screen_rarely_used_title">Apps rarement utilisées</string>
+    <string name="rarely_used_threshold_title">Seuil</string>
+    <string name="rarely_used_empty_title">Aucune app rarement utilisée</string>
+    <string name="rarely_used_empty_body">Toutes les apps de cet appareil ont été utilisées dans la période choisie. Augmentez le seuil ci-dessus pour élargir la recherche.</string>
+
+    <!-- ================================================================ -->
+    <!-- Phase X.B — Écran « Apps zombies »                                -->
+    <!-- ================================================================ -->
+    <string name="screen_zombies_title">Apps zombies</string>
+    <string name="zombies_empty_title">Aucune app zombie</string>
+    <string name="zombies_empty_body">Aucune app installée n\'est inutilisée. Les apps installées depuis plus de 7 jours sans avoir été ouvertes, ou celles non utilisées depuis plus de 30 jours, apparaîtraient ici.</string>
+
+    <!-- ================================================================ -->
+    <!-- Phase X.B — Écran « Filtrer par permission »                      -->
+    <!-- ================================================================ -->
+    <string name="screen_permission_filter_title">Filtrer par permission</string>
+    <string name="permission_filter_input_label">Permission (ex. android.permission.CAMERA)</string>
+    <string name="permission_filter_only_granted">Uniquement les apps qui l\'ont reçue</string>
+    <string name="permission_filter_search_button">Rechercher</string>
+    <string name="permission_filter_empty_title">Aucun résultat</string>
+    <string name="permission_filter_empty_body">Aucune app installée ne déclare cette permission. Vérifiez l\'orthographe ou choisissez une permission dans les puces ci-dessus.</string>
+
+    <!-- ================================================================ -->
+    <!-- Phase X — Corbeille — zone tampon de désinstallation              -->
+    <!-- ================================================================ -->
+    <string name="screen_trash_title">Corbeille</string>
+    <string name="trash_subtitle">%1$d app(s) en attente de désinstallation · %2$s</string>
+    <string name="trash_empty_title">La corbeille est vide</string>
+    <string name="trash_empty_body">Les apps placées dans la corbeille y restent jusqu\'à ce que vous les désinstalliez réellement ou que vous les restauriez. Elles ne sont PAS désinstallées tant que vous n\'avez pas touché « Désinstaller maintenant ».</string>
+    <string name="trash_action_restore">Restaurer</string>
+    <string name="trash_action_uninstall_now">Désinstaller maintenant</string>
+    <string name="trash_action_restore_all">Tout restaurer</string>
+    <string name="trash_action_empty_all">Vider la corbeille (tout désinstaller)</string>
+    <string name="trash_added_on">Ajoutée le %1$s</string>
+    <string name="trash_moved_snackbar">%1$s déplacée dans la corbeille</string>
+    <string name="trash_restored_snackbar">%1$s restaurée</string>
+    <string name="trash_emptied_snackbar">Désinstallation de %1$d app(s)…</string>
+
+    <!-- Boîtes de dialogue Corbeille -->
+    <string name="dialog_trash_choice_title">Désinstaller %1$s ?</string>
+    <string name="dialog_trash_choice_body">Vous pouvez placer cette app dans la corbeille pour la vérifier puis la désinstaller plus tard, ou la désinstaller tout de suite (Android demandera une dernière confirmation).</string>
+    <string name="dialog_trash_choice_move">Mettre dans la corbeille</string>
+    <string name="dialog_trash_choice_now">Désinstaller maintenant</string>
+    <string name="dialog_trash_restore_title">Restaurer %1$s ?</string>
+    <string name="dialog_trash_restore_body">L\'app reste installée — ceci la retire simplement de la corbeille.</string>
+    <string name="dialog_trash_empty_title">Vider la corbeille ?</string>
+    <string name="dialog_trash_empty_body">Android vous demandera de confirmer la désinstallation de chaque app, l\'une après l\'autre.</string>
+
+    <!-- Section Outils dans les Paramètres (navigation Phase X.B) -->
+    <string name="settings_tools_title">Outils</string>
+    <string name="settings_tools_rarely_used">Apps rarement utilisées</string>
+    <string name="settings_tools_rarely_used_desc">Apps non ouvertes depuis longtemps</string>
+    <string name="settings_tools_zombies">Apps zombies</string>
+    <string name="settings_tools_zombies_desc">Apps jamais ouvertes ou inutilisées depuis longtemps</string>
+    <string name="settings_tools_permission_filter">Filtrer par permission</string>
+    <string name="settings_tools_permission_filter_desc">Liste les apps qui déclarent une permission donnée</string>
+    <string name="settings_tools_trash">Corbeille</string>
+    <string name="settings_tools_trash_desc">Apps en attente de désinstallation</string>
+
+    <string name="perm_group_camera">accéder à votre caméra</string>
+    <string name="perm_group_microphone">enregistrer du son avec votre microphone</string>
+    <string name="perm_group_location">lire votre localisation précise</string>
+    <string name="perm_group_location_approx">lire votre localisation approximative</string>
+    <string name="perm_group_location_background">lire votre localisation même en arrière-plan</string>
+    <string name="perm_group_contacts">lire vos contacts</string>
+    <string name="perm_group_calendar">lire votre agenda</string>
+    <string name="perm_group_sms">lire ou envoyer des SMS</string>
+    <string name="perm_group_call_log">lire votre journal d\'appels</string>
+    <string name="perm_group_phone">accéder à l\'état du téléphone, passer des appels</string>
+    <string name="perm_group_storage">lire ou écrire dans le stockage externe</string>
+    <string name="perm_group_media">lire vos photos, vidéos, audio</string>
+    <string name="perm_group_activity">lire votre activité physique</string>
+    <string name="perm_group_sensors">lire vos capteurs corporels</string>
+    <string name="perm_group_bluetooth">scanner et se connecter aux appareils Bluetooth proches</string>
+    <string name="perm_group_notifications">poster des notifications</string>
+    <string name="perm_group_internet">accéder à Internet</string>
+    <string name="perm_group_overlay">dessiner par-dessus les autres apps</string>
+    <string name="perm_group_device_admin">agir comme administrateur de l\'appareil (peut bloquer sa propre désinstallation)</string>
+    <string name="perm_group_accessibility">utiliser des services d\'accessibilité (peut lire le contenu de l\'écran et injecter des entrées)</string>
+
+    <!-- ================================================================ -->
+    <!-- Error messages                                                    -->
+    <!-- ================================================================ -->
+    <string name="error_generic">Une erreur inattendue est survenue. Veuillez réessayer.</string>
+    <string name="error_permission_denied">Permission refusée. Veuillez l\'accorder dans les Paramètres.</string>
+    <string name="error_storage_full">Le stockage est plein. Libérez de l\'espace et réessayez.</string>
+    <string name="error_package_not_found">Application introuvable.</string>
+    <string name="error_no_handler">Aucune application ne peut gérer cette action.</string>
+
+    <!-- ================================================================ -->
+    <!-- Content descriptions (accessibility)                              -->
+    <!-- ================================================================ -->
+    <string name="cd_app_icon">Icône de l\'application %1$s</string>
+    <string name="cd_back">Retour</string>
+    <string name="cd_search">Rechercher</string>
+    <string name="cd_refresh">Actualiser la liste</string>
+    <string name="cd_settings">Ouvrir les paramètres</string>
+    <string name="cd_filter">Filtrer</string>
+    <string name="cd_sort">Trier</string>
+    <string name="cd_more_options">Plus d\'options</string>
+    <string name="cd_close">Fermer</string>
+    <string name="cd_app_logo">Logo App Manager Tech</string>
+    <string name="cd_view_details">Voir les détails de l\'application</string>
+
+</resources>

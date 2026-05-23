@@ -1,0 +1,1 @@
+Gestionnaire / nettoyeur d'apps local. Inspecter, nettoyer, auditer. Aucun tracking.

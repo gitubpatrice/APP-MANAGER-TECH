@@ -1,0 +1,1 @@
+Local app manager / cleaner. Inspect, clean, audit every installed app. No tracking.
