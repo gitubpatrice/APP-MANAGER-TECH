@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Deselect
+import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Refresh
@@ -150,9 +153,17 @@ fun AppListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar       = {
             if (state.isInSelectionMode) {
+                val visibleApps = (state.listOutcome as? Outcome.Success)?.value.orEmpty()
+                val allSelected = visibleApps.isNotEmpty() &&
+                    state.selectionCount == visibleApps.size
                 SelectionTopBar(
                     count          = state.selectionCount,
+                    allSelected    = allSelected,
                     onClose        = viewModel::clearSelection,
+                    onToggleSelectAll = {
+                        if (allSelected) viewModel.clearSelection()
+                        else viewModel.selectAll(visibleApps)
+                    },
                     onUninstall    = { batchDialog = BatchActionIntent.Uninstall(state.selectionCount) },
                     onClearCache   = { batchDialog = BatchActionIntent.ClearCache(state.selectionCount) },
                     onForceStop    = { batchDialog = BatchActionIntent.ForceStop(state.selectionCount) },
@@ -165,6 +176,15 @@ fun AppListScreen(
                     onFilterClick      = { showFilterDialog = true },
                     onRefreshClick     = viewModel::refresh,
                     refreshEnabled     = !state.isRefreshing,
+                    onSelectModeClick  = {
+                        // v0.1.2 — 1-tap entry into selection mode + select-all.
+                        // Saves the user from having to discover the long-press
+                        // gesture before they can act on the whole catalogue.
+                        val visible = (state.listOutcome as? Outcome.Success)?.value.orEmpty()
+                        if (visible.isNotEmpty()) viewModel.selectAll(visible)
+                    },
+                    selectModeEnabled  = state.listOutcome is Outcome.Success &&
+                                         (state.listOutcome as Outcome.Success).value.isNotEmpty(),
                     onSettingsClick    = onNavigateToSettings,
                 )
             }
@@ -265,14 +285,23 @@ private fun MainTopBar(
     onFilterClick: () -> Unit,
     onRefreshClick: () -> Unit,
     refreshEnabled: Boolean,
+    onSelectModeClick: () -> Unit,
+    selectModeEnabled: Boolean,
     onSettingsClick: () -> Unit,
 ) {
     Column {
         TopAppBar(
             title   = { Text(stringResource(R.string.screen_app_list_title)) },
             actions = {
-                // v0.1.1 — manual refresh button (forces rescan). The Storage entry
-                // moved to the "Outils" tab so the toolbar stays under 4 actions.
+                // v0.1.2 — 1-tap "Select all" (also enters selection mode in
+                // one go, no long-press needed). Discoverability fix per user
+                // feedback ("il manque bouton tout cocher").
+                IconButton(onClick = onSelectModeClick, enabled = selectModeEnabled) {
+                    Icon(
+                        imageVector        = Icons.Outlined.SelectAll,
+                        contentDescription = stringResource(R.string.action_select_all),
+                    )
+                }
                 IconButton(onClick = onRefreshClick, enabled = refreshEnabled) {
                     Icon(
                         imageVector        = Icons.Outlined.Refresh,
@@ -315,7 +344,9 @@ private fun MainTopBar(
 @Composable
 private fun SelectionTopBar(
     count: Int,
+    allSelected: Boolean,
     onClose: () -> Unit,
+    onToggleSelectAll: () -> Unit,
     onUninstall: () -> Unit,
     onClearCache: () -> Unit,
     onForceStop: () -> Unit,
@@ -330,6 +361,20 @@ private fun SelectionTopBar(
             Text(stringResource(R.string.app_list_selection_count, count))
         },
         actions = {
+            // v0.1.2 — single toggle button that swaps Select-all / Unselect-all
+            // based on the current selection. Filled checkbox = everything is
+            // selected (tap to clear); outline checkbox = some / none selected
+            // (tap to select all visible).
+            IconButton(onClick = onToggleSelectAll) {
+                Icon(
+                    imageVector        = if (allSelected) Icons.Outlined.Deselect
+                                          else Icons.Outlined.SelectAll,
+                    contentDescription = stringResource(
+                        if (allSelected) R.string.action_unselect_all
+                        else R.string.action_select_all,
+                    ),
+                )
+            }
             IconButton(onClick = onForceStop) {
                 Icon(Icons.Outlined.Stop, contentDescription = stringResource(R.string.app_list_action_force_stop_selected))
             }
@@ -380,8 +425,7 @@ private fun AppListBody(
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
             onRefresh    = onRefresh,
-            modifier     = Modifier
-                .fillMaxSize(),
+            modifier     = Modifier.fillMaxSize(),
         ) {
             when (val o = state.listOutcome) {
                 Outcome.Loading -> LoadingState()
@@ -398,9 +442,19 @@ private fun AppListBody(
                         )
                     } else {
                         LazyColumn(
-                            state    = listState,
-                            modifier = Modifier.fillMaxSize(),
+                            state          = listState,
+                            modifier       = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(bottom = 16.dp),
                         ) {
+                            item(key = "__overview__") {
+                                OverviewCard(apps = o.value)
+                            }
+                            item(key = "__section_header__") {
+                                SectionHeader(
+                                    icon  = Icons.Outlined.Apps,
+                                    label = stringResource(R.string.home_section_apps),
+                                )
+                            }
                             items(
                                 items = o.value,
                                 key   = { it.packageName },
@@ -418,6 +472,85 @@ private fun AppListBody(
                 }
             }
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// v0.1.2 — Home overview card (RFT-style summary)
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun OverviewCard(apps: List<AppInfo>) {
+    val context = LocalContext.current
+    // v0.1.2 audit L-1: fused into a single remember slot — one allocation + one O(n) pass.
+    val (totalBytes, cacheBytes) = remember(apps) {
+        apps.fold(0L to 0L) { (t, c), a -> (t + a.totalSizeBytes) to (c + a.cacheSizeBytes) }
+    }
+    val totalLabel = remember(totalBytes) { Formatter.formatShortFileSize(context, totalBytes) }
+    val cacheLabel = remember(cacheBytes) { Formatter.formatShortFileSize(context, cacheBytes) }
+
+    // v0.1.2 — ElevatedCard for the premium drop-shadow look (user feedback:
+    // "il y a des ombres sous les blocks, c'est plus premium").
+    androidx.compose.material3.ElevatedCard(
+        modifier  = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        elevation = androidx.compose.material3.CardDefaults.elevatedCardElevation(
+            defaultElevation = 4.dp,
+        ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // v0.1.2 audit M-3: home_overview_title now actually wired (was a
+            // dead string).
+            Text(
+                text       = stringResource(R.string.home_overview_title),
+                style      = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text       = stringResource(R.string.home_overview_apps_count, apps.size),
+                style      = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text  = stringResource(R.string.home_overview_total_size, totalLabel),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (cacheBytes > 0L) {
+                Text(
+                    text  = stringResource(R.string.home_overview_cache_size, cacheLabel),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {
+    Row(
+        modifier          = Modifier.padding(start = 18.dp, end = 16.dp, top = 8.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector        = icon,
+            contentDescription = null,
+            tint               = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier           = Modifier.size(14.dp),
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text       = label,
+            style      = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color      = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

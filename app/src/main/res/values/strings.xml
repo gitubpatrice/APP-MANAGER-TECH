@@ -385,6 +385,27 @@
     <string name="bottom_nav_tools">Tools</string>
     <string name="tools_screen_title">Tools</string>
 
+    <!-- v0.1.2 — RFT-style premium tool subtitles -->
+    <string name="tool_subtitle_smart_cleaner">Cleanup suggestions</string>
+    <string name="tool_subtitle_trackers">Ad / analytics SDKs</string>
+    <string name="tool_subtitle_security_audit">Apps with OS privileges</string>
+    <string name="tool_subtitle_storage">Storage analyser</string>
+    <string name="tool_subtitle_rarely_used">Apps barely used</string>
+    <string name="tool_subtitle_zombies">Inactive apps</string>
+    <string name="tool_subtitle_permission_filter">Filter by permission</string>
+    <string name="tool_subtitle_cleaner">Scan + threshold</string>
+    <string name="tool_subtitle_ignore_list">Excluded apps</string>
+    <string name="tool_subtitle_export">JSON / CSV</string>
+    <string name="tool_subtitle_transparency">What this app reads</string>
+    <string name="tool_subtitle_trash">Apps staged for uninstall</string>
+
+    <!-- v0.1.2 — Home overview card -->
+    <string name="home_overview_title">At a glance</string>
+    <string name="home_overview_apps_count">%1$d apps</string>
+    <string name="home_overview_total_size">%1$s used</string>
+    <string name="home_overview_cache_size">%1$s of cache to clean</string>
+    <string name="home_section_apps">Installed apps</string>
+
     <!-- v0.1.1 — Manual refresh + pull-to-refresh -->
     <string name="action_refresh_apps">Refresh apps</string>
     <string name="action_refresh_refreshing">Refreshing…</string>

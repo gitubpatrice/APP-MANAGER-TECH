@@ -45,7 +45,15 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var settings: SettingsRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        // v0.1.2 — force a ~700ms minimum splash duration so the launcher
+        // logo is visibly perceptible on fast cold starts. Without this,
+        // the home screen Compose tree paints within ~150ms on modern
+        // devices and the splash flashes too quickly to register.
+        val splash = installSplashScreen()
+        val splashStart = System.currentTimeMillis()
+        splash.setKeepOnScreenCondition {
+            System.currentTimeMillis() - splashStart < SPLASH_MIN_DURATION_MS
+        }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
@@ -86,7 +94,10 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.SYSTEM,
                 null             -> isSystemInDarkTheme()
             }
-            val resolvedDynamicColor = appearance?.dynamicColor ?: true
+            // v0.1.2 — default to OFF so the first frame matches the
+             // post-DataStore frame (avoid the brand → dynamic flash on
+             // Android 12+ devices with non-neutral wallpapers).
+            val resolvedDynamicColor = appearance?.dynamicColor ?: false
 
             AppManagerTechTheme(
                 darkTheme    = resolvedDarkTheme,
@@ -95,5 +106,14 @@ class MainActivity : ComponentActivity() {
                 AppRoot()
             }
         }
+    }
+
+    companion object {
+        /**
+         * v0.1.2 — minimum splash duration in ms. 700ms is long enough for the
+         * splash logo to be perceptible (typical human reaction time floor)
+         * but short enough that fast cold starts don't feel sluggish.
+         */
+        private const val SPLASH_MIN_DURATION_MS: Long = 700L
     }
 }

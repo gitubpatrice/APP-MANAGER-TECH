@@ -26,7 +26,9 @@
         "no splash" by the first tester.
     -->
     <style name="Theme.AppManagerTech.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <!-- v0.1.2 — splash background WHITE per user feedback (was the
+             brand blue ic_launcher_background, made the logo look "loud"). -->
+        <item name="windowSplashScreenBackground">@android:color/white</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_inset</item>
         <item name="postSplashScreenTheme">@style/Theme.AppManagerTech</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>

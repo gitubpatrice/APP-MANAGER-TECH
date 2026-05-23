@@ -46,11 +46,24 @@ class IntentFactory @Inject constructor(
 
     /**
      * OS Settings → Usage access screen so the user can grant
-     * PACKAGE_USAGE_STATS to App Manager Tech (required for accurate
-     * cache/data sizes and last-used timestamps).
+     * PACKAGE_USAGE_STATS to App Manager Tech.
+     *
+     * v0.1.2 — adds `Uri.fromParts("package", ourPackage, null)` so most OEM
+     * launchers (Samsung One UI, Pixel, etc.) jump straight to OUR row +
+     * scroll the list to it, instead of dumping the user on a 200-app list
+     * where they have to scroll forever to find "App Manager Tech".
+     *
+     * Some OEMs ignore the package URI and still show the full list — there
+     * is no API to force per-app navigation. The user complaint that
+     * triggered this fix was "il y a trop d'applications c'est la galère" —
+     * we cannot add a "select all" on a system screen Google locked down for
+     * security reasons (granting Usage Access to every app would let any
+     * app read every other app's usage history), but we can at least skip
+     * the scroll step on launchers that honour the package URI.
      */
     fun usageAccessSettingsIntent(): Intent =
         Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+            .setData(Uri.fromParts("package", context.packageName, null))
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
     private fun String.toPackageUri(): Uri = Uri.parse(this)

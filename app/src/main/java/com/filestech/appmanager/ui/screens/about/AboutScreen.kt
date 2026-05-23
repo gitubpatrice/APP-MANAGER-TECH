@@ -17,8 +17,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Shop
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -185,13 +185,13 @@ private fun AboutBody(innerPadding: PaddingValues) {
 
 @Composable
 private fun AboutCard(content: @Composable () -> Unit) {
-    Card(
-        modifier = Modifier
+    // v0.1.2 — ElevatedCard for the premium drop-shadow RFT-style look,
+    // mirrors SettingsCard / OverviewCard / ToolCard.
+    ElevatedCard(
+        modifier  = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        colors   = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
     ) {
         Column { content() }
     }

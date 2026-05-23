@@ -357,6 +357,27 @@
     <string name="bottom_nav_tools">Outils</string>
     <string name="tools_screen_title">Outils</string>
 
+    <!-- v0.1.2 — sous-titres outils style RFT -->
+    <string name="tool_subtitle_smart_cleaner">Suggestions de nettoyage</string>
+    <string name="tool_subtitle_trackers">Pisteurs / analytiques</string>
+    <string name="tool_subtitle_security_audit">Apps avec privilèges OS</string>
+    <string name="tool_subtitle_storage">Analyseur de stockage</string>
+    <string name="tool_subtitle_rarely_used">Apps peu utilisées</string>
+    <string name="tool_subtitle_zombies">Apps inactives</string>
+    <string name="tool_subtitle_permission_filter">Filtrer par permission</string>
+    <string name="tool_subtitle_cleaner">Analyse + seuil</string>
+    <string name="tool_subtitle_ignore_list">Apps exclues</string>
+    <string name="tool_subtitle_export">JSON / CSV</string>
+    <string name="tool_subtitle_transparency">Ce que l\'app collecte</string>
+    <string name="tool_subtitle_trash">Apps en attente de désinstallation</string>
+
+    <!-- v0.1.2 — carte vue d'ensemble accueil -->
+    <string name="home_overview_title">Vue d\'ensemble</string>
+    <string name="home_overview_apps_count">%1$d apps</string>
+    <string name="home_overview_total_size">%1$s utilisés</string>
+    <string name="home_overview_cache_size">%1$s de cache à nettoyer</string>
+    <string name="home_section_apps">Apps installées</string>
+
     <!-- v0.1.1 — Actualiser manuellement + pull-to-refresh -->
     <string name="action_refresh_apps">Actualiser</string>
     <string name="action_refresh_refreshing">Actualisation…</string>

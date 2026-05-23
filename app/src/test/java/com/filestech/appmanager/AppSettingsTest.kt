@@ -24,8 +24,12 @@ class AppSettingsTest {
     // ---------------------------------------------------------------------------
 
     @Test
-    fun `dynamic colour is enabled by default`() {
-        assertThat(defaults.appearance.dynamicColor).isTrue()
+    fun `dynamic colour is disabled by default`() {
+        // v0.1.2 — flipped from true to false so the app ships with a
+        // stable brand palette (BrandBlue light / GitHub dark) regardless
+        // of the user's wallpaper. Users who prefer Material You can opt
+        // back in via Settings.
+        assertThat(defaults.appearance.dynamicColor).isFalse()
     }
 
     @Test

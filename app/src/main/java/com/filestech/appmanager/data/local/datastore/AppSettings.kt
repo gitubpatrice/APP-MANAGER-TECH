@@ -38,8 +38,17 @@ data class AppSettings(
      * Visual presentation preferences.
      */
     data class Appearance(
-        /** Use the system's dynamic colour scheme (Material You, API 31+). */
-        val dynamicColor: Boolean = true,
+        /**
+         * Use the system's dynamic colour scheme (Material You, API 31+).
+         *
+         * v0.1.2: default **OFF** so the app ships with a stable, predictable
+         * brand palette (BrandBlue light / GitHub-style dark) regardless of
+         * the user's wallpaper. The earlier `true` default produced
+         * surprising pink/rose surfaces under pink wallpapers and broke the
+         * design discipline mirrored from Read Files Tech. Users who prefer
+         * Material You can still toggle it ON in Settings.
+         */
+        val dynamicColor: Boolean = false,
         /** Dark / light / system-follow. */
         val themeMode: ThemeMode = ThemeMode.SYSTEM,
         /** App list sort order. */

@@ -1,0 +1,10 @@
+v0.1.2 — premium RFT-style refresh
+
+- Tools: 2-col grid + subtitles + vibrant icons + drop shadows
+- Home: "At a glance" overview card + section headers
+- Settings / About: ElevatedCard shadows
+- Splash: white background
+- New launcher logo
+- Toolbar "Select all" button (1-tap multi-select)
+- Dynamic colour OFF by default (no pink surfaces)
+- WCAG AA contrasts fixed in light mode

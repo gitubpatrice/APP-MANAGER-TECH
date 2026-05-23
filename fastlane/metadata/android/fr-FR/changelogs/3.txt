@@ -1,0 +1,10 @@
+v0.1.2 — design premium style RFT
+
+- Outils : grille 2 col + sous-titres + icônes vives + ombres
+- Accueil : carte « Vue d'ensemble » + en-têtes de section
+- Réglages / À propos : ombres ElevatedCard
+- Splash : fond blanc
+- Nouvelle icône
+- Bouton « Tout sélectionner » dans la barre (1 tap)
+- Couleur dynamique OFF par défaut (plus de rose)
+- Contrastes WCAG AA corrigés en mode clair
