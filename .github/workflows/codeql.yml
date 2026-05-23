@@ -48,7 +48,12 @@ jobs:
           queries: security-and-quality
 
       - name: Build (debug — no signing needed)
-        run: ./gradlew :app:assembleDebug --no-daemon
+        # CodeQL Java/Kotlin tracer must OBSERVE the actual compiler invocation
+        # to extract bytecode. When the Gradle build cache returns
+        # `compileDebugKotlin FROM-CACHE`, no compiler runs and CodeQL fails
+        # with "could not process any of it". `--no-build-cache --rerun-tasks`
+        # force fresh execution so the tracer sees every task.
+        run: ./gradlew :app:assembleDebug --no-daemon --no-build-cache --rerun-tasks
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
