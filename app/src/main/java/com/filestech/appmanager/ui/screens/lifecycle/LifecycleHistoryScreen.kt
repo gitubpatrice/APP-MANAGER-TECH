@@ -138,10 +138,95 @@ private fun LifecycleBody(
                         body  = stringResource(R.string.lifecycle_empty_body),
                     )
                 } else {
+                    // v0.3.1 — stats header card aggregating counts per type
+                    // + uninstall reason for the current window. Stays at the
+                    // top of the LazyColumn so it scrolls with the timeline.
+                    StatsCard(events = events.value)
                     EventTimeline(events = events.value, onItemClick = onItemClick)
                 }
             }
         }
+    }
+}
+
+/**
+ * v0.3.1 — Aggregated stats for the current window. Cheap O(n) fold over the
+ * in-memory event list; no extra Room query.
+ */
+@Composable
+private fun StatsCard(events: List<LifecycleEvent>) {
+    val countsByType = remember(events) { events.groupingBy { it.type }.eachCount() }
+    val reasonCounts = remember(events) {
+        events.mapNotNull { it.userReason }.groupingBy { it }.eachCount()
+            .entries.sortedByDescending { it.value }.take(3)
+    }
+    val topReasons = reasonCounts.map { (reason, n) -> reasonLabel(reason) to n }
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        colors   = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text       = stringResource(R.string.lifecycle_stats_title, events.size),
+                style      = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                StatChip(
+                    label = stringResource(R.string.lifecycle_type_installed),
+                    count = countsByType[com.filestech.appmanager.domain.model.LifecycleEventType.INSTALLED] ?: 0,
+                    tint  = BrandBlue,
+                )
+                StatChip(
+                    label = stringResource(R.string.lifecycle_type_uninstalled),
+                    count = countsByType[com.filestech.appmanager.domain.model.LifecycleEventType.UNINSTALLED] ?: 0,
+                    tint  = BrandDanger,
+                )
+                StatChip(
+                    label = stringResource(R.string.lifecycle_type_replaced),
+                    count = countsByType[com.filestech.appmanager.domain.model.LifecycleEventType.REPLACED] ?: 0,
+                    tint  = BrandBlue,
+                )
+                StatChip(
+                    label = stringResource(R.string.lifecycle_type_baseline),
+                    count = countsByType[com.filestech.appmanager.domain.model.LifecycleEventType.BASELINE] ?: 0,
+                    tint  = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (topReasons.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text       = stringResource(R.string.lifecycle_stats_top_reasons),
+                    style      = MaterialTheme.typography.labelMedium,
+                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                topReasons.forEach { (label, n) ->
+                    Text(
+                        text       = stringResource(R.string.lifecycle_stats_reason_row, label, n),
+                        style      = MaterialTheme.typography.bodySmall,
+                        modifier   = Modifier.padding(top = 2.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatChip(label: String, count: Int, tint: androidx.compose.ui.graphics.Color) {
+    Surface(
+        color = tint.copy(alpha = 0.14f),
+        shape = RoundedCornerShape(4.dp),
+    ) {
+        Text(
+            text       = "$label · $count",
+            style      = MaterialTheme.typography.labelSmall,
+            color      = tint,
+            modifier   = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        )
     }
 }
 

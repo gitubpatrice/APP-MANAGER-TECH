@@ -122,6 +122,7 @@ fun AppDetailScreen(
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val lifecycleEvents by viewModel.lifecycleEvents.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -217,8 +218,9 @@ fun AppDetailScreen(
         },
     ) { innerPadding ->
         AppDetailBody(
-            state         = state,
-            innerPadding  = innerPadding,
+            state             = state,
+            lifecycleEvents   = lifecycleEvents,
+            innerPadding      = innerPadding,
             onRetry       = { viewModel.load(packageName) },
             onUninstall   = {
                 confirmDialog = ConfirmIntent.Uninstall(
@@ -329,6 +331,7 @@ fun AppDetailScreen(
             when (state.action) {
                 AppDetailViewModel.CriticalAction.UNINSTALL       -> R.string.critical_action_uninstall
                 AppDetailViewModel.CriticalAction.QUARANTINE_HARD -> R.string.critical_action_quarantine_hard
+                AppDetailViewModel.CriticalAction.DISABLE         -> R.string.critical_action_disable
             },
         )
         CriticalWarningDialog(
@@ -345,6 +348,8 @@ fun AppDetailScreen(
                             durationDays = state.durationDays,
                             bypassCriticalCheck = true,
                         )
+                    AppDetailViewModel.CriticalAction.DISABLE ->
+                        viewModel.disable(bypassCriticalCheck = true)
                 }
                 criticalConfirm = null
             },
@@ -383,6 +388,7 @@ private data class SoftQuarantinePrompt(
 @Composable
 private fun AppDetailBody(
     state: AppDetailViewModel.UiState,
+    lifecycleEvents: List<com.filestech.appmanager.domain.model.LifecycleEvent>,
     innerPadding: PaddingValues,
     onRetry: () -> Unit,
     onUninstall: () -> Unit,
@@ -426,6 +432,7 @@ private fun AppDetailBody(
                     trackerReport             = state.trackerReport,
                     isIgnored                 = state.isIgnored,
                     recentlyMovedToTrash      = state.recentlyMovedToTrash,
+                    lifecycleEvents           = lifecycleEvents,
                     onUninstall               = onUninstall,
                     onClearCache              = onClearCache,
                     onForceStop               = onForceStop,
@@ -448,6 +455,7 @@ private fun AppDetailContent(
     trackerReport: TrackerReport?,
     isIgnored: Boolean,
     recentlyMovedToTrash: Boolean,
+    lifecycleEvents: List<com.filestech.appmanager.domain.model.LifecycleEvent>,
     onUninstall: () -> Unit,
     onClearCache: () -> Unit,
     onForceStop: () -> Unit,
@@ -496,6 +504,16 @@ private fun AppDetailContent(
         )
         SectionHeader(stringResource(R.string.app_detail_section_install_info))
         InstallInfoCard(detail.info)
+        // v0.3.1 — Lifecycle inline section: 5 most recent lifecycle events
+        // for this package (read-only). Shown only when the Lifecycle History
+        // feature has actually recorded at least one event for this app —
+        // avoids a confusing empty section for users who haven't enabled the
+        // feature yet (the screen's "no events" state is reserved for the
+        // dedicated LifecycleHistoryScreen, which carries the activation CTA).
+        if (lifecycleEvents.isNotEmpty()) {
+            SectionHeader(stringResource(R.string.app_detail_section_lifecycle))
+            LifecycleInlineCard(events = lifecycleEvents.take(5))
+        }
         // v0.2.2 — entry point to the Expert Mode (advanced inspector). Kept
         // at the bottom so it doesn't compete visually with the action card.
         Spacer(modifier = Modifier.height(8.dp))
@@ -511,6 +529,76 @@ private fun AppDetailContent(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(R.string.app_detail_open_expert))
+        }
+    }
+}
+
+/**
+ * v0.3.1 — Inline lifecycle timeline (5 latest events). Read-only — the user
+ * can drill down to the full per-app history via [LifecycleHistoryScreen]
+ * (filter by package — to be added in a follow-up if needed). Each event
+ * row shows a type badge + version + date; reason chip when the user
+ * captured one.
+ */
+@Composable
+private fun LifecycleInlineCard(
+    events: List<com.filestech.appmanager.domain.model.LifecycleEvent>,
+) {
+    val dateFormat = remember { DateFormat.getDateInstance(DateFormat.MEDIUM) }
+    SectionCard {
+        Column(modifier = Modifier.padding(16.dp)) {
+            events.forEachIndexed { index, event ->
+                if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+                LifecycleInlineRow(event = event, dateFormat = dateFormat)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LifecycleInlineRow(
+    event: com.filestech.appmanager.domain.model.LifecycleEvent,
+    dateFormat: DateFormat,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        // Type chip — colored by destructiveness.
+        val tint = when (event.type) {
+            com.filestech.appmanager.domain.model.LifecycleEventType.UNINSTALLED -> BrandDanger
+            com.filestech.appmanager.domain.model.LifecycleEventType.INSTALLED,
+            com.filestech.appmanager.domain.model.LifecycleEventType.REPLACED   -> BrandBlue
+            com.filestech.appmanager.domain.model.LifecycleEventType.BASELINE   -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
+        Surface(
+            color = tint.copy(alpha = 0.14f),
+            shape = RoundedCornerShape(4.dp),
+        ) {
+            Text(
+                text     = stringResource(
+                    when (event.type) {
+                        com.filestech.appmanager.domain.model.LifecycleEventType.BASELINE    -> R.string.lifecycle_type_baseline
+                        com.filestech.appmanager.domain.model.LifecycleEventType.INSTALLED   -> R.string.lifecycle_type_installed
+                        com.filestech.appmanager.domain.model.LifecycleEventType.UNINSTALLED -> R.string.lifecycle_type_uninstalled
+                        com.filestech.appmanager.domain.model.LifecycleEventType.REPLACED    -> R.string.lifecycle_type_replaced
+                    },
+                ),
+                style    = MaterialTheme.typography.labelSmall,
+                color    = tint,
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text  = event.versionName?.let { "v$it" } ?: dateFormat.format(Date(event.capturedAt)),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (event.versionName != null) {
+                Text(
+                    text  = dateFormat.format(Date(event.capturedAt)),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

@@ -7,6 +7,8 @@ import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.getOrNull
+import com.filestech.appmanager.data.system.CriticalAppDetector
+import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.model.TrashItem
 import com.filestech.appmanager.domain.usecase.ObserveTrashUseCase
 import com.filestech.appmanager.domain.usecase.RestoreFromTrashUseCase
@@ -34,6 +36,7 @@ class TrashViewModel @Inject constructor(
     private val restoreFromTrash: RestoreFromTrashUseCase,
     private val trashRepo: TrashRepository,
     private val uninstallApp: UninstallAppUseCase,
+    private val criticalDetector: CriticalAppDetector,
 ) : ViewModel() {
 
     val items: StateFlow<List<TrashItem>> = observeTrash()
@@ -101,8 +104,28 @@ class TrashViewModel @Inject constructor(
         }
     }
 
-    /** Fire the system uninstall intent for one trashed app. */
-    fun uninstallNow(packageName: String) {
+    /**
+     * Fire the system uninstall intent for one trashed app.
+     *
+     * v0.3.1 Safety Phase B — if the package is classified critical (2FA /
+     * banking / password manager / health / messaging / transport / user-
+     * protected) we DO NOT launch the intent immediately: emit
+     * [Event.RequiresCriticalConfirmation] so the screen surfaces the
+     * hold-3s warning dialog. The user can then cancel or re-invoke with
+     * [bypassCriticalCheck] = true via the dialog confirm callback.
+     */
+    fun uninstallNow(packageName: String, bypassCriticalCheck: Boolean = false) {
+        if (!bypassCriticalCheck) {
+            criticalDetector.classify(packageName)?.let { classification ->
+                _events.trySend(
+                    Event.RequiresCriticalConfirmation(
+                        classification = classification,
+                        action         = PendingAction.UninstallOne(packageName),
+                    ),
+                )
+                return
+            }
+        }
         uninstallApp(packageName).getOrNull()?.let { intent ->
             _events.trySend(Event.LaunchIntent(intent))
         } ?: _events.trySend(Event.ShowError("Cannot uninstall $packageName"))
@@ -116,13 +139,42 @@ class TrashViewModel @Inject constructor(
      * Rows are NOT deleted from the trash here. They will be cleaned up on the
      * next full rescan once PackageManager confirms the app is gone, or the
      * user can manually restore stragglers (e.g. uninstall they cancelled).
+     *
+     * v0.3.1 Safety Phase B — if AT LEAST ONE trashed app is classified
+     * critical we surface a single hold-3s warning carrying the count + the
+     * first detected classification (for the dialog copy). The user then
+     * confirms once for the whole batch (re-invoke with [bypassCriticalCheck]
+     * = true) — better UX than prompting per-package, which would feel
+     * adversarial for a 10-item bulk action.
      */
-    fun emptyTrash() {
+    fun emptyTrash(bypassCriticalCheck: Boolean = false) {
         val snapshot = items.value
         if (snapshot.isEmpty()) return
+        if (!bypassCriticalCheck) {
+            val criticals = snapshot.mapNotNull { criticalDetector.classify(it.packageName) }
+            if (criticals.isNotEmpty()) {
+                _events.trySend(
+                    Event.RequiresCriticalConfirmation(
+                        classification = criticals.first(),
+                        action         = PendingAction.EmptyTrash(criticalCount = criticals.size),
+                    ),
+                )
+                return
+            }
+        }
         val intents = snapshot.mapNotNull { uninstallApp(it.packageName).getOrNull() }
         if (intents.isEmpty()) return
         _events.trySend(Event.LaunchIntents(intents, snapshot.size))
+    }
+
+    /**
+     * Discriminator for the action the [Event.RequiresCriticalConfirmation]
+     * was emitted for. The screen-side hold-3s confirm callback dispatches
+     * back to the matching `*WithBypass` use-case method.
+     */
+    sealed interface PendingAction {
+        data class UninstallOne(val packageName: String) : PendingAction
+        data class EmptyTrash(val criticalCount: Int) : PendingAction
     }
 
     sealed interface Event {
@@ -130,5 +182,14 @@ class TrashViewModel @Inject constructor(
         data class LaunchIntents(val intents: List<Intent>, val total: Int) : Event
         data class Restored(val packageName: String) : Event
         data class ShowError(val message: String) : Event
+        /**
+         * v0.3.1 — surface the hold-3s [CriticalWarningDialog]. The screen
+         * dispatches the confirm callback back to the appropriate
+         * `*(bypassCriticalCheck = true)` overload based on [action].
+         */
+        data class RequiresCriticalConfirmation(
+            val classification: CriticalClassification,
+            val action: PendingAction,
+        ) : Event
     }
 }

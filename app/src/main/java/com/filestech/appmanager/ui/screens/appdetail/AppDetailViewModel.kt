@@ -3,6 +3,7 @@ package com.filestech.appmanager.ui.screens.appdetail
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
@@ -11,9 +12,11 @@ import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.IntentFactory
 import com.filestech.appmanager.domain.model.AppDetail
 import com.filestech.appmanager.domain.model.CriticalClassification
+import com.filestech.appmanager.domain.model.LifecycleEvent
 import com.filestech.appmanager.domain.model.PrivacyScore
 import com.filestech.appmanager.domain.model.TrackerReport
 import com.filestech.appmanager.domain.repository.AppInfoRepository
+import com.filestech.appmanager.domain.repository.AppLifecycleRepository
 import com.filestech.appmanager.domain.repository.IgnoreListRepository
 import com.filestech.appmanager.domain.usecase.ClearAppCacheUseCase
 import com.filestech.appmanager.domain.usecase.DetectTrackersUseCase
@@ -39,8 +42,13 @@ import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -72,11 +80,35 @@ class AppDetailViewModel @Inject constructor(
     private val settings: SettingsRepository,
     private val criticalDetector: CriticalAppDetector,
     private val appInfoRepo: AppInfoRepository,
+    private val lifecycleRepository: AppLifecycleRepository,
     private val intents: IntentFactory,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state.asStateFlow()
+
+    /**
+     * v0.3.1 — Per-app lifecycle events (newest first, capped to 5 entries by
+     * the UI). Driven by the current [_state.packageName] via `flatMapLatest`
+     * so navigating to a different app reuses the same flow without leaking
+     * the prior subscription. Returns `Outcome.Loading` until the package
+     * name is non-empty (the screen renders the "no events" empty state in
+     * that case, indistinguishable from a freshly-installed app with no
+     * tracked events yet).
+     */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val lifecycleEvents: StateFlow<List<LifecycleEvent>> = _state
+        .map { it.packageName }
+        .flatMapLatest { pkg ->
+            if (pkg.isEmpty()) emptyFlow()
+            else lifecycleRepository.observeByPackage(pkg)
+                .map { outcome -> outcome.getOrNull().orEmpty() }
+        }
+        .stateIn(
+            scope        = viewModelScope,
+            started      = SharingStarted.WhileSubscribed(STATEFLOW_STOP_TIMEOUT_MS),
+            initialValue = emptyList(),
+        )
 
     private val _events = oneShotEvents<Event>()
     val events: Flow<Event> = _events.asFlow()
@@ -221,7 +253,26 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun disable() = setEnabled(false)
+    fun disable(bypassCriticalCheck: Boolean = false) {
+        val pkg = currentPackage() ?: return
+        // v0.3.1 Safety Phase B — disabling a 2FA / banking / password manager
+        // is functionally equivalent to uninstalling (the user loses access to
+        // the app and may be locked out of associated accounts). Same hold-3s
+        // friction.
+        if (!bypassCriticalCheck) {
+            criticalDetector.classify(pkg)?.let { classification ->
+                _events.trySend(
+                    Event.RequiresCriticalConfirmation(
+                        classification = classification,
+                        action         = CriticalAction.DISABLE,
+                    ),
+                )
+                return
+            }
+        }
+        setEnabled(false)
+    }
+
     fun enable() = setEnabled(true)
 
     private fun setEnabled(enabled: Boolean) {
@@ -446,7 +497,12 @@ class AppDetailViewModel @Inject constructor(
     }
 
     /** Actions that trigger the Safety Guardrails dialog. */
-    enum class CriticalAction { UNINSTALL, QUARANTINE_HARD }
+    enum class CriticalAction {
+        UNINSTALL,
+        QUARANTINE_HARD,
+        /** v0.3.1 Safety Phase B — disable a critical app (2FA / banking / etc.). */
+        DISABLE,
+    }
 
     private companion object {
         /** 15s cap on the parallel fan-out load (typical < 1s). */

@@ -6,7 +6,9 @@ import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
+import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.IntentFactory
+import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.model.SmartCleanerReport
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.ClearAppCacheUseCase
@@ -44,6 +46,7 @@ class SmartCleanerViewModel @Inject constructor(
     private val clearAppCache: ClearAppCacheUseCase,
     private val ignoreApp: IgnoreAppUseCase,
     private val intents: IntentFactory,
+    private val criticalDetector: CriticalAppDetector,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -140,8 +143,26 @@ class SmartCleanerViewModel @Inject constructor(
         _events.trySend(Event.LaunchIntent(intents.usageAccessSettingsIntent()))
     }
 
-    /** Per-row action menu: launch system uninstall for [packageName]. */
-    fun uninstall(packageName: String) {
+    /**
+     * Per-row action menu: launch system uninstall for [packageName].
+     *
+     * v0.3.1 Safety Phase B — same hold-3s friction as the AppDetail uninstall
+     * path: if the suggested package is classified critical, emit a
+     * [Event.RequiresCriticalConfirmation] instead of the intent. The screen
+     * dialog re-invokes with [bypassCriticalCheck] = true on hold-3s confirm.
+     */
+    fun uninstall(packageName: String, bypassCriticalCheck: Boolean = false) {
+        if (!bypassCriticalCheck) {
+            criticalDetector.classify(packageName)?.let { classification ->
+                _events.trySend(
+                    Event.RequiresCriticalConfirmation(
+                        packageName    = packageName,
+                        classification = classification,
+                    ),
+                )
+                return
+            }
+        }
         uninstallApp(packageName).getOrNull()?.let { intent ->
             _events.trySend(Event.LaunchIntent(intent))
         }
@@ -181,6 +202,15 @@ class SmartCleanerViewModel @Inject constructor(
          *  now carries any system Intent (usage settings, uninstall, app-info). */
         data class LaunchIntent(val intent: android.content.Intent) : Event
         data class AnalyzeDone(val suggestionsCount: Int) : Event
+        /**
+         * v0.3.1 — emitted when a suggested uninstall hits a critical package.
+         * The screen surfaces [CriticalWarningDialog] (hold-3s); the confirm
+         * callback dispatches back to `uninstall(pkg, bypassCriticalCheck = true)`.
+         */
+        data class RequiresCriticalConfirmation(
+            val packageName: String,
+            val classification: CriticalClassification,
+        ) : Event
     }
 
     companion object {

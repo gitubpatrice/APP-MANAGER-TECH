@@ -1,0 +1,11 @@
+v0.3.1 — Safety Phase B + Lifecycle polish
+
+- Safety Guardrails extended: 3-second hold confirmation
+  now also gates Disable, Trash uninstall, Empty trash,
+  and SmartCleaner uninstall (was only Uninstall + HARD
+  quarantine).
+- New "Protected apps" Settings: read-only built-in lists
+  + your own additions, capped at 200.
+- Lifecycle: inline 5-event timeline on AppDetail,
+  stats card on History (counts + top reasons).
+- Zombies: search bar by label or package.

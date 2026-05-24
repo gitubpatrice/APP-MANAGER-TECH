@@ -1,7 +1,14 @@
 package com.filestech.appmanager.data.system
 
+import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.di.ApplicationScope
 import com.filestech.appmanager.domain.model.CriticalCategory
 import com.filestech.appmanager.domain.model.CriticalClassification
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -11,31 +18,61 @@ import javax.inject.Singleton
  * action.
  *
  * v0.2.0 — Safety Guardrails feature.
+ * v0.3.1 — extended with a user-customisable whitelist (Settings → Apps protégées).
  *
  * Design:
  *  - Static curated lists per [CriticalCategory], lowercased Set<String>.
  *  - First-match wins (categories are scanned in the order they appear in
  *    [CategoryRanking] — most sensitive first).
+ *  - User-customised set is loaded reactively from [SettingsRepository] into a
+ *    process-lifetime [AtomicReference] cache so [classify] stays synchronous
+ *    (called from VM hot paths that can NOT `await` a DataStore flow). The
+ *    cache is updated by an [ApplicationScope]-scoped collector — survives
+ *    Activity rotation, no leak.
  *  - Pure Kotlin, zero Android dependency — trivially testable.
  *  - No remote sync, no fetching — F-Droid-friendly.
  *
  * Maintenance:
- *  - Lists are intentionally CONSERVATIVE: only include apps where data loss
- *    or account lockout is the realistic consequence of uninstall. Avoid
- *    inflating lists with apps that have trivial cloud restore — would
+ *  - Built-in lists are intentionally CONSERVATIVE: only include apps where
+ *    data loss or account lockout is the realistic consequence of uninstall.
+ *    Avoid inflating lists with apps that have trivial cloud restore — would
  *    train users to dismiss warnings.
  *  - When adding a package, prefer the production package name + verify on
  *    a real install (the Play Store displays the package id under the share
  *    URL).
  */
 @Singleton
-class CriticalAppDetector @Inject constructor() {
+class CriticalAppDetector @Inject constructor(
+    @ApplicationScope appScope: CoroutineScope,
+    settings: SettingsRepository,
+) {
+
+    /**
+     * Cached lowercased user-protected packages. Updated by the init-block
+     * collector on every DataStore tick — never null, never out-of-sync for
+     * more than a Flow emission window.
+     */
+    private val userProtectedCache: AtomicReference<Set<String>> = AtomicReference(emptySet())
+
+    init {
+        appScope.launch {
+            settings.flow
+                .map { it.safety.userProtectedPackages }
+                .distinctUntilChanged()
+                .collect { fresh ->
+                    userProtectedCache.set(fresh.map { it.lowercase() }.toSet())
+                }
+        }
+    }
 
     /** Returns the [CriticalCategory] for [packageName] or null if not classified. */
     fun classify(packageName: String): CriticalClassification? {
         val key = packageName.lowercase()
         for (category in CategoryRanking) {
-            if (key in WHITELISTS.getValue(category)) {
+            val matchesBuiltIn = key in WHITELISTS.getValue(category)
+            val matchesUser    = category == CriticalCategory.USER_PROTECTED &&
+                key in userProtectedCache.get()
+            if (matchesBuiltIn || matchesUser) {
                 return CriticalClassification(packageName = packageName, category = category)
             }
         }
@@ -44,6 +81,21 @@ class CriticalAppDetector @Inject constructor() {
 
     /** Convenience probe — `true` iff the package is classified in any category. */
     fun isCritical(packageName: String): Boolean = classify(packageName) != null
+
+    /**
+     * v0.3.1 — Synchronous snapshot of the user-protected set (lowercased
+     * package names). Used by the Settings "Apps protégées" screen to display
+     * + edit the list without re-collecting the DataStore flow.
+     */
+    fun userProtectedSnapshot(): Set<String> = userProtectedCache.get()
+
+    /**
+     * v0.3.1 — Live read of the built-in whitelist for [category]. Used by the
+     * "Apps protégées" screen to render the read-only sections (one per
+     * built-in category). Returns a defensive copy.
+     */
+    fun builtInPackagesFor(category: CriticalCategory): Set<String> =
+        WHITELISTS.getValue(category).toSet()
 
     companion object {
 
@@ -163,12 +215,13 @@ class CriticalAppDetector @Inject constructor() {
             "org.briarproject.briar.android",       // Briar
         )
 
-        // Placeholder — v0.3.0 will load this from a DataStore-backed
-        // user-customisation Settings screen ("Apps protégées" → "Ajouter").
-        // For v0.2.0 the set stays empty so the enum + UI plumbing exists
-        // end-to-end (avoids "phantom enum branch" anti-pattern flagged by
-        // the H-1 audit finding).
-        private val USER_PROTECTED_PKGS: Set<String> = emptySet()
+        /**
+         * v0.3.1 — USER_PROTECTED entries are now loaded reactively from
+         * [SettingsRepository] into [userProtectedCache]. The built-in slot
+         * for this category stays empty in [WHITELISTS] — `classify()`
+         * branches to the cache via the `matchesUser` short-circuit.
+         */
+        private val USER_PROTECTED_BUILTIN: Set<String> = emptySet()
 
         private val WHITELISTS: Map<CriticalCategory, Set<String>> = mapOf(
             CriticalCategory.AUTHENTICATION    to AUTHENTICATION_PKGS,
@@ -177,7 +230,7 @@ class CriticalAppDetector @Inject constructor() {
             CriticalCategory.HEALTH            to HEALTH_PKGS,
             CriticalCategory.TRANSPORT_FR      to TRANSPORT_FR_PKGS,
             CriticalCategory.MESSAGING_E2E     to MESSAGING_E2E_PKGS,
-            CriticalCategory.USER_PROTECTED    to USER_PROTECTED_PKGS,
+            CriticalCategory.USER_PROTECTED    to USER_PROTECTED_BUILTIN,
         )
     }
 }

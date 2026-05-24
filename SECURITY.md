@@ -1,6 +1,27 @@
 # App Manager Tech — Security model
 
-Current release: **v0.3.0**
+Current release: **v0.3.1**
+
+## v0.3.1 — Safety Guardrails Phase B + Lifecycle polish
+
+- **Safety Guardrails extended** — the hold-3s `CriticalWarningDialog`
+  now also gates `disable` (AppDetail), `uninstallNow` + `emptyTrash`
+  (Trash), and `uninstall` (SmartCleaner). Same threat model as v0.2.0
+  Phase A (uninstall + quarantine HARD) — protection against accidental
+  destructive action on a 2FA / banking / password-manager app.
+- **User-customisable whitelist** — `safety.userProtectedPackages` set
+  persisted in DataStore + reactive `AtomicReference` cache in
+  `CriticalAppDetector` so `classify(packageName)` stays synchronous on
+  the ViewModel hot path. Capped at 200 entries (defensive — same
+  intent as the ignore-list cap).
+- **`ProtectedAppsScreen`** + companion picker — read-only sections per
+  built-in CriticalCategory (full transparency: the user sees exactly
+  which apps AMT ships hardcoded) + editable user-added list with
+  explicit-tap removal (no swipe, dialog confirmation).
+- **No new permission, no new dependency.** The picker reuses
+  `appInfoRepository.observeApps(includeSystemApps=false)` — the same
+  authorised reads as the rest of the app.
+- Cert SHA-256 stable (`76:E8:77...60FF1CF`) since v0.1.0.
 
 ## v0.3.0 — App Lifecycle History
 

@@ -57,6 +57,7 @@ import com.filestech.appmanager.domain.model.TrashItem
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
+import com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.theme.BrandDanger
@@ -83,6 +84,11 @@ fun TrashScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     var dialog by rememberSaveable { mutableStateOf<TrashDialog?>(null) }
+    // v0.3.1 Safety Phase B — pending critical confirmation surfaced by the
+    // ViewModel. Held in `remember` (not rememberSaveable) because
+    // PendingAction is not Serializable; a config change drops the dialog,
+    // which is acceptable — the user simply taps the action again.
+    var criticalConfirm by remember { mutableStateOf<CriticalConfirmState?>(null) }
 
     // v0.2.1 bug fix — when the user returns from the OS uninstall
     // confirmation dialog (Android pauses our Activity for the system one),
@@ -109,6 +115,16 @@ fun TrashScreen(
                     )
                 }
                 is TrashViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.message)
+                is TrashViewModel.Event.RequiresCriticalConfirmation ->
+                    criticalConfirm = CriticalConfirmState(
+                        classification = event.classification,
+                        action         = event.action,
+                        appLabel       = items.firstOrNull {
+                            // For UninstallOne the label comes from the matching trash row.
+                            // For EmptyTrash we still show the first detected critical's label.
+                            it.packageName == event.classification.packageName
+                        }?.label ?: event.classification.packageName,
+                    )
             }
         }
     }
@@ -179,7 +195,39 @@ fun TrashScreen(
         )
         null -> Unit
     }
+
+    // v0.3.1 Safety Phase B — hold-3s critical confirmation surfaced by the
+    // ViewModel after detecting a critical package among the Trash items.
+    criticalConfirm?.let { state ->
+        val actionLabel = stringResource(
+            when (state.action) {
+                is TrashViewModel.PendingAction.UninstallOne -> R.string.critical_action_uninstall
+                is TrashViewModel.PendingAction.EmptyTrash   -> R.string.critical_action_empty_trash
+            },
+        )
+        CriticalWarningDialog(
+            appLabel    = state.appLabel,
+            actionLabel = actionLabel,
+            category    = state.classification.category,
+            onConfirm = {
+                when (val a = state.action) {
+                    is TrashViewModel.PendingAction.UninstallOne ->
+                        viewModel.uninstallNow(a.packageName, bypassCriticalCheck = true)
+                    is TrashViewModel.PendingAction.EmptyTrash ->
+                        viewModel.emptyTrash(bypassCriticalCheck = true)
+                }
+                criticalConfirm = null
+            },
+            onCancel = { criticalConfirm = null },
+        )
+    }
 }
+
+private data class CriticalConfirmState(
+    val classification: com.filestech.appmanager.domain.model.CriticalClassification,
+    val action: TrashViewModel.PendingAction,
+    val appLabel: String,
+)
 
 // ---------------------------------------------------------------------------
 // Body

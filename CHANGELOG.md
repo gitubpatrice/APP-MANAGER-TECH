@@ -7,6 +7,76 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.3.1] — 2026-05-24 — Safety Phase B + Lifecycle polish + Zombies search
+
+### Added — Safety Guardrails Phase B
+- **CriticalAppDetector reactive** — loads the user-customised
+  `safety.userProtectedPackages` set from DataStore into a process-lifetime
+  `AtomicReference` cache via an `@ApplicationScope` collector. Keeps
+  `classify(packageName)` synchronous (ViewModel hot path can't await a
+  suspend flow) while staying live to Settings changes.
+- **`AppSettings.Safety { userProtectedPackages: Set<String> }`** new
+  sub-config + DataStore key `safety_user_protected_packages` + defensive
+  cap of 200 entries.
+- **Critical check extended to 4 more destructive flows** (was only
+  Uninstall + Quarantine HARD):
+  - `AppDetailViewModel.disable(bypass)` — disabling a 2FA / banking app
+    is functionally equivalent to uninstalling.
+  - `TrashViewModel.uninstallNow(pkg, bypass)` — per-row uninstall from
+    the Trash.
+  - `TrashViewModel.emptyTrash(bypass)` — bulk uninstall; if AT LEAST one
+    trashed app is critical, surface a single hold-3s warning (better UX
+    than per-package prompts for a 10-item batch).
+  - `SmartCleanerViewModel.uninstall(pkg, bypass)` — uninstall path from
+    the per-suggestion menu.
+- **`ProtectedAppsScreen`** + companion `ProtectedAppsPickerScreen` — new
+  Settings sub-screen "Apps protégées". Read-only sections per built-in
+  CriticalCategory (full transparency on what AMT ships hardcoded). Editable
+  "Vos apps protégées" section with add-via-picker + tap-trash to remove
+  (explicit confirmation dialog — no swipe to avoid accidental loss).
+- `DangerousPermissionInspector.isDangerous(perm)` already widened public
+  in v0.3.0 — no further change.
+
+### Added — Lifecycle polish
+- **Inline section in AppDetail** — 5 most recent lifecycle events
+  (BASELINE / INSTALLED / UNINSTALLED / REPLACED) shown read-only below
+  the Install info card. Conditional — only renders when the package has
+  recorded events (avoids confusing empty section for users who haven't
+  enabled the feature).
+- **Aggregated stats card** on `LifecycleHistoryScreen` — counts per
+  type for the current window + top 3 uninstall-reason categories.
+
+### Added — Zombies search
+- **SearchBar** above the Zombies list — filters by app label OR
+  package name, case-insensitive. Conditional (only shown when there's
+  something to filter). Dedicated empty state when search yields no
+  match.
+
+### Architecture
+- `CriticalAppDetector` now `@Inject constructor(@ApplicationScope, SettingsRepository)`
+  — backward-compat for all callers (they only see the public API).
+- `AppDetailViewModel.lifecycleEvents: StateFlow<List<LifecycleEvent>>` —
+  per-package timeline driven by `_state.packageName` via `flatMapLatest`
+  so navigating to another app reuses the same flow without leaking the
+  prior subscription.
+- New navigation routes `ProtectedApps` + `ProtectedAppsPicker`. The
+  picker uses a parent-route-scoped ViewModel (Compose Nav
+  `getBackStackEntry(parent)` + `hiltViewModel(parentEntry)`) so the add
+  call mutates the SAME DataStore instance the parent screen observes.
+- `CriticalAction` enum extended with `DISABLE`. `TrashViewModel.PendingAction`
+  sealed interface for the per-action / per-batch dispatch on the
+  Trash confirm callback.
+
+### Notes
+- Room schema unchanged (still v5, no migration).
+- Cert SHA-256 stable:
+  `76:E8:77:2E:09:95:13:69:40:5F:58:E7:0C:4A:FF:FD:41:C4:68:75:53:C6:CF:A0:3D:08:14:5F:F6:0F:F1:CF`
+- 0 GMS, 0 INTERNET, 0 new runtime permission.
+- APK size ~2.24 MB (+20 KB vs v0.3.0).
+- Strings FR ↔ EN parity 100% (~30 new keys).
+
+---
+
 ## [0.3.0] — 2026-05-24 — App Lifecycle History
 
 ### Added — App Lifecycle History (major feature)

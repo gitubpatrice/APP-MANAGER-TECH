@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SentimentSatisfied
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -90,6 +91,7 @@ fun SettingsScreen(
     // wiring in AppRoot makes both paths reachable from Settings too.
     onOpenPermissionDrift: () -> Unit = {},
     onOpenQuarantine: () -> Unit = {},
+    onOpenProtectedApps: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -153,6 +155,8 @@ fun SettingsScreen(
             onLifecycleEnabledChange       = viewModel::setLifecycleEnabled,
             onLifecycleRetentionClick      = { lifecycleRetentionDialog = true },
             onLifecyclePromptReasonChange  = viewModel::setLifecyclePromptReason,
+            // v0.3.1 — Apps protégées entry
+            onProtectedAppsClick           = onOpenProtectedApps,
             onAboutClick         = onOpenAbout,
             onCleanerClick       = onOpenCleaner,
             onIgnoreListClick    = onOpenIgnoreList,
@@ -259,6 +263,7 @@ private fun SettingsBody(
     onLifecycleEnabledChange: (Boolean) -> Unit,
     onLifecycleRetentionClick: () -> Unit,
     onLifecyclePromptReasonChange: (Boolean) -> Unit,
+    onProtectedAppsClick: () -> Unit,
     onAboutClick: () -> Unit,
     onCleanerClick: () -> Unit,
     onIgnoreListClick: () -> Unit,
@@ -386,6 +391,17 @@ private fun SettingsBody(
                 description    = stringResource(R.string.settings_quarantine_reminder_desc),
                 checked        = settings.quarantine.restoreReminderEnabled,
                 onCheckedChange = onQuarantineReminderChange,
+            )
+        }
+
+        // v0.3.1 — Safety Guardrails user-customisation
+        SectionHeader(stringResource(R.string.settings_section_safety))
+        SettingsCard {
+            NavigationRow(
+                title       = stringResource(R.string.settings_safety_protected_apps_title),
+                description = stringResource(R.string.settings_safety_protected_apps_desc),
+                leadingIcon = Icons.Outlined.Shield,
+                onClick     = onProtectedAppsClick,
             )
         }
 

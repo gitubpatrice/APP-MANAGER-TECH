@@ -18,10 +18,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SentimentSatisfied
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -31,7 +33,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -69,6 +74,10 @@ fun ZombiesScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    // v0.3.1 — local search filter (label OR package, case-insensitive). Kept
+    // VM-free because the filtering is pure UI: the unfiltered Outcome stays
+    // the source of truth for refresh / loading / error semantics.
+    var searchQuery by rememberSaveable { mutableStateOf("") }
 
     // v0.2.1 audit C8b fix — re-probe PACKAGE_USAGE_STATS on ON_RESUME so
     // the banner disappears + an auto-refresh triggers when the user returns
@@ -133,6 +142,25 @@ fun ZombiesScreen(
                 visible      = !state.usageStatsGranted,
                 onGrantClick = { viewModel.requestUsageStatsPermission() },
             )
+            // v0.3.1 — SearchBar (only when there's at least one item to filter).
+            val outcome = state.outcome
+            if (outcome is Outcome.Success && outcome.value.isNotEmpty()) {
+                OutlinedTextField(
+                    value         = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    leadingIcon   = {
+                        Icon(
+                            imageVector        = Icons.Outlined.Search,
+                            contentDescription = null,
+                        )
+                    },
+                    placeholder   = { Text(stringResource(R.string.zombies_search_placeholder)) },
+                    singleLine    = true,
+                    modifier      = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
             Box(modifier = Modifier.fillMaxSize()) {
                 when (val o = state.outcome) {
                     Outcome.Loading      -> LoadingState()
@@ -145,9 +173,27 @@ fun ZombiesScreen(
                                 body  = stringResource(R.string.zombies_empty_body),
                             )
                         } else {
-                            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                items(items = o.value, key = { it.info.packageName }) { zombie ->
-                                    ZombieRow(zombie = zombie, onClick = { onItemClick(zombie.info.packageName) })
+                            val filtered = remember(o.value, searchQuery) {
+                                if (searchQuery.isBlank()) o.value
+                                else {
+                                    val q = searchQuery.trim().lowercase()
+                                    o.value.filter { z ->
+                                        z.info.label.lowercase().contains(q) ||
+                                            z.info.packageName.lowercase().contains(q)
+                                    }
+                                }
+                            }
+                            if (filtered.isEmpty()) {
+                                EmptyState(
+                                    icon  = Icons.Outlined.SentimentSatisfied,
+                                    title = stringResource(R.string.zombies_search_no_match_title),
+                                    body  = stringResource(R.string.zombies_search_no_match_body, searchQuery.trim()),
+                                )
+                            } else {
+                                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                    items(items = filtered, key = { it.info.packageName }) { zombie ->
+                                        ZombieRow(zombie = zombie, onClick = { onItemClick(zombie.info.packageName) })
+                                    }
                                 }
                             }
                         }

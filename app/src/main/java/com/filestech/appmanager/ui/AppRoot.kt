@@ -1,6 +1,7 @@
 package com.filestech.appmanager.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,6 +17,8 @@ import com.filestech.appmanager.ui.screens.ignorelist.IgnoreListScreen
 import com.filestech.appmanager.ui.screens.lifecycle.LifecycleHistoryScreen
 import com.filestech.appmanager.ui.screens.lifecycle.LifecycleReasonHost
 import com.filestech.appmanager.ui.screens.permissiondrift.PermissionDriftScreen
+import com.filestech.appmanager.ui.screens.safety.ProtectedAppsPickerScreen
+import com.filestech.appmanager.ui.screens.safety.ProtectedAppsScreen
 import com.filestech.appmanager.ui.screens.permissionfilter.PermissionFilterScreen
 import com.filestech.appmanager.ui.screens.quarantine.QuarantinePickerScreen
 import com.filestech.appmanager.ui.screens.quarantine.QuarantineScreen
@@ -145,6 +148,7 @@ fun AppRoot() {
                 // launchSingleTop nav so the section is now complete.
                 onOpenPermissionDrift = { navController.navigate(NavRoute.PermissionDrift.route) { launchSingleTop = true } },
                 onOpenQuarantine     = { navController.navigate(NavRoute.Quarantine.route) { launchSingleTop = true } },
+                onOpenProtectedApps  = { navController.navigate(NavRoute.ProtectedApps.route) { launchSingleTop = true } },
             )
         }
 
@@ -244,6 +248,44 @@ fun AppRoot() {
             )
         }
 
+        // v0.3.1 — Apps protégées (Safety Guardrails user-customisation)
+        composable(NavRoute.ProtectedApps.route) {
+            ProtectedAppsScreen(
+                onBack       = { navController.popBackStack() },
+                onOpenPicker = { navController.navigate(NavRoute.ProtectedAppsPicker.route) { launchSingleTop = true } },
+            )
+        }
+
+        // v0.3.1 — Picker for adding an app to the user-protected list. We use
+        // a HostEntry-scoped ViewModel for the parent ProtectedApps screen so
+        // the picker can mutate the same DataStore via [ProtectedAppsViewModel],
+        // but the picker's own VM only exposes the candidate list. The picker
+        // calls `viewModel.add` on the parent VM via the navController-shared
+        // pattern: simpler approach here is the picker pops back + the parent
+        // screen reacts to the next state emission (DataStore broadcasts the
+        // new set instantly). We forward the picked package via a parent-
+        // hoisted callback through nav arguments using a Bundle write-back.
+        composable(NavRoute.ProtectedAppsPicker.route) { backStackEntry ->
+            // The picker delegates the actual add to the PARENT route's
+            // ViewModel so the DataStore mutation goes through the same VM
+            // instance the user is observing. Compose Navigation requires the
+            // NavBackStackEntry as the `remember` key so the cached parent
+            // entry refreshes if the back stack actually changes (lint:
+            // UnrememberedGetBackStackEntry).
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(NavRoute.ProtectedApps.route)
+            }
+            val parentVm: com.filestech.appmanager.ui.screens.safety.ProtectedAppsViewModel =
+                androidx.hilt.navigation.compose.hiltViewModel(parentEntry)
+            ProtectedAppsPickerScreen(
+                onBack    = { navController.popBackStack() },
+                onPicked  = { pkg ->
+                    parentVm.add(pkg)
+                    navController.popBackStack()
+                },
+            )
+        }
+
         // v0.2.2 — Expert Mode (advanced inspector)
         composable(
             route = NavRoute.Expert.route,
@@ -320,4 +362,8 @@ sealed class NavRoute(val route: String) {
 
     // v0.3.0 — App Lifecycle History
     data object Lifecycle : NavRoute("lifecycle")
+
+    // v0.3.1 — Safety Guardrails user-customisation
+    data object ProtectedApps : NavRoute("protected_apps")
+    data object ProtectedAppsPicker : NavRoute("protected_apps_picker")
 }

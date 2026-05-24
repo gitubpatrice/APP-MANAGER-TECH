@@ -83,6 +83,9 @@ class SettingsRepositoryImpl @Inject constructor(
         val LIFECYCLE_RETENTION_DAYS   = intPreferencesKey("lifecycle_retention_days")
         val LIFECYCLE_PROMPT_REASON    = booleanPreferencesKey("lifecycle_prompt_reason")
 
+        // Safety Guardrails user-customisation (v0.3.1)
+        val SAFETY_USER_PROTECTED      = stringSetPreferencesKey("safety_user_protected_packages")
+
         // Ignore list (Phase VI)
         val IGNORED_PACKAGES           = stringSetPreferencesKey("ignored_packages")
     }
@@ -155,6 +158,10 @@ class SettingsRepositoryImpl @Inject constructor(
                 promptReason = this[Keys.LIFECYCLE_PROMPT_REASON]
                     ?: defaults.lifecycle.promptReason,
             ),
+            safety = AppSettings.Safety(
+                userProtectedPackages = this[Keys.SAFETY_USER_PROTECTED]
+                    ?: defaults.safety.userProtectedPackages,
+            ),
             ignoredPackages = this[Keys.IGNORED_PACKAGES]
                 ?: defaults.ignoredPackages,
         )
@@ -211,6 +218,10 @@ class SettingsRepositoryImpl @Inject constructor(
                 .coerceIn(MIN_LIFECYCLE_RETENTION_DAYS, MAX_LIFECYCLE_RETENTION_DAYS)
             prefs[Keys.LIFECYCLE_PROMPT_REASON]    = updated.lifecycle.promptReason
 
+            // Safety (v0.3.1) — cap defensively to avoid pathologically large sets.
+            prefs[Keys.SAFETY_USER_PROTECTED]      = updated.safety.userProtectedPackages
+                .take(MAX_USER_PROTECTED_PACKAGES).toSet()
+
             prefs[Keys.IGNORED_PACKAGES]           = updated.ignoredPackages
         }
     }
@@ -227,5 +238,14 @@ class SettingsRepositoryImpl @Inject constructor(
          */
         const val MIN_LIFECYCLE_RETENTION_DAYS = 30
         const val MAX_LIFECYCLE_RETENTION_DAYS = 365
+
+        /**
+         * Defensive cap on the v0.3.1 user-protected list — same intent as
+         * `MAX_IGNORED_PACKAGES`: a runaway add loop (paste of a long list,
+         * malicious intent from external IPC if we ever expose the writer)
+         * can't bloat DataStore beyond this floor. The UI rejects further
+         * adds beyond the cap with a snackbar.
+         */
+        const val MAX_USER_PROTECTED_PACKAGES = 200
     }
 }

@@ -32,6 +32,8 @@ data class AppSettings(
     val quarantine: Quarantine = Quarantine(),
     /** v0.3.0 — App Lifecycle History preferences. */
     val lifecycle: Lifecycle = Lifecycle(),
+    /** v0.3.1 — Safety Guardrails user-customisation preferences. */
+    val safety: Safety = Safety(),
     /**
      * Packages explicitly excluded from batch actions (uninstall, force stop,
      * cache clean) and from background-scan notifications. Phase VI feature.
@@ -152,5 +154,23 @@ data class AppSettings(
         val enabled: Boolean = false,
         val retentionDays: Int = 180,
         val promptReason: Boolean = true,
+    )
+
+    /**
+     * v0.3.1 — Safety Guardrails user-customisation.
+     *
+     * [userProtectedPackages] is the user's own list of packages that should
+     * trigger the [com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog]
+     * (hold-3s) on every destructive action. Loaded by
+     * [com.filestech.appmanager.data.system.CriticalAppDetector] alongside the
+     * hardcoded built-in whitelists and resolved to
+     * [com.filestech.appmanager.domain.model.CriticalCategory.USER_PROTECTED].
+     *
+     * Capped at 200 entries (defensive — same intent as the ignore-list
+     * `MAX_IGNORED_PACKAGES`). The UI rejects further adds beyond the cap with
+     * a snackbar.
+     */
+    data class Safety(
+        val userProtectedPackages: Set<String> = emptySet(),
     )
 }

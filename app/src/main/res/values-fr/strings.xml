@@ -788,4 +788,49 @@
     <string name="settings_lifecycle_prompt_reason_title">Demander la raison à la désinstallation</string>
     <string name="settings_lifecycle_prompt_reason_desc">Affiche éventuellement un dialogue après chaque désinstallation pour attacher une catégorie (inutilisée, remplacée, etc.) à la ligne d\'historique.</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.3.1 — Safety Guardrails Phase B (liste personnelle)           -->
+    <!-- ================================================================ -->
+    <string name="critical_action_disable">Désactiver</string>
+    <string name="critical_action_empty_trash">Vider la corbeille</string>
+
+    <string name="critical_category_authentication">2FA / Authentificateurs</string>
+    <string name="critical_category_password_managers">Gestionnaires de mots de passe</string>
+    <string name="critical_category_banking_fr">Banque (FR)</string>
+    <string name="critical_category_health">Santé</string>
+    <string name="critical_category_messaging_e2e">Messagerie chiffrée</string>
+    <string name="critical_category_transport_fr">Transport (FR)</string>
+    <string name="critical_category_user_protected">Vos apps</string>
+
+    <string name="settings_section_safety">Garde-fous (Safety)</string>
+    <string name="settings_safety_protected_apps_title">Apps protégées</string>
+    <string name="settings_safety_protected_apps_desc">Apps déclenchant l\'appui 3 secondes avant toute action destructive (désinstallation, désactivation, vidage corbeille). Listes intégrées + vos ajouts.</string>
+
+    <string name="screen_protected_apps_title">Apps protégées</string>
+    <string name="protected_apps_action_add">Ajouter une app</string>
+    <string name="protected_apps_intro">Ces apps déclenchent l\'appui de 3 secondes avant toute action destructive. Les listes intégrées sont en lecture seule — vos ajouts sont modifiables.</string>
+    <string name="protected_apps_user_section_n">Vos apps protégées (%1$d)</string>
+    <string name="protected_apps_user_empty">Aucune app ajoutée. Toucher + pour protéger une app.</string>
+    <string name="protected_apps_builtin_section_n">%1$s (%2$d)</string>
+    <string name="protected_apps_remove_title">Retirer de la protection ?</string>
+    <string name="protected_apps_remove_body">%1$s ne déclenchera plus l\'appui 3 secondes.</string>
+    <string name="protected_apps_remove_confirm">Retirer</string>
+    <string name="protected_apps_remove_action_cd">Retirer des apps protégées</string>
+    <string name="protected_apps_picker_title">Ajouter une app à protéger</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.1 — Polish Lifecycle (inline AppDetail, stats, recherche)   -->
+    <!-- ================================================================ -->
+    <string name="app_detail_section_lifecycle">Événements de cycle de vie récents</string>
+    <string name="lifecycle_stats_title">%1$d événements dans la fenêtre sélectionnée</string>
+    <string name="lifecycle_stats_top_reasons">Principales raisons de désinstallation</string>
+    <string name="lifecycle_stats_reason_row">• %1$s · %2$d</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.1 — Recherche Zombies                                       -->
+    <!-- ================================================================ -->
+    <string name="zombies_search_placeholder">Rechercher par libellé ou package…</string>
+    <string name="zombies_search_no_match_title">Aucun résultat</string>
+    <string name="zombies_search_no_match_body">Aucune app zombie ne correspond à « %1$s ».</string>
+
 </resources>

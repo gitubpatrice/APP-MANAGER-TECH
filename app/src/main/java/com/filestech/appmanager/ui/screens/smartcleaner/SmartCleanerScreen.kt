@@ -83,6 +83,10 @@ fun SmartCleanerScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    // v0.3.1 Safety Phase B — pending critical confirmation for a suggested
+    // uninstall. `remember` (not Saveable) because the classification carries
+    // a non-Serializable enum value; a config change drops the dialog.
+    var criticalConfirm by remember { mutableStateOf<SmartCleanerCriticalConfirm?>(null) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -101,8 +105,29 @@ fun SmartCleanerScreen(
                             event.suggestionsCount,
                         ),
                     )
+                is SmartCleanerViewModel.Event.RequiresCriticalConfirmation ->
+                    criticalConfirm = SmartCleanerCriticalConfirm(
+                        packageName    = event.packageName,
+                        classification = event.classification,
+                        appLabel       = state.report.suggestions
+                            .firstOrNull { it.appInfo.packageName == event.packageName }
+                            ?.appInfo?.label ?: event.packageName,
+                    )
             }
         }
+    }
+
+    criticalConfirm?.let { state ->
+        com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog(
+            appLabel    = state.appLabel,
+            actionLabel = stringResource(R.string.critical_action_uninstall),
+            category    = state.classification.category,
+            onConfirm = {
+                viewModel.uninstall(state.packageName, bypassCriticalCheck = true)
+                criticalConfirm = null
+            },
+            onCancel = { criticalConfirm = null },
+        )
     }
 
     // v0.1.3 hotfix — re-probe PACKAGE_USAGE_STATS on ON_RESUME so the
@@ -405,4 +430,15 @@ private fun actionLabel(action: SmartSuggestion.RecommendedAction): String = str
         SmartSuggestion.RecommendedAction.CLEAR_CACHE        -> R.string.smart_cleaner_action_clear_cache
         SmartSuggestion.RecommendedAction.REVIEW_AND_DECIDE  -> R.string.smart_cleaner_action_review
     }
+)
+
+/**
+ * v0.3.1 — state holder for the per-suggestion critical confirmation dialog.
+ * Kept top-level (file-private) so the screen Composable doesn't pile up
+ * yet another inner class.
+ */
+private data class SmartCleanerCriticalConfirm(
+    val packageName: String,
+    val classification: com.filestech.appmanager.domain.model.CriticalClassification,
+    val appLabel: String,
 )

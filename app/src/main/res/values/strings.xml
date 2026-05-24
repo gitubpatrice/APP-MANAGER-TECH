@@ -795,4 +795,49 @@
     <string name="settings_lifecycle_prompt_reason_title">Ask the reason on uninstall</string>
     <string name="settings_lifecycle_prompt_reason_desc">Optionally show a dialog after each uninstall to attach a category (unused, replaced, etc.) to the history row.</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.3.1 — Safety Guardrails Phase B (user-protected list)         -->
+    <!-- ================================================================ -->
+    <string name="critical_action_disable">Disable</string>
+    <string name="critical_action_empty_trash">Empty the trash</string>
+
+    <string name="critical_category_authentication">2FA / Authenticators</string>
+    <string name="critical_category_password_managers">Password managers</string>
+    <string name="critical_category_banking_fr">Banking (FR)</string>
+    <string name="critical_category_health">Health</string>
+    <string name="critical_category_messaging_e2e">E2E messaging</string>
+    <string name="critical_category_transport_fr">Transport (FR)</string>
+    <string name="critical_category_user_protected">Your apps</string>
+
+    <string name="settings_section_safety">Safety Guardrails</string>
+    <string name="settings_safety_protected_apps_title">Protected apps</string>
+    <string name="settings_safety_protected_apps_desc">Apps that trigger the 3-second hold confirmation before any destructive action (uninstall, disable, empty trash). Built-in lists + your own additions.</string>
+
+    <string name="screen_protected_apps_title">Protected apps</string>
+    <string name="protected_apps_action_add">Add an app</string>
+    <string name="protected_apps_intro">These apps trigger the 3-second hold confirmation before any destructive action. The built-in lists below are read-only — your additions are editable.</string>
+    <string name="protected_apps_user_section_n">Your protected apps (%1$d)</string>
+    <string name="protected_apps_user_empty">No app added yet. Tap + to protect an app.</string>
+    <string name="protected_apps_builtin_section_n">%1$s (%2$d)</string>
+    <string name="protected_apps_remove_title">Remove from protection?</string>
+    <string name="protected_apps_remove_body">%1$s will no longer trigger the 3-second hold confirmation.</string>
+    <string name="protected_apps_remove_confirm">Remove</string>
+    <string name="protected_apps_remove_action_cd">Remove from protected apps</string>
+    <string name="protected_apps_picker_title">Add an app to protect</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.1 — Lifecycle polish (inline AppDetail, stats, search)      -->
+    <!-- ================================================================ -->
+    <string name="app_detail_section_lifecycle">Recent lifecycle events</string>
+    <string name="lifecycle_stats_title">%1$d events in the selected window</string>
+    <string name="lifecycle_stats_top_reasons">Top uninstall reasons</string>
+    <string name="lifecycle_stats_reason_row">• %1$s · %2$d</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.1 — Zombies search                                          -->
+    <!-- ================================================================ -->
+    <string name="zombies_search_placeholder">Search by label or package…</string>
+    <string name="zombies_search_no_match_title">No match</string>
+    <string name="zombies_search_no_match_body">No zombie app matches “%1$s”.</string>
+
 </resources>

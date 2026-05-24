@@ -1,0 +1,11 @@
+v0.3.1 — Safety Phase B + Polish Lifecycle
+
+- Garde-fous étendus : appui 3s gate aussi Désactiver,
+  désinstallation Corbeille, vidage corbeille,
+  désinstallation SmartCleaner (était seulement
+  Désinstaller + quarantaine HARD).
+- Nouveau Settings « Apps protégées » : listes intégrées
+  en lecture seule + vos ajouts (cap 200).
+- Cycle de vie : timeline 5 events sur Fiche app + carte
+  stats Historique (compteurs + top raisons).
+- Zombies : recherche par libellé ou package.
