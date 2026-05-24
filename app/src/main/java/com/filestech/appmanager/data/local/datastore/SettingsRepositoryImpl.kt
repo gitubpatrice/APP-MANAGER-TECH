@@ -9,7 +9,9 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.filestech.appmanager.core.ext.isValidPackageName
 import com.filestech.appmanager.domain.model.AppSortOrder
+import com.filestech.appmanager.domain.model.AppTag
 import com.filestech.appmanager.domain.model.ExportFormat
 import com.filestech.appmanager.domain.model.ScanInterval
 import com.filestech.appmanager.domain.model.ThemeMode
@@ -172,32 +174,70 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     /**
-     * v0.3.3 — Decodes the `Set<String>` of `pkg=ENUM_NAME` entries into a
-     * `Map<String, AppTag>`. Tolerant : malformed entries (missing `=`,
-     * empty pkg / tag, unknown enum value) are silently dropped — the
-     * write path always produces well-formed entries, so a tolerant read
-     * only matters under downgrade / external tampering.
+     * v0.3.3 / v0.3.4 — Decodes the `Set<String>` of `pkg=TAG1|TAG2` entries
+     * into a `Map<String, Set<AppTag>>`. Tolerant on every level :
+     *  - malformed entries (missing `=`, empty pkg, empty tag list) → dropped
+     *  - unknown enum names (downgrade after we add a new variant) → skipped
+     *  - duplicate tags inside one entry → collapsed by the Set semantics
+     *  - **legacy v0.3.3 single-tag format** (no `|` in the suffix) →
+     *    decoded as a one-element set, preserving existing user data when
+     *    upgrading from v0.3.3 to v0.3.4.
+     *
+     * The write path always produces well-formed `pkg=TAG1|TAG2` entries, so
+     * the tolerance only matters under downgrade / external tampering.
      */
-    private fun decodeTags(raw: Set<String>?): Map<String, com.filestech.appmanager.domain.model.AppTag> {
+    private fun decodeTags(raw: Set<String>?): Map<String, Set<AppTag>> {
         if (raw.isNullOrEmpty()) return emptyMap()
-        val out = HashMap<String, com.filestech.appmanager.domain.model.AppTag>(raw.size)
+        val out = HashMap<String, Set<AppTag>>(raw.size)
         for (entry in raw) {
             val sep = entry.indexOf('=')
             if (sep <= 0 || sep == entry.lastIndex) continue
             val pkg = entry.substring(0, sep).trim()
-            val tag = entry.substring(sep + 1).trim()
-            if (pkg.isEmpty() || tag.isEmpty()) continue
-            val parsed = runCatching {
-                com.filestech.appmanager.domain.model.AppTag.valueOf(tag)
-            }.getOrNull() ?: continue
-            out[pkg] = parsed
+            // v0.3.4 LOW-3 fix — symmetry with the write path:
+            // setAppTags() rejects invalid package names, so the decoder
+            // does the same. Prevents a tampered DataStore from injecting
+            // a key like `"INVALID KEY WITH SPACES"` into the appTags map.
+            if (!pkg.isValidPackageName()) continue
+            val tagsBlob = entry.substring(sep + 1).trim()
+            if (tagsBlob.isEmpty()) continue
+            // Split on `|` even for legacy single-tag entries — splitting a
+            // String without the separator yields a one-element list, which
+            // round-trips cleanly into a one-element Set.
+            //
+            // v0.3.4 MEDIUM-3 fix — `.take(MAX_TAG_ARITY)` caps the work
+            // done per entry. The Set semantics + the `take` together
+            // bound CPU even on a tampered DataStore feeding 10 000×
+            // `"WORK|WORK|…"` in a single entry.
+            val parsed = tagsBlob.split('|')
+                .asSequence()
+                .take(MAX_TAG_ARITY_PER_ENTRY)
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .mapNotNull { name ->
+                    runCatching { AppTag.valueOf(name) }.getOrNull()
+                }
+                .toSet()
+            if (parsed.isNotEmpty()) out[pkg] = parsed
         }
         return out
     }
 
-    private fun encodeTags(map: Map<String, com.filestech.appmanager.domain.model.AppTag>): Set<String> =
+    /**
+     * v0.3.4 — Encodes `Map<String, Set<AppTag>>` as the DataStore
+     * `Set<String>` wire format. Empty tag sets are dropped on write so the
+     * DataStore stays compact (an empty Set means "no tag" and is logically
+     * equivalent to the key being absent). Tag order inside each entry is
+     * deterministic (sorted by enum ordinal) so the same logical state
+     * always produces the same persisted string — DataStore's
+     * dedup-on-equal-value then skips redundant writes.
+     */
+    private fun encodeTags(map: Map<String, Set<AppTag>>): Set<String> =
         map.entries.asSequence()
-            .map { (pkg, tag) -> "$pkg=${tag.name}" }
+            .filter { (_, tags) -> tags.isNotEmpty() }
+            .map { (pkg, tags) ->
+                val ordered = tags.sortedBy { it.ordinal }.joinToString(separator = "|") { it.name }
+                "$pkg=$ordered"
+            }
             .toSet()
 
     // ---------------------------------------------------------------------------
@@ -283,5 +323,18 @@ class SettingsRepositoryImpl @Inject constructor(
          * adds beyond the cap with a snackbar.
          */
         const val MAX_USER_PROTECTED_PACKAGES = 200
+
+        /**
+         * v0.3.4 — Defensive cap on how many tag elements we decode from
+         * a single DataStore entry. Logical max = `AppTag.entries.size`
+         * = 5 (the Set deduplicates anyway); a small headroom slot is
+         * added so a future enum addition does not silently truncate. A
+         * tampered DataStore feeding `pkg=WORK|WORK|...|WORK` × 10 000
+         * is bounded by this cap.
+         *
+         * Kept as a compile-time `const Int` rather than computed from
+         * `AppTag.entries.size` (which is not a compile-time constant).
+         */
+        const val MAX_TAG_ARITY_PER_ENTRY: Int = 8
     }
 }

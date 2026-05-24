@@ -877,13 +877,31 @@
     <!-- ================================================================ -->
     <!-- v0.3.3 — Custom tags                                             -->
     <!-- ================================================================ -->
-    <string name="tag_picker_title">Tag for %1$s</string>
-    <string name="tag_picker_none">No tag</string>
+    <string name="tag_picker_title">Tags for %1$s</string>
+    <string name="tag_picker_none">No tag selected (will clear)</string>
     <string name="tag_chip_add">Add a tag</string>
     <string name="tag_label_work">Work</string>
     <string name="tag_label_family">Family</string>
     <string name="tag_label_game">Game</string>
     <string name="tag_label_tools">Tools</string>
     <string name="tag_label_media">Media</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.4 — Tag filter chip row (AppList toolbar)                   -->
+    <!-- ================================================================ -->
+    <string name="tag_filter_all">All</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.4 — Tag stats card (Settings)                               -->
+    <!-- ================================================================ -->
+    <string name="settings_tag_stats_title">Tag distribution</string>
+    <string name="settings_tag_stats_empty">No tag assigned yet. Open any app and tap “Add a tag”.</string>
+    <string name="settings_tag_stats_row">%1$s · %2$d</string>
+    <string name="settings_tag_stats_total">%1$d tagged apps</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.4 — Lifecycle APK SHA-256 tamper alert                      -->
+    <!-- ================================================================ -->
+    <string name="lifecycle_row_tamper_alert">⚠ Same version code, different APK digest (SHA-256) — possible repackage or sideload swap.</string>
 
 </resources>

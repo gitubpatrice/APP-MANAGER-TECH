@@ -43,6 +43,19 @@ data class LifecycleEvent(
     val grantedDangerousPermissions: List<String>,
     /** Free-text reason captured via the optional uninstall dialog, or null. */
     val userReason: UninstallReason?,
+
+    /**
+     * v0.3.4 — Hex SHA-256 of the base APK at capture time. NULL when the
+     * row is pre-v0.3.4, UNINSTALLED, or the APK read/hash failed.
+     *
+     * Two REPLACED events for the same package with identical
+     * [versionCode] but DIFFERENT [apkSha256] is a strong tamper signal :
+     * an attacker who repackages an app without bumping its version, or
+     * the user swapping a Play install with a sideload that wears the
+     * same versionCode. The UI surfaces this case as a red badge on the
+     * Lifecycle History timeline.
+     */
+    val apkSha256: String? = null,
 )
 
 /**

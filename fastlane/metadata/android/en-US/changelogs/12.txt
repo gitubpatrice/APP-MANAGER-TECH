@@ -1,0 +1,9 @@
+v0.3.4 — Multi-tags + tag filter + tag stats + APK SHA-256 forensics.
+
+• Multi-tag per app: WORK / FAMILY / GAME / TOOLS / MEDIA combine freely.
+• Filter the app list by tag (multi-select chip row).
+• Tag distribution card in Settings.
+• Lifecycle events now carry a SHA-256 of the base APK; a red ⚠ badge
+  flags REPLACED rows that share the same versionCode but a different
+  digest (repackage / sideload swap signal).
+• Room v6 → v7 additive migration. Cert SHA-256 stable.

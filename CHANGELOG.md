@@ -7,6 +7,105 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.3.4] — 2026-05-24 — Multi-tags + tag filter + tag stats + APK SHA-256 forensics
+
+### Added — Multi-tags per app (foundational refactor)
+- `AppSettings.appTags` widens from `Map<String, AppTag>` to
+  `Map<String, Set<AppTag>>` — one app can now carry several categories
+  at once (e.g. WORK + TOOLS). DataStore wire format extends from
+  `pkg=TAG_NAME` to `pkg=TAG1|TAG2|TAG3` with `|` as the in-entry
+  separator. The decoder is **backward-compatible with the v0.3.3
+  single-tag format** : a suffix without `|` deserialises as a
+  one-element Set, so existing user tags upgrade losslessly.
+- `TagPickerDialog` switches from a 5-option radio list (single-select)
+  to 5 Checkbox rows (multi-select). Confirming an empty selection
+  clears every tag for the app.
+- AppDetail HeaderCard renders the assigned tag chips via `FlowRow` so
+  several chips wrap cleanly on narrow screens / long labels rather
+  than being truncated.
+- New top-level extension `SettingsRepository.setAppTags(pkg, Set)`
+  replaces `setAppTag(pkg, AppTag?)`. The write path drops empty Sets
+  so DataStore stays compact (empty Set ≡ key absent).
+
+### Added — Per-tag filter on the AppList
+- New horizontal `TagFilterChipRow` (Material 3 `FilterChip`) below the
+  Overview card on the Home tab. Leading "Tous" pill clears every
+  selected chip; each tag chip toggles its membership in the active
+  filter. OR semantics across selected chips ("show me WORK or TOOLS
+  apps"). Untagged apps are excluded once the filter is active.
+- `AppListItem` surfaces the user tags inline as BrandBlue badges after
+  the existing SYSTEM / DISABLED badges (FlowRow so the layout still
+  wraps on long combos).
+- `AppListViewModel` injects `SettingsRepository`, exposes the active
+  `tagFilter: Set<AppTag>` + the full `appTags: Map<String, Set<AppTag>>`
+  on `UiState`. Post-filter applied via outer `combine` so chip toggles
+  do NOT re-subscribe to the heavy `getInstalledApps` flow — only
+  in-memory refilter on the existing snapshot.
+
+### Added — Tag distribution stats card (Settings)
+- New `TagStatsSection` in `SettingsScreen` aggregates the assignment
+  map into a per-tag count (`Map<AppTag, Int>`) via `remember(appTags)`
+  O(n) fold. Renders one BrandBlue chip per AppTag preset with its
+  count (`Travail · 12`, `Famille · 5`, …) + a footer total of unique
+  tagged packages. Empty state surfaces the onboarding hint instead
+  of being hidden so the feature is discoverable from Settings too.
+
+### Added — APK SHA-256 forensics on Lifecycle events
+- `app_lifecycle_event` table gains a new `apk_sha256` TEXT (NULLable)
+  column (Room schema v6 → v7, migration strictly additive).
+- `RecordLifecycleEventUseCase` hashes the base APK
+  (`ApplicationInfo.sourceDir`) with `MessageDigest.SHA-256` streamed
+  at 64 KB for INSTALLED / REPLACED / BASELINE rows. UNINSTALLED rows
+  leave the hash NULL — the APK is gone by the time the broadcast
+  fires. Defensive on every failure path : symlinks resolved to their
+  canonical path BEFORE the read, prefix-whitelist of install roots
+  (`/data/app/`, `/system/app/`, …), 500 MB hard cap to avoid
+  monopolising the IO pool on pathological APKs, IO/Security exceptions
+  swallowed + Timber-logged so the audit row is still written.
+- `LifecycleHistoryScreen` surfaces a red `⚠ Same versionCode,
+  different APK digest (SHA-256)` badge when a REPLACED row shares the
+  same `versionCode` as the prior event for the same package BUT a
+  different `apkSha256`. Strong tamper signal : repackage / sideload
+  swap that did not bump the version. Detection runs as a pure O(n)
+  `remember(events)` scan grouping per package + sorting per-package
+  timeline.
+- `MigrationTest_v6_v7` (instrumentation) validates the ADD COLUMN,
+  pre-existing rows reading NULL, and round-trip with both NULL and
+  populated `apk_sha256` values. Schema `7.json` exported.
+
+### Fixed — Pre-release audit (2 HIGH + 4 MEDIUM/LOW)
+- `RecordLifecycleEventUseCase.computeApkSha256` : added 500 MB hard
+  cap + symlink-traversal guard via canonical path + install-root
+  prefix whitelist (audit HIGH-1 + HIGH-2 — defence-in-depth, the
+  stock AOSP `sourceDir` is trustworthy but root/MOD ROMs can lie).
+- `SettingsRepositoryImpl.decodeTags` : caps the per-entry tag arity
+  at `MAX_TAG_ARITY_PER_ENTRY = 8` to bound CPU on a tampered
+  DataStore feeding a pathologically long `pkg=WORK|WORK|...|WORK`
+  blob, and now validates `pkg.isValidPackageName()` on the read path
+  for symmetry with the write path (audit MEDIUM-3 + LOW-3).
+- `TagPickerDialog.TagRow` : the `Checkbox` now passes
+  `onCheckedChange = null` so the parent `Row.toggleable` is the
+  single source of click handling. `role = Role.Checkbox` set on the
+  Row so TalkBack announces the correct semantics. Avoids a
+  double-toggle that would have made some Compose versions cancel out
+  the action (audit MEDIUM-5).
+- `TagStatsSection` : surfaces the `settings_tag_stats_empty` hint
+  when no app is tagged yet, instead of hiding the entire section.
+  Feature is discoverable from Settings even pre-first-tag (audit C1).
+- `lifecycle_row_tamper_alert` (FR + EN) reworded "APK signature" →
+  "APK digest (SHA-256)" — the implementation hashes the APK content,
+  not the code-signing certificate, so the previous wording was
+  technically misleading (audit LOW-4).
+
+### Notes
+- Cert SHA-256 unchanged (`76e8772e09951369405f58e70c4afffd41c4687553c6cfa03d08145ff60ff1cf`).
+- 0 GMS, 0 INTERNET permission, 0 proprietary dependency. F-Droid-friendly.
+- Room v6 → v7 migration : `ALTER TABLE app_lifecycle_event ADD COLUMN apk_sha256 TEXT`
+  (strict additive, NULLable, no DEFAULT needed). `ALL_MIGRATIONS`
+  array updated. Schema `7.json` exported under `schemas/`.
+
+---
+
 ## [0.3.3] — 2026-05-24 — Hibernation parity + Signature clusters + Custom tags
 
 ### Added — Hibernation parity on RarelyUsed

@@ -28,34 +28,48 @@ import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SentimentSatisfied
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.AppSortOrder
+import com.filestech.appmanager.domain.model.AppTag
 import com.filestech.appmanager.domain.model.ThemeMode
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
+import com.filestech.appmanager.ui.components.dialogs.appTagLabelRes
 import com.filestech.appmanager.ui.components.settings.NavigationRow
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.components.settings.ToggleRow
+import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 
 /**
@@ -430,6 +444,11 @@ private fun SettingsBody(
             )
         }
 
+        // v0.3.4 — Tag distribution stats. Hidden when no tag is assigned
+        // (avoids surfacing an empty "0 / 0 / 0" card right after install);
+        // appears as soon as the user tags their first app.
+        TagStatsSection(appTags = settings.appTags)
+
         // Outils — Phase IX innovation screens (highlighted at the top of "tools").
         SectionHeader(stringResource(R.string.settings_tools_title))
         SettingsCard {
@@ -558,3 +577,101 @@ private fun SettingsCard(content: @Composable () -> Unit) {
         Column { content() }
     }
 }
+
+// ---------------------------------------------------------------------------
+// v0.3.4 — Tag distribution stats card
+// ---------------------------------------------------------------------------
+
+/**
+ * v0.3.4 — Aggregated count of apps per [AppTag] across the user's
+ * assignments. Reactive on the `appTags` map from the Settings flow.
+ *
+ * Behaviour:
+ *  - Hidden entirely when no app is tagged yet (avoids a confusing empty
+ *    "0 / 0 / 0" card immediately post-install).
+ *  - Renders one row per AppTag preset, sorted by enum ordinal so the order
+ *    matches the picker. Tags with 0 hits are still shown (the user can
+ *    eyeball "I have no Family-tagged apps").
+ *  - Footer total counts UNIQUE tagged packages, not the sum of tag rows —
+ *    an app tagged WORK + TOOLS counts as 1 here but contributes 1 to each
+ *    of the WORK and TOOLS rows above.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun TagStatsSection(appTags: Map<String, Set<AppTag>>) {
+    SectionHeader(stringResource(R.string.settings_tag_stats_title))
+    SettingsCard {
+        Column(modifier = Modifier.padding(16.dp)) {
+            if (appTags.isEmpty()) {
+                // v0.3.4 audit C1 fix — render the empty-state hint so the
+                // feature is discoverable from Settings BEFORE the user has
+                // tagged their first app. Previously the entire section
+                // was hidden, which orphaned the i18n string and lost the
+                // onboarding cue.
+                Text(
+                    text  = stringResource(R.string.settings_tag_stats_empty),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                return@Column
+            }
+            val countsByTag = remember(appTags) {
+                val out = HashMap<AppTag, Int>(AppTag.entries.size)
+                AppTag.entries.forEach { out[it] = 0 }
+                for ((_, tags) in appTags) {
+                    for (t in tags) {
+                        out[t] = (out[t] ?: 0) + 1
+                    }
+                }
+                out
+            }
+            androidx.compose.foundation.layout.FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement   = Arrangement.spacedBy(6.dp),
+            ) {
+                AppTag.entries.forEach { tag ->
+                    TagStatChip(
+                        label = stringResource(appTagLabelRes(tag)),
+                        count = countsByTag[tag] ?: 0,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text  = stringResource(R.string.settings_tag_stats_total, appTags.size),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TagStatChip(label: String, count: Int) {
+    Surface(
+        color = BrandBlue.copy(alpha = 0.14f),
+        shape = RoundedCornerShape(4.dp),
+    ) {
+        Row(
+            modifier              = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(
+                imageVector        = Icons.AutoMirrored.Outlined.Label,
+                contentDescription = null,
+                tint               = BrandBlue,
+                modifier           = Modifier.padding(end = 2.dp),
+            )
+            Text(
+                text       = stringResource(R.string.settings_tag_stats_row, label, count),
+                style      = MaterialTheme.typography.labelMedium,
+                color      = BrandBlue,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
+}
+

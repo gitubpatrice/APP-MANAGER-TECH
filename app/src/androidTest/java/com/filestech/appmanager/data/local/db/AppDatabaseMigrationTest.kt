@@ -29,8 +29,13 @@ import org.junit.runner.RunWith
  *   the new `is_hibernated` column on `app_info` reads `0` (false) for
  *   pre-existing rows via the column DEFAULT and accepts INSERT with the
  *   field omitted (DEFAULT applies).
+ * - `MIGRATION_6_7` (v0.3.4 APK SHA-256 forensics on lifecycle events):
+ *   existing data survives; the new `apk_sha256` TEXT column on
+ *   `app_lifecycle_event` reads NULL for pre-existing rows (no DEFAULT
+ *   clause needed — the column is NULLable) and accepts INSERT both with
+ *   and without the field.
  *
- * Requires the v1..v6 schemas to be exported under `schemas/` (Room plugin
+ * Requires the v1..v7 schemas to be exported under `schemas/` (Room plugin
  * handles this — checked into git).
  */
 @RunWith(AndroidJUnit4::class)
@@ -435,6 +440,78 @@ class AppDatabaseMigrationTest {
         migrated.query("SELECT is_hibernated FROM app_info WHERE package_name = 'com.fresh'").use {
             assertThat(it.moveToFirst()).isTrue()
             assertThat(it.getInt(0)).isEqualTo(0)
+        }
+
+        migrated.close()
+    }
+
+    @Test
+    fun migrate_v6_to_v7_adds_apk_sha256_column_nullable() {
+        // 1. Seed v6 with a lifecycle event row (no apk_sha256 column yet).
+        helper.createDatabase(TEST_DB_NAME, 6).apply {
+            execSQL(
+                """
+                INSERT INTO app_lifecycle_event
+                  (package_name, label, type, captured_at, version_name, version_code,
+                   installer_package, total_size_bytes, granted_dangerous_perms, user_reason)
+                VALUES ('com.example', 'Example', 'INSTALLED', 1700000000000,
+                        '1.0', 1, NULL, 0, '', NULL)
+                """.trimIndent(),
+            )
+            close()
+        }
+
+        // 2. Migrate to v7.
+        val migrated = helper.runMigrationsAndValidate(
+            TEST_DB_NAME,
+            7,
+            true,
+            Migrations.MIGRATION_6_7,
+        )
+
+        // 3. Pre-existing row preserved + apk_sha256 reads NULL.
+        migrated.query(
+            "SELECT package_name, type, apk_sha256 FROM app_lifecycle_event",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("com.example")
+            assertThat(it.getString(1)).isEqualTo("INSTALLED")
+            assertThat(it.isNull(2)).isTrue() // new column NULL
+        }
+
+        // 4. Fresh INSERT omitting apk_sha256 stores NULL.
+        migrated.execSQL(
+            """
+            INSERT INTO app_lifecycle_event
+              (package_name, label, type, captured_at, version_name, version_code,
+               installer_package, total_size_bytes, granted_dangerous_perms, user_reason)
+            VALUES ('com.fresh', 'Fresh', 'REPLACED', 1700000000001,
+                    '1.1', 2, NULL, 0, '', NULL)
+            """.trimIndent(),
+        )
+        migrated.query(
+            "SELECT apk_sha256 FROM app_lifecycle_event WHERE package_name = 'com.fresh'",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.isNull(0)).isTrue()
+        }
+
+        // 5. Fresh INSERT WITH apk_sha256 round-trips a non-null hex string.
+        val sampleHex = "0".repeat(64) // valid SHA-256 placeholder
+        migrated.execSQL(
+            """
+            INSERT INTO app_lifecycle_event
+              (package_name, label, type, captured_at, version_name, version_code,
+               installer_package, total_size_bytes, granted_dangerous_perms, user_reason, apk_sha256)
+            VALUES ('com.hashed', 'Hashed', 'INSTALLED', 1700000000002,
+                    '1.0', 1, NULL, 0, '', NULL, '$sampleHex')
+            """.trimIndent(),
+        )
+        migrated.query(
+            "SELECT apk_sha256 FROM app_lifecycle_event WHERE package_name = 'com.hashed'",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo(sampleHex)
         }
 
         migrated.close()

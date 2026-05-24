@@ -64,6 +64,7 @@ class AppLifecycleRepositoryImpl @Inject constructor(
         installerPackage: String?,
         totalSizeBytes: Long,
         grantedDangerousPermissions: List<String>,
+        apkSha256: String?,
     ): Outcome<Long> {
         if (!packageName.isValidPackageName()) {
             return Outcome.Failure(AppError.Validation("Invalid package name"))
@@ -82,6 +83,7 @@ class AppLifecycleRepositoryImpl @Inject constructor(
                         totalSizeBytes         = totalSizeBytes,
                         grantedDangerousPerms  = encodePerms(grantedDangerousPermissions),
                         userReason             = null,
+                        apkSha256              = apkSha256,
                     ),
                 )
             }
@@ -153,6 +155,7 @@ class AppLifecycleRepositoryImpl @Inject constructor(
         totalSizeBytes              = totalSizeBytes,
         grantedDangerousPermissions = decodePerms(grantedDangerousPerms),
         userReason                  = userReason?.let { parseReason(it) },
+        apkSha256                   = apkSha256,
     )
 
     /**

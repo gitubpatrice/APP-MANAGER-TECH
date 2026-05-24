@@ -66,6 +66,17 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
  *     pre-existing rows read 0 (false) via DEFAULT until that scan runs.
  *     Migration `MIGRATION_5_6`: 1× ALTER TABLE ADD COLUMN.
  *
+ * - v7 (v0.3.4 — APK SHA-256 forensics on lifecycle events)
+ *     Adds `apk_sha256` TEXT NULLable column to `app_lifecycle_event`.
+ *     Captured by `RecordLifecycleEventUseCase` for INSTALLED / REPLACED /
+ *     BASELINE rows by hashing `ApplicationInfo.sourceDir` with
+ *     `MessageDigest.getInstance("SHA-256")`. UNINSTALLED rows stay NULL
+ *     (the APK is already gone by the time the broadcast fires). The
+ *     LifecycleHistoryScreen surfaces a red tamper alert when a REPLACED
+ *     row shares the same `versionCode` as the previous event but a
+ *     different `apkSha256` — signal of a repackage or sideload swap.
+ *     Migration `MIGRATION_6_7`: 1× ALTER TABLE ADD COLUMN (NULLable).
+ *
  * Migration rules (STRICT — enforced by code review):
  * - Every version bump MUST ship an additive Migration in [Migrations].
  * - Only `ALTER TABLE ... ADD COLUMN`, `CREATE INDEX IF NOT EXISTS`, `CREATE TABLE` are allowed.
@@ -94,6 +105,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         const val DATABASE_NAME = "app_manager_tech.db"
-        const val SCHEMA_VERSION = 6
+        const val SCHEMA_VERSION = 7
     }
 }

@@ -10,7 +10,7 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
 import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.IntentFactory
-import com.filestech.appmanager.ui.screens.settings.setAppTag
+import com.filestech.appmanager.ui.screens.settings.setAppTags
 import com.filestech.appmanager.domain.model.AppDetail
 import com.filestech.appmanager.domain.model.AppTag
 import com.filestech.appmanager.domain.model.CriticalClassification
@@ -113,32 +113,34 @@ class AppDetailViewModel @Inject constructor(
         )
 
     /**
-     * v0.3.3 — Current user-assigned tag for [_state.packageName], reactive
-     * on DataStore. Drives the AppDetail TagPickerDialog's initial selection
-     * and the chip rendered on the AppDetail header.
+     * v0.3.3 / v0.3.4 — Current user-assigned tag set for
+     * [_state.packageName], reactive on DataStore. Drives the AppDetail
+     * TagPickerDialog's initial selection and the chips rendered on the
+     * AppDetail header. An empty set means "no tag".
      */
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val currentTag: StateFlow<AppTag?> = _state
+    val currentTags: StateFlow<Set<AppTag>> = _state
         .map { it.packageName }
         .flatMapLatest { pkg ->
             if (pkg.isEmpty()) emptyFlow()
-            else settings.flow.map { snapshot -> snapshot.appTags[pkg] }
+            else settings.flow.map { snapshot -> snapshot.appTags[pkg].orEmpty() }
         }
         .stateIn(
             scope        = viewModelScope,
             started      = SharingStarted.WhileSubscribed(STATEFLOW_STOP_TIMEOUT_MS),
-            initialValue = null,
+            initialValue = emptySet(),
         )
 
     /**
-     * Sets (or clears with null) the tag for the current package. Delegates
-     * to the `SettingsRepository.setAppTag` extension which validates the
-     * package name + does the atomic Map<pkg, AppTag> update via DataStore.
+     * Replaces the tag set for the current package. Pass [emptySet] to clear
+     * all tags. Delegates to the `SettingsRepository.setAppTags` extension
+     * which validates the package name + does the atomic
+     * `Map<pkg, Set<AppTag>>` update via DataStore.
      */
-    fun setTag(tag: AppTag?) {
+    fun setTags(tags: Set<AppTag>) {
         val pkg = currentPackage() ?: return
         viewModelScope.launch {
-            settings.setAppTag(pkg, tag)
+            settings.setAppTags(pkg, tags)
         }
     }
 

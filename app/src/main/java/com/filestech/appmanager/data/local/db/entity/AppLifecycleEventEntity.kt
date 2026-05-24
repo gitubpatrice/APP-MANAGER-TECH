@@ -78,4 +78,21 @@ data class AppLifecycleEventEntity(
     /** Enum name from [com.filestech.appmanager.domain.model.UninstallReason], or NULL. */
     @ColumnInfo(name = "user_reason")
     val userReason: String?,
+
+    /**
+     * v0.3.4 — Hex SHA-256 of the base APK at capture time
+     * (`MessageDigest.getInstance("SHA-256")` over the file at
+     * `ApplicationInfo.sourceDir`). NULL when :
+     *  - the row is from a v0.3.3 or earlier release (the column didn't exist),
+     *  - the row is UNINSTALLED (the APK is gone by then),
+     *  - reading / hashing the APK failed (IO or SecurityException —
+     *    swallowed by the use case so the audit row is still written).
+     *
+     * Powers the tamper-detection UX : when a REPLACED row shares the
+     * same `versionCode` as the prior event for the same package BUT a
+     * different `apk_sha256`, the lifecycle history surfaces a red
+     * "possible repackage / sideload swap" badge.
+     */
+    @ColumnInfo(name = "apk_sha256")
+    val apkSha256: String?,
 )

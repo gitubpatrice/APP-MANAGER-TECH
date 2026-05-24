@@ -1,6 +1,58 @@
 # App Manager Tech — Security model
 
-Current release: **v0.3.3**
+Current release: **v0.3.4**
+
+## v0.3.4 — Multi-tags + tag filter + tag stats + APK SHA-256 forensics
+
+- **Multi-tag refactor (DataStore wire format)** — `AppSettings.appTags`
+  widens from `Map<String, AppTag>` to `Map<String, Set<AppTag>>`.
+  Encoded as a `stringSetPreferencesKey` of `pkg=TAG1|TAG2|…` entries
+  (the `|` separator is invalid inside an `AppTag.name`, so the
+  encoding is unambiguous). Decoder is **tolerant + defence-in-depth** :
+  malformed entries are silently dropped, unknown enum names are
+  skipped, the per-entry tag arity is capped at
+  `MAX_TAG_ARITY_PER_ENTRY = 8` (a tampered DataStore feeding
+  `pkg=WORK|WORK|…|WORK` × 10 000 is bounded), and the `pkg` key is
+  validated via `isValidPackageName()` for read-path symmetry with
+  the existing `setAppTags(pkg, Set)` write-path. Backward-compatible
+  with the v0.3.3 single-tag format (a suffix without `|` deserialises
+  as a one-element Set), so an upgrade preserves every existing tag.
+- **APK SHA-256 forensics on Lifecycle events** — new `apk_sha256`
+  column on `app_lifecycle_event` (Room v7, ALTER TABLE ADD COLUMN
+  TEXT NULLable). `RecordLifecycleEventUseCase.computeApkSha256` reads
+  the base APK at `ApplicationInfo.sourceDir`, hashes it with
+  `MessageDigest.getInstance("SHA-256")` streamed at 64 KB, and stores
+  the hex digest on INSTALLED / REPLACED / BASELINE rows. UNINSTALLED
+  rows leave the hash NULL (the APK is gone by the time the broadcast
+  fires). **Defence-in-depth on every failure path** :
+    - `canonicalFile` resolves symlinks BEFORE the read so a hostile
+      link is caught by the prefix check rather than being followed.
+    - Whitelist of canonical install roots (`/data/app/`,
+      `/system/app/`, `/system/priv-app/`, `/product/app/`,
+      `/vendor/app/`) — stock AOSP `sourceDir` is trustworthy, but
+      root/MOD ROMs can lie; the prefix check fences off the worst
+      cases (`/dev/urandom` via symlink).
+    - 500 MB hard cap on the APK size we hash — above this we log +
+      skip the hash rather than monopolise the IO pool for tens of
+      seconds. The lifecycle row still inserts with `apkSha256 = null`
+      so the audit trail is never lost.
+    - IO / Security exceptions swallowed + Timber-logged (no PII in
+      the log message — only the canonical path).
+  Tamper detection lives entirely in the UI layer (`computeTamperedIds`,
+  pure O(n log n) `remember(events)`) — no extra Room query, no
+  background work, no IPC.
+- **Tag filter on AppList** — `AppListViewModel` injects the existing
+  `SettingsRepository` (no new permission, no new IPC). Filter is a
+  pure in-memory post-filter on the existing `getInstalledApps` flow ;
+  chip toggles do NOT re-subscribe to the heavy Room query.
+- **TagPickerDialog double-toggle hardening** — `Checkbox` now passes
+  `onCheckedChange = null` so the parent `Row.toggleable` is the
+  single source of click handling. `role = Role.Checkbox` set on the
+  Row for TalkBack semantics. Prevents the double-toggle no-op that
+  could surface on some Compose versions.
+- **No new permission, no new dependency, no INTERNET, no GMS.**
+- Room schema v6 → v7 (single ALTER TABLE ADD COLUMN, NULLable).
+- Cert SHA-256 stable (`76:E8:77...60FF1CF`) since v0.1.0.
 
 ## v0.3.3 — Hibernation parity + Signature clusters + Custom tags
 

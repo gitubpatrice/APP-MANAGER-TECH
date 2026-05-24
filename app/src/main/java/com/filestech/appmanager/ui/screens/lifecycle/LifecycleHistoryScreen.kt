@@ -141,15 +141,66 @@ private fun LifecycleBody(
                         body  = stringResource(R.string.lifecycle_empty_body),
                     )
                 } else {
+                    // v0.3.4 — detect REPLACED rows whose immediately-prior
+                    // event for the same package shares the SAME versionCode
+                    // but a DIFFERENT apkSha256. That mismatch is a tamper
+                    // signal (repackage / sideload swap that did not bump
+                    // the version). Computed once per emission of the list
+                    // and passed down as a Set<Long> of event ids to flag.
+                    val tampered = remember(events.value) {
+                        computeTamperedIds(events.value)
+                    }
                     // v0.3.1 — stats header card aggregating counts per type
                     // + uninstall reason for the current window. Stays at the
                     // top of the LazyColumn so it scrolls with the timeline.
                     StatsCard(events = events.value)
-                    EventTimeline(events = events.value, deltas = deltas, onItemClick = onItemClick)
+                    EventTimeline(
+                        events      = events.value,
+                        deltas      = deltas,
+                        tampered    = tampered,
+                        onItemClick = onItemClick,
+                    )
                 }
             }
         }
     }
+}
+
+/**
+ * v0.3.4 — Returns the set of event ids that are tamper-flagged. The input
+ * is the list of events as the UI receives it (newest first); we group by
+ * package and walk each per-package timeline chronologically to compare
+ * consecutive (versionCode, apkSha256) pairs.
+ *
+ * A REPLACED row is flagged when :
+ *  - the prior event (same package, immediately older) is non-null,
+ *  - both rows carry the SAME [LifecycleEvent.versionCode],
+ *  - both [LifecycleEvent.apkSha256] are non-null AND differ.
+ *
+ * Pure O(n) — sorted-by-time inside each per-package partition, single
+ * pass to flag mismatches. No Room access from the screen layer.
+ */
+private fun computeTamperedIds(events: List<LifecycleEvent>): Set<Long> {
+    val perPackage = events.groupBy { it.packageName }
+    val flagged = HashSet<Long>()
+    for ((_, eventsOfPkg) in perPackage) {
+        // Sort ASC by capturedAt so the first scan iteration sees the
+        // oldest event ; subsequent iterations compare each one to its
+        // predecessor.
+        val sorted = eventsOfPkg.sortedBy { it.capturedAt }
+        for (i in 1 until sorted.size) {
+            val curr = sorted[i]
+            val prev = sorted[i - 1]
+            if (curr.type != LifecycleEventType.REPLACED) continue
+            if (curr.versionCode != prev.versionCode) continue
+            val a = curr.apkSha256
+            val b = prev.apkSha256
+            if (a == null || b == null) continue
+            if (a == b) continue
+            flagged.add(curr.id)
+        }
+    }
+    return flagged
 }
 
 /**
@@ -282,6 +333,7 @@ private fun WindowChip(label: String, selected: Boolean, onClick: () -> Unit) {
 private fun EventTimeline(
     events: List<LifecycleEvent>,
     deltas: Map<Long, com.filestech.appmanager.domain.model.PermissionDelta>,
+    tampered: Set<Long>,
     onItemClick: (String) -> Unit,
 ) {
     val dateFormat = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
@@ -295,6 +347,7 @@ private fun EventTimeline(
                 event      = event,
                 dateFormat = dateFormat,
                 delta      = deltas[event.id],
+                isTampered = event.id in tampered,
                 onClick    = { onItemClick(event.packageName) },
             )
         }
@@ -306,6 +359,7 @@ private fun EventCard(
     event: LifecycleEvent,
     dateFormat: DateFormat,
     delta: com.filestech.appmanager.domain.model.PermissionDelta?,
+    isTampered: Boolean,
     onClick: () -> Unit,
 ) {
     Card(
@@ -353,6 +407,26 @@ private fun EventCard(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // v0.3.4 — tamper alert. Rendered ABOVE the permission-gain
+            // delta chip so the stronger signal (binary swap with same
+            // versionCode) is read first. The text already carries the ⚠
+            // glyph so it remains identifiable to colour-blind users in
+            // addition to the BrandDanger surface.
+            if (isTampered) {
+                Spacer(Modifier.height(6.dp))
+                Surface(
+                    color = BrandDanger.copy(alpha = 0.16f),
+                    shape = RoundedCornerShape(4.dp),
+                ) {
+                    Text(
+                        text     = stringResource(R.string.lifecycle_row_tamper_alert),
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = BrandDanger,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
+            }
             // v0.3.2 — REPLACED rows surface their permission-gain delta when
             // the update added at least one dangerous permission. Helps users
             // spot supply-chain creep ("this update added Microphone").

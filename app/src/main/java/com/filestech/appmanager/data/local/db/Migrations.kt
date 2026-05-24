@@ -182,6 +182,29 @@ object Migrations {
     }
 
     /**
+     * v0.3.4 — adds `apk_sha256` TEXT column to `app_lifecycle_event`.
+     *
+     * Carries the hex SHA-256 of the base APK at capture time. NULL is the
+     * default for :
+     *  - every pre-v0.3.4 row (the column simply did not exist),
+     *  - UNINSTALLED rows (the APK is already gone by the time the
+     *    broadcast fires, so the use case can't hash anything),
+     *  - rows where reading the APK failed (IO/security exception — we
+     *    swallow + log, the row is still written so the audit trail stays
+     *    monotonic).
+     *
+     * Strict additive: `ALTER TABLE ADD COLUMN ... TEXT` — NULLable so no
+     * DEFAULT clause is necessary, pre-existing rows read NULL.
+     */
+    val MIGRATION_6_7: Migration = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE `app_lifecycle_event` ADD COLUMN `apk_sha256` TEXT",
+            )
+        }
+    }
+
+    /**
      * All migrations in version order. Spread (`*ALL_MIGRATIONS`) into
      * `Room.databaseBuilder(...).addMigrations()`.
      */
@@ -191,5 +214,6 @@ object Migrations {
         MIGRATION_3_4,
         MIGRATION_4_5,
         MIGRATION_5_6,
+        MIGRATION_6_7,
     )
 }

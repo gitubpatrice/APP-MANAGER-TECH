@@ -9,10 +9,12 @@ import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
 import com.filestech.appmanager.core.result.map
+import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.domain.model.AppSortOrder
 import com.filestech.appmanager.data.system.IntentFactory
 import com.filestech.appmanager.domain.model.AppAction
 import com.filestech.appmanager.domain.model.AppInfo
+import com.filestech.appmanager.domain.model.AppTag
 import com.filestech.appmanager.domain.model.BatchActionResult
 import com.filestech.appmanager.domain.model.FilterOptions
 import com.filestech.appmanager.domain.repository.AppInfoRepository
@@ -29,6 +31,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -65,6 +68,13 @@ class AppListViewModel @Inject constructor(
     private val batchAction: BatchActionUseCase,
     private val rescanApps: RescanAppsUseCase,
     private val appInfoRepo: AppInfoRepository,
+    /**
+     * v0.3.4 — needed for the per-tag filter chip row. We collect the
+     * `appTags` map from the settings flow into the pipeline so the visible
+     * list reactively shrinks/grows when the user (re)assigns a tag from
+     * AppDetail without re-entering the screen.
+     */
+    private val settings: SettingsRepository,
     private val intents: IntentFactory,
 ) : ViewModel() {
 
@@ -79,6 +89,16 @@ class AppListViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     private val _usageStatsGranted = MutableStateFlow(appInfoRepo.hasUsageStatsAccess())
 
+    /**
+     * v0.3.4 — Currently active tag filter. Empty set = show every app
+     * (chip filter pill "Tous"). Non-empty set = show only apps whose
+     * appTags set has at least one tag in common with this filter.
+     * Multi-select chip row in the UI (a user can keep WORK + TOOLS pinned
+     * simultaneously). Not persisted — resetting on process restart matches
+     * the existing search/sort behaviour and avoids a sticky filter trap.
+     */
+    private val _tagFilter = MutableStateFlow<Set<AppTag>>(emptySet())
+
     // -----------------------------------------------------------------------
     // Pipeline → final UiState
     // -----------------------------------------------------------------------
@@ -87,25 +107,53 @@ class AppListViewModel @Inject constructor(
         val query: String,
         val sort: AppSortOrder,
         val filter: FilterOptions,
+        /**
+         * v0.3.4 — Per-tag visibility filter. Empty = no tag filter (every
+         * app visible). Non-empty = keep apps whose tag set intersects this
+         * filter (OR semantics across selected chips).
+         */
+        val tagFilter: Set<AppTag>,
     )
 
     private val pipeline: StateFlow<Pipeline> = combine(
         _searchQuery,
         _sortOrder,
         _filterOptions,
-    ) { query, sort, filter -> Pipeline(query, sort, filter) }
+        _tagFilter,
+    ) { query, sort, filter, tagFilter -> Pipeline(query, sort, filter, tagFilter) }
         .stateIn(
             scope        = viewModelScope,
             started      = SharingStarted.WhileSubscribed(STATEFLOW_STOP_TIMEOUT_MS),
-            initialValue = Pipeline("", AppSortOrder.NAME_ASC, FilterOptions.DEFAULT),
+            initialValue = Pipeline("", AppSortOrder.NAME_ASC, FilterOptions.DEFAULT, emptySet()),
         )
 
-    private val listFlow: Flow<Outcome<List<AppInfo>>> = pipeline
-        .flatMapLatest { p ->
+    /**
+     * v0.3.4 — Hot stream of the persisted tag assignments
+     * (`Map<packageName, Set<AppTag>>`). Re-derived from the settings flow
+     * via `distinctUntilChanged` so unrelated DataStore writes (theme,
+     * scanner cadence…) do NOT re-trigger a full list refilter.
+     */
+    private val appTagsFlow: Flow<Map<String, Set<AppTag>>> =
+        settings.flow
+            .map { it.appTags }
+            .distinctUntilChanged()
+
+    private val listFlow: Flow<Outcome<List<AppInfo>>> = combine(
+        // Inner: the legacy (query × sort × filter) flatMapLatest pipeline.
+        // Kept structurally identical to the v0.3.3 form to avoid behaviour
+        // drift on the hot path. The new tagFilter lives at the outer level
+        // so we never re-subscribe to the heavy getInstalledApps flow on a
+        // chip toggle (only re-filters in-memory).
+        pipeline.flatMapLatest { p ->
             // VII C3 fix: direct .map preserves upstream flowOn(io) — see GetInstalledAppsUseCase.
             getInstalledApps(filter = p.filter, sortOrder = p.sort)
                 .map { outcome -> outcome.applyQuery(p.query) }
-        }
+        },
+        pipeline,
+        appTagsFlow,
+    ) { queriedOutcome, p, allTags ->
+        queriedOutcome.applyTagFilter(p.tagFilter, allTags)
+    }
 
     val state: StateFlow<UiState> = combine(
         listFlow,
@@ -113,6 +161,7 @@ class AppListViewModel @Inject constructor(
         pipeline,
         _isRefreshing,
         _usageStatsGranted,
+        appTagsFlow,
     ) { values ->
         @Suppress("UNCHECKED_CAST")
         val outcome = values[0] as Outcome<List<AppInfo>>
@@ -121,11 +170,15 @@ class AppListViewModel @Inject constructor(
         val p = values[2] as Pipeline
         val refreshing = values[3] as Boolean
         val usageGranted = values[4] as Boolean
+        @Suppress("UNCHECKED_CAST")
+        val allTags = values[5] as Map<String, Set<AppTag>>
         UiState(
             listOutcome        = outcome,
             searchQuery        = p.query,
             sortOrder          = p.sort,
             filterOptions      = p.filter,
+            tagFilter          = p.tagFilter,
+            appTags            = allTags,
             selectedPackages   = selected,
             isRefreshing       = refreshing,
             usageStatsGranted  = usageGranted,
@@ -162,6 +215,23 @@ class AppListViewModel @Inject constructor(
     /** Convenience for the common "toggle include system apps" switch. */
     fun onToggleSystemApps(include: Boolean) {
         _filterOptions.update { it.copy(includeSystemApps = include) }
+    }
+
+    /**
+     * v0.3.4 — Multi-select chip behaviour: tapping a chip flips its
+     * membership in the current filter set. Tapping "Tous" (or every chip
+     * deselected) restores the empty-set "no filter" state. The chip row
+     * never holds itself in an invalid state — empty set = visible all.
+     */
+    fun onToggleTagFilter(tag: AppTag) {
+        _tagFilter.update { current ->
+            if (tag in current) current - tag else current + tag
+        }
+    }
+
+    /** Resets the per-tag filter to "no filter" (every app visible). */
+    fun onClearTagFilter() {
+        _tagFilter.value = emptySet()
     }
 
     // -----------------------------------------------------------------------
@@ -292,6 +362,25 @@ class AppListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * v0.3.4 — Post-filter by the user-assigned tag set. Empty [tagFilter]
+     * is a no-op (full list passes through). Apps with no tag assignment
+     * are excluded once the filter is active — the user picked a chip to
+     * say "show me Work apps", not "show me Work apps + untagged apps".
+     */
+    private fun Outcome<List<AppInfo>>.applyTagFilter(
+        tagFilter: Set<AppTag>,
+        allTags: Map<String, Set<AppTag>>,
+    ): Outcome<List<AppInfo>> {
+        if (tagFilter.isEmpty()) return this
+        return this.map { apps ->
+            apps.filter { app ->
+                val assigned = allTags[app.packageName].orEmpty()
+                assigned.any { it in tagFilter }
+            }
+        }
+    }
+
     // -----------------------------------------------------------------------
     // UiState + Event
     // -----------------------------------------------------------------------
@@ -301,6 +390,17 @@ class AppListViewModel @Inject constructor(
         val searchQuery: String = "",
         val sortOrder: AppSortOrder = AppSortOrder.NAME_ASC,
         val filterOptions: FilterOptions = FilterOptions.DEFAULT,
+        /**
+         * v0.3.4 — Active per-tag filter chips. Empty = no filter.
+         */
+        val tagFilter: Set<AppTag> = emptySet(),
+        /**
+         * v0.3.4 — Snapshot of the full tag assignment map so the
+         * AppListItem can render per-row tag chips without each row
+         * re-fetching the DataStore. Reactive on settings changes via
+         * `appTagsFlow`.
+         */
+        val appTags: Map<String, Set<AppTag>> = emptyMap(),
         val selectedPackages: Set<String> = emptySet(),
         val isRefreshing: Boolean = false,
         val usageStatsGranted: Boolean = true,

@@ -1,0 +1,9 @@
+v0.3.4 — Tags multiples + filtre par tag + stats + SHA-256 APK.
+
+• Plusieurs tags par app (Travail / Famille / Jeu / Outils / Média).
+• Filtrer la liste d'apps par tag (chips multi-sélection).
+• Carte « Répartition des tags » dans Paramètres.
+• Empreinte SHA-256 de l'APK sur les événements du cycle de vie.
+• Badge ⚠ si REPLACED partage le même versionCode mais empreinte
+  différente (signal repackage / sideload).
+• Room v6 → v7 additive. Cert stable.

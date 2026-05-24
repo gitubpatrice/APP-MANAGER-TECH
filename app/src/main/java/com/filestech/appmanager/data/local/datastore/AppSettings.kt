@@ -41,16 +41,24 @@ data class AppSettings(
      */
     val ignoredPackages: Set<String> = emptySet(),
     /**
-     * v0.3.3 — user-assigned tags. Map of `packageName → AppTag`. One tag per
-     * app for simplicity (multi-tags + free-text custom tags can land in a
-     * future release without breaking the wire format — we'd extend the set
-     * encoding from `pkg=TAG` to `pkg=TAG1,TAG2`).
+     * v0.3.3 — user-assigned tags. v0.3.4 promotes the value type from a
+     * single `AppTag` to `Set<AppTag>` so an app can carry several
+     * categories at once (e.g. "Travail" + "Outils") without forcing the
+     * user to pick one. An empty set is equivalent to "no tag" — the
+     * DataStore write path collapses it back to the key being absent.
      *
-     * Stored in DataStore as a `Set<String>` of `packageName=ENUM_NAME`
-     * entries. Decoding is tolerant : malformed entries are silently
-     * dropped, unknown enum names collapse to null (effectively "no tag").
+     * Storage encoding: `Set<String>` in DataStore where each entry is
+     * `packageName=TAG1|TAG2|TAG3` (one entry per package, `|`-separated
+     * tags after `=`). The decoder is backward-compatible with the v0.3.3
+     * `packageName=TAG` single-tag format (no `|` is wrapped into a
+     * one-element set), so existing user data round-trips without loss.
+     *
+     * Decoding is tolerant : malformed entries are silently dropped,
+     * unknown enum names are skipped, empty/duplicate tags inside an entry
+     * collapse. Whole-entry validation lives in
+     * [com.filestech.appmanager.data.local.datastore.SettingsRepositoryImpl.decodeTags].
      */
-    val appTags: Map<String, com.filestech.appmanager.domain.model.AppTag> = emptyMap(),
+    val appTags: Map<String, Set<com.filestech.appmanager.domain.model.AppTag>> = emptyMap(),
 ) {
 
     /**

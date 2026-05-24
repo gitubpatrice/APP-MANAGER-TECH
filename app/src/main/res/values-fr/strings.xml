@@ -870,13 +870,31 @@
     <!-- ================================================================ -->
     <!-- v0.3.3 — Tags personnalisés                                      -->
     <!-- ================================================================ -->
-    <string name="tag_picker_title">Tag pour %1$s</string>
-    <string name="tag_picker_none">Aucun tag</string>
+    <string name="tag_picker_title">Tags pour %1$s</string>
+    <string name="tag_picker_none">Aucun tag sélectionné (sera effacé)</string>
     <string name="tag_chip_add">Ajouter un tag</string>
     <string name="tag_label_work">Travail</string>
     <string name="tag_label_family">Famille</string>
     <string name="tag_label_game">Jeu</string>
     <string name="tag_label_tools">Outils</string>
     <string name="tag_label_media">Média</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.4 — Bandeau de filtre par tag (barre AppList)               -->
+    <!-- ================================================================ -->
+    <string name="tag_filter_all">Tous</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.4 — Carte « Répartition des tags » (Paramètres)             -->
+    <!-- ================================================================ -->
+    <string name="settings_tag_stats_title">Répartition des tags</string>
+    <string name="settings_tag_stats_empty">Aucun tag attribué pour l\'instant. Ouvrez une app et touchez « Ajouter un tag ».</string>
+    <string name="settings_tag_stats_row">%1$s · %2$d</string>
+    <string name="settings_tag_stats_total">%1$d apps taguées</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.4 — Alerte tamper SHA-256 APK (Historique du cycle de vie) -->
+    <!-- ================================================================ -->
+    <string name="lifecycle_row_tamper_alert">⚠ Même versionCode mais empreinte SHA-256 de l\'APK différente — possible repackage ou remplacement par sideload.</string>
 
 </resources>

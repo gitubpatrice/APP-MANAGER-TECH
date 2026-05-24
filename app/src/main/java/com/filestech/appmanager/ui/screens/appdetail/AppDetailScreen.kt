@@ -125,7 +125,7 @@ fun AppDetailScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val lifecycleEvents by viewModel.lifecycleEvents.collectAsStateWithLifecycle()
-    val currentTag by viewModel.currentTag.collectAsStateWithLifecycle()
+    val currentTags by viewModel.currentTags.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -227,7 +227,7 @@ fun AppDetailScreen(
         AppDetailBody(
             state             = state,
             lifecycleEvents   = lifecycleEvents,
-            currentTag        = currentTag,
+            currentTags       = currentTags,
             onTagClick        = { tagDialogOpen = true },
             innerPadding      = innerPadding,
             onRetry       = { viewModel.load(packageName) },
@@ -335,18 +335,19 @@ fun AppDetailScreen(
         )
     }
 
-    // v0.3.3 — tag picker dialog. Derives the label from the loaded
-    // AppDetail when available, falls back to the package name (the dialog
-    // shouldn't open before the detail loads, but the fallback keeps the
-    // string non-empty under any race).
+    // v0.3.3 / v0.3.4 — tag picker dialog. Derives the label from the
+    // loaded AppDetail when available, falls back to the package name (the
+    // dialog shouldn't open before the detail loads, but the fallback keeps
+    // the string non-empty under any race). v0.3.4 hands the picker a
+    // Set<AppTag> so multi-select is the native shape.
     if (tagDialogOpen) {
         val label = (state.detailOutcome as? Outcome.Success)?.value?.info?.label
             ?: state.packageName
         com.filestech.appmanager.ui.components.dialogs.TagPickerDialog(
             appLabel  = label,
-            current   = currentTag,
+            current   = currentTags,
             onConfirm = { picked ->
-                viewModel.setTag(picked)
+                viewModel.setTags(picked)
                 tagDialogOpen = false
             },
             onDismiss = { tagDialogOpen = false },
@@ -416,7 +417,7 @@ private data class SoftQuarantinePrompt(
 private fun AppDetailBody(
     state: AppDetailViewModel.UiState,
     lifecycleEvents: List<com.filestech.appmanager.domain.model.LifecycleEvent>,
-    currentTag: com.filestech.appmanager.domain.model.AppTag?,
+    currentTags: Set<com.filestech.appmanager.domain.model.AppTag>,
     onTagClick: () -> Unit,
     innerPadding: PaddingValues,
     onRetry: () -> Unit,
@@ -462,7 +463,7 @@ private fun AppDetailBody(
                     isIgnored                 = state.isIgnored,
                     recentlyMovedToTrash      = state.recentlyMovedToTrash,
                     lifecycleEvents           = lifecycleEvents,
-                    currentTag                = currentTag,
+                    currentTags               = currentTags,
                     onTagClick                = onTagClick,
                     onUninstall               = onUninstall,
                     onClearCache              = onClearCache,
@@ -487,7 +488,7 @@ private fun AppDetailContent(
     isIgnored: Boolean,
     recentlyMovedToTrash: Boolean,
     lifecycleEvents: List<com.filestech.appmanager.domain.model.LifecycleEvent>,
-    currentTag: com.filestech.appmanager.domain.model.AppTag?,
+    currentTags: Set<com.filestech.appmanager.domain.model.AppTag>,
     onTagClick: () -> Unit,
     onUninstall: () -> Unit,
     onClearCache: () -> Unit,
@@ -505,7 +506,7 @@ private fun AppDetailContent(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 24.dp),
     ) {
-        HeaderCard(info = detail.info, currentTag = currentTag, onTagClick = onTagClick)
+        HeaderCard(info = detail.info, currentTags = currentTags, onTagClick = onTagClick)
         // Phase X — PrivacyDataPanel right after the header so privacy info
         // is the FIRST thing users see (more important than storage breakdown).
         SectionHeader(stringResource(R.string.appdetail_privacy_panel_title))
@@ -640,10 +641,11 @@ private fun LifecycleInlineRow(
 // Cards
 // ---------------------------------------------------------------------------
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun HeaderCard(
     info: AppInfo,
-    currentTag: com.filestech.appmanager.domain.model.AppTag?,
+    currentTags: Set<com.filestech.appmanager.domain.model.AppTag>,
     onTagClick: () -> Unit,
 ) {
     SectionCard {
@@ -672,15 +674,19 @@ private fun HeaderCard(
                     style    = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 4.dp),
                 )
-                // v0.3.3 — tap row showing the current user tag chip + an
-                // edit affordance. When no tag is assigned we still render
-                // the "Add a tag" call-to-action so the feature is
-                // discoverable from AppDetail without burying it in Outils.
+                // v0.3.3 / v0.3.4 — tap row showing the current user tag
+                // chips + an edit affordance. When no tag is assigned we
+                // still render the "Add a tag" call-to-action so the
+                // feature is discoverable from AppDetail without burying
+                // it in Outils. v0.3.4 widens to multi-tag : the chips
+                // render via FlowRow so they wrap cleanly on narrow
+                // screens / long labels rather than truncating.
                 Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    verticalAlignment     = Alignment.CenterVertically,
+                androidx.compose.foundation.layout.FlowRow(
+                    verticalArrangement   = Arrangement.spacedBy(4.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier              = Modifier
+                        .fillMaxWidth()
                         .clickable(onClick = onTagClick)
                         .padding(vertical = 2.dp),
                 ) {
@@ -690,26 +696,28 @@ private fun HeaderCard(
                         tint               = BrandBlue,
                         modifier           = Modifier.size(16.dp),
                     )
-                    if (currentTag != null) {
-                        Surface(
-                            color = BrandBlue.copy(alpha = 0.14f),
-                            shape = RoundedCornerShape(4.dp),
-                        ) {
-                            Text(
-                                text     = stringResource(
-                                    com.filestech.appmanager.ui.components.dialogs.appTagLabelRes(currentTag),
-                                ),
-                                style    = MaterialTheme.typography.labelSmall,
-                                color    = BrandBlue,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            )
-                        }
-                    } else {
+                    if (currentTags.isEmpty()) {
                         Text(
                             text  = stringResource(R.string.tag_chip_add),
                             style = MaterialTheme.typography.labelMedium,
                             color = BrandBlue,
                         )
+                    } else {
+                        currentTags.sortedBy { it.ordinal }.forEach { tag ->
+                            Surface(
+                                color = BrandBlue.copy(alpha = 0.14f),
+                                shape = RoundedCornerShape(4.dp),
+                            ) {
+                                Text(
+                                    text     = stringResource(
+                                        com.filestech.appmanager.ui.components.dialogs.appTagLabelRes(tag),
+                                    ),
+                                    style    = MaterialTheme.typography.labelSmall,
+                                    color    = BrandBlue,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                )
+                            }
+                        }
                     }
                 }
             }

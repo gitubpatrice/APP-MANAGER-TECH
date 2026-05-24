@@ -1,0 +1,483 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "cb0df82b212eada31e65e8989347bb55",
+    "entities": [
+      {
+        "tableName": "app_info",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`package_name` TEXT NOT NULL, `label` TEXT NOT NULL, `version_name` TEXT NOT NULL, `version_code` INTEGER NOT NULL, `install_size_bytes` INTEGER NOT NULL, `cache_size_bytes` INTEGER NOT NULL, `data_size_bytes` INTEGER NOT NULL, `first_install_time` INTEGER NOT NULL, `last_update_time` INTEGER NOT NULL, `last_used_time` INTEGER NOT NULL DEFAULT 0, `is_system_app` INTEGER NOT NULL, `is_uninstallable` INTEGER NOT NULL, `is_enabled` INTEGER NOT NULL DEFAULT 1, `category` TEXT NOT NULL DEFAULT 'UNDEFINED', `cached_at` INTEGER NOT NULL, `installer_package` TEXT, `apk_source_dir` TEXT, `is_hibernated` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`package_name`))",
+        "fields": [
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionName",
+            "columnName": "version_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionCode",
+            "columnName": "version_code",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "installSizeBytes",
+            "columnName": "install_size_bytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cacheSizeBytes",
+            "columnName": "cache_size_bytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataSizeBytes",
+            "columnName": "data_size_bytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstInstallTime",
+            "columnName": "first_install_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdateTime",
+            "columnName": "last_update_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUsedTime",
+            "columnName": "last_used_time",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "isSystemApp",
+            "columnName": "is_system_app",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isUninstallable",
+            "columnName": "is_uninstallable",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isEnabled",
+            "columnName": "is_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'UNDEFINED'"
+          },
+          {
+            "fieldPath": "cachedAt",
+            "columnName": "cached_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "installerPackage",
+            "columnName": "installer_package",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "apkSourceDir",
+            "columnName": "apk_source_dir",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isHibernated",
+            "columnName": "is_hibernated",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "package_name"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_app_info_is_system_app",
+            "unique": false,
+            "columnNames": [
+              "is_system_app"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_app_info_is_system_app` ON `${TABLE_NAME}` (`is_system_app`)"
+          },
+          {
+            "name": "index_app_info_last_used_time",
+            "unique": false,
+            "columnNames": [
+              "last_used_time"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_app_info_last_used_time` ON `${TABLE_NAME}` (`last_used_time`)"
+          },
+          {
+            "name": "index_app_info_installer_package",
+            "unique": false,
+            "columnNames": [
+              "installer_package"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_app_info_installer_package` ON `${TABLE_NAME}` (`installer_package`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "trash_item",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`package_name` TEXT NOT NULL, `label` TEXT NOT NULL, `total_size_bytes` INTEGER NOT NULL DEFAULT 0, `added_at` INTEGER NOT NULL, PRIMARY KEY(`package_name`))",
+        "fields": [
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalSizeBytes",
+            "columnName": "total_size_bytes",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "addedAt",
+            "columnName": "added_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "package_name"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_trash_item_added_at",
+            "unique": false,
+            "columnNames": [
+              "added_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_trash_item_added_at` ON `${TABLE_NAME}` (`added_at`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "permission_snapshot",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `package_name` TEXT NOT NULL, `permission` TEXT NOT NULL, `granted` INTEGER NOT NULL, `captured_at` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "permission",
+            "columnName": "permission",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "granted",
+            "columnName": "granted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capturedAt",
+            "columnName": "captured_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_permission_snapshot_package_name_captured_at",
+            "unique": false,
+            "columnNames": [
+              "package_name",
+              "captured_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_permission_snapshot_package_name_captured_at` ON `${TABLE_NAME}` (`package_name`, `captured_at`)"
+          },
+          {
+            "name": "index_permission_snapshot_captured_at",
+            "unique": false,
+            "columnNames": [
+              "captured_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_permission_snapshot_captured_at` ON `${TABLE_NAME}` (`captured_at`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "quarantine_entry",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`package_name` TEXT NOT NULL, `label` TEXT NOT NULL, `mode` TEXT NOT NULL, `quarantined_at` INTEGER NOT NULL, `restore_at` INTEGER NOT NULL, `version_name` TEXT, `version_code` INTEGER NOT NULL, `apk_backup_uri` TEXT, `auto_restore_enabled` INTEGER NOT NULL DEFAULT 1, `notified` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`package_name`))",
+        "fields": [
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mode",
+            "columnName": "mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "quarantinedAt",
+            "columnName": "quarantined_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restoreAt",
+            "columnName": "restore_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionName",
+            "columnName": "version_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "versionCode",
+            "columnName": "version_code",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "apkBackupUri",
+            "columnName": "apk_backup_uri",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "autoRestoreEnabled",
+            "columnName": "auto_restore_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "notified",
+            "columnName": "notified",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "package_name"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_quarantine_entry_restore_at",
+            "unique": false,
+            "columnNames": [
+              "restore_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_quarantine_entry_restore_at` ON `${TABLE_NAME}` (`restore_at`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "app_lifecycle_event",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `package_name` TEXT NOT NULL, `label` TEXT, `type` TEXT NOT NULL, `captured_at` INTEGER NOT NULL, `version_name` TEXT, `version_code` INTEGER NOT NULL, `installer_package` TEXT, `total_size_bytes` INTEGER NOT NULL DEFAULT 0, `granted_dangerous_perms` TEXT, `user_reason` TEXT, `apk_sha256` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capturedAt",
+            "columnName": "captured_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionName",
+            "columnName": "version_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "versionCode",
+            "columnName": "version_code",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "installerPackage",
+            "columnName": "installer_package",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "totalSizeBytes",
+            "columnName": "total_size_bytes",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "grantedDangerousPerms",
+            "columnName": "granted_dangerous_perms",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "userReason",
+            "columnName": "user_reason",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "apkSha256",
+            "columnName": "apk_sha256",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_app_lifecycle_event_package_name_captured_at",
+            "unique": false,
+            "columnNames": [
+              "package_name",
+              "captured_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_app_lifecycle_event_package_name_captured_at` ON `${TABLE_NAME}` (`package_name`, `captured_at`)"
+          },
+          {
+            "name": "index_app_lifecycle_event_captured_at",
+            "unique": false,
+            "columnNames": [
+              "captured_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_app_lifecycle_event_captured_at` ON `${TABLE_NAME}` (`captured_at`)"
+          },
+          {
+            "name": "index_app_lifecycle_event_type",
+            "unique": false,
+            "columnNames": [
+              "type"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_app_lifecycle_event_type` ON `${TABLE_NAME}` (`type`)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cb0df82b212eada31e65e8989347bb55')"
+    ]
+  }
+}

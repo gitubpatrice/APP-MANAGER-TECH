@@ -5,6 +5,8 @@ import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,12 +79,15 @@ import com.filestech.appmanager.R
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppSortOrder
 import com.filestech.appmanager.domain.model.AppInfo
+import com.filestech.appmanager.domain.model.AppTag
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
+import com.filestech.appmanager.ui.components.dialogs.appTagLabelRes
+import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
@@ -203,6 +208,8 @@ fun AppListScreen(
             },
             onRefresh         = viewModel::refresh,
             onGrantUsageStats = viewModel::requestUsageStatsPermission,
+            onToggleTagFilter = viewModel::onToggleTagFilter,
+            onClearTagFilter  = viewModel::onClearTagFilter,
         )
     }
 
@@ -426,6 +433,8 @@ private fun AppListBody(
     onRetry: () -> Unit,
     onRefresh: () -> Unit,
     onGrantUsageStats: () -> Unit,
+    onToggleTagFilter: (AppTag) -> Unit,
+    onClearTagFilter: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -468,6 +477,20 @@ private fun AppListBody(
                             item(key = "__overview__") {
                                 OverviewCard(apps = o.value)
                             }
+                            // v0.3.4 — per-tag filter chip row. Always
+                            // rendered (cheap; 5 chips + 1 clear pill) so
+                            // the feature is discoverable from Home — the
+                            // user does not have to dive into AppDetail to
+                            // learn that tags exist. Tapping a chip toggles
+                            // its membership in the active filter set; OR
+                            // semantics across selected chips.
+                            item(key = "__tag_filter__") {
+                                TagFilterChipRow(
+                                    current = state.tagFilter,
+                                    onToggle = onToggleTagFilter,
+                                    onClear  = onClearTagFilter,
+                                )
+                            }
                             item(key = "__section_header__") {
                                 SectionHeader(
                                     icon  = Icons.Outlined.Apps,
@@ -482,6 +505,7 @@ private fun AppListBody(
                                 AppListItem(
                                     app           = app,
                                     isSelected    = isSelected,
+                                    tags          = state.appTags[app.packageName].orEmpty(),
                                     onClick       = { onItemClick(app) },
                                     onLongClick   = { onItemLongClick(app) },
                                 )
@@ -577,11 +601,16 @@ private fun SectionHeader(icon: androidx.compose.ui.graphics.vector.ImageVector,
 // Item
 // ---------------------------------------------------------------------------
 
-@OptIn(ExperimentalComposeUiApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalComposeUiApi::class,
+    androidx.compose.foundation.ExperimentalFoundationApi::class,
+    androidx.compose.foundation.layout.ExperimentalLayoutApi::class,
+)
 @Composable
 private fun AppListItem(
     app: AppInfo,
     isSelected: Boolean,
+    tags: Set<AppTag>,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
@@ -623,19 +652,32 @@ private fun AppListItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Row(
-                    modifier            = Modifier.padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment   = Alignment.CenterVertically,
-                ) {
-                    if (app.isSystemApp) {
-                        TagBadge(stringResource(R.string.app_list_system_badge))
-                    }
-                    if (!app.isEnabled) {
-                        TagBadge(
-                            text = stringResource(R.string.app_list_disabled_badge),
-                            tint = BrandDanger,
-                        )
+                // v0.3.4 — badges row: SYSTEM / DISABLED (preserved from
+                // v0.1.x) + USER TAGS appended. FlowRow so long tag sets
+                // wrap to a second line instead of clipping. Untagged apps
+                // skip the tag chips entirely — same visual footprint as
+                // before for the common case.
+                if (app.isSystemApp || !app.isEnabled || tags.isNotEmpty()) {
+                    androidx.compose.foundation.layout.FlowRow(
+                        modifier              = Modifier.padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement   = Arrangement.spacedBy(4.dp),
+                    ) {
+                        if (app.isSystemApp) {
+                            TagBadge(stringResource(R.string.app_list_system_badge))
+                        }
+                        if (!app.isEnabled) {
+                            TagBadge(
+                                text = stringResource(R.string.app_list_disabled_badge),
+                                tint = BrandDanger,
+                            )
+                        }
+                        tags.sortedBy { it.ordinal }.forEach { tag ->
+                            TagBadge(
+                                text = stringResource(appTagLabelRes(tag)),
+                                tint = BrandBlue,
+                            )
+                        }
                     }
                 }
             }
@@ -647,6 +689,66 @@ private fun AppListItem(
             )
         }
     }
+}
+
+/**
+ * v0.3.4 — Multi-select horizontal chip row for the per-tag filter. The
+ * leading "Tous" pill is selected when no chip is active (zero filter);
+ * tapping it clears every selected tag chip. Each AppTag chip toggles its
+ * membership in the filter set on tap.
+ *
+ * Sticks to the BrandBlue palette established by the AppDetail tag chip so
+ * the filter feels visually tied to the per-app assignment UX.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TagFilterChipRow(
+    current: Set<AppTag>,
+    onToggle: (AppTag) -> Unit,
+    onClear: () -> Unit,
+) {
+    val scrollState = rememberScrollState()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .horizontalScroll(scrollState),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment     = Alignment.CenterVertically,
+    ) {
+        TagFilterChip(
+            label    = stringResource(R.string.tag_filter_all),
+            selected = current.isEmpty(),
+            onClick  = onClear,
+        )
+        AppTag.entries.forEach { tag ->
+            TagFilterChip(
+                label    = stringResource(appTagLabelRes(tag)),
+                selected = tag in current,
+                onClick  = { onToggle(tag) },
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TagFilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    androidx.compose.material3.FilterChip(
+        selected = selected,
+        onClick  = onClick,
+        label    = { Text(label) },
+        colors   = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+            selectedContainerColor = BrandBlue.copy(alpha = 0.18f),
+            selectedLabelColor     = BrandBlue,
+        ),
+        border = androidx.compose.material3.FilterChipDefaults.filterChipBorder(
+            enabled       = true,
+            selected      = selected,
+            borderColor   = MaterialTheme.colorScheme.outline,
+            selectedBorderColor = BrandBlue,
+        ),
+    )
 }
 
 @Composable

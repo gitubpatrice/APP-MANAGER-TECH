@@ -161,19 +161,24 @@ class SettingsViewModel @Inject constructor(
 }
 
 /**
- * v0.3.3 — Tag write helper as a top-level extension so any ViewModel can
- * call it without going through [SettingsViewModel]. Keeps the encoding
- * logic centralised on the repository.
+ * v0.3.3 / v0.3.4 — Tag write helper as a top-level extension so any
+ * ViewModel can call it without going through [SettingsViewModel]. Keeps
+ * the encoding logic centralised on the repository.
+ *
+ * v0.3.4 widens the value type to a [Set] : an app can now carry several
+ * categories at once (e.g. WORK + TOOLS). Passing an empty set is the
+ * "clear tag" path (the encoder drops empty entries on write, so DataStore
+ * stays compact).
  *
  * @param packageName must satisfy [isValidPackageName]; invalid input is
  *   silently ignored (no exception thrown across the coroutine boundary).
- * @param tag null to clear the tag for [packageName].
+ * @param tags pass [emptySet] to clear all tags for [packageName].
  */
-suspend fun SettingsRepository.setAppTag(packageName: String, tag: AppTag?) {
+suspend fun SettingsRepository.setAppTags(packageName: String, tags: Set<AppTag>) {
     if (!packageName.isValidPackageName()) return
     update {
         val next = appTags.toMutableMap()
-        if (tag == null) next.remove(packageName) else next[packageName] = tag
+        if (tags.isEmpty()) next.remove(packageName) else next[packageName] = tags
         copy(appTags = next.toMap())
     }
 }

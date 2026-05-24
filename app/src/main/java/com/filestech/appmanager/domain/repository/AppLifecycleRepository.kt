@@ -31,6 +31,12 @@ interface AppLifecycleRepository {
      * Inserts a new event row. Returns the auto-generated `id` so the caller
      * can attach a [UninstallReason] later via [setReason] (the uninstall
      * dialog flow uses this).
+     *
+     * v0.3.4 adds [apkSha256] : the hex SHA-256 of the base APK at capture
+     * time. Defaults to `null` (backward-compat for callers that don't
+     * provide it — UNINSTALLED rows or hash failures). The
+     * `RecordLifecycleEventUseCase` populates it for INSTALLED / REPLACED
+     * / BASELINE rows when reading the APK succeeds.
      */
     suspend fun insert(
         packageName: String,
@@ -42,6 +48,7 @@ interface AppLifecycleRepository {
         installerPackage: String?,
         totalSizeBytes: Long,
         grantedDangerousPermissions: List<String>,
+        apkSha256: String? = null,
     ): Outcome<Long>
 
     /**
