@@ -114,7 +114,11 @@ class NotificationHelper @Inject constructor(
      * granted). The worker uses this to decide whether to `markNotified`.
      */
     fun postQuarantineExpired(packageName: String, label: String): Boolean {
-        val stableId = packageName.hashCode() // 2^31 values, no masking
+        // v0.2.1 audit M2 fix — `hashCode()` can return Int.MIN_VALUE (negative).
+        // `notify(negativeId, ...)` is silently dropped or aliased to ID 0 on
+        // some OEMs (Samsung, Xiaomi). `and Int.MAX_VALUE` masks the sign bit
+        // → IDs are guaranteed in [0, Int.MAX_VALUE], still 2^31 values.
+        val stableId = packageName.hashCode() and Int.MAX_VALUE
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }

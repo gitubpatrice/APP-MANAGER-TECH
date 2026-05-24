@@ -1,0 +1,10 @@
+v0.2.1 — UX polish + audit fixes
+
+- Trash: uninstalled apps now auto-disappear from the list
+- Security Audit: refresh button no longer stuck on spinner
+- Storage / App detail / Rarely-used / Zombies: Usage access
+  banner when permission missing
+- "View the trash" shortcut after Move-to-trash
+- Settings shortcut in Tools tab
+- Critical hold-3s: monotone clock (immune to time changes)
+- 5 sites withTimeout + 4 atomic guards

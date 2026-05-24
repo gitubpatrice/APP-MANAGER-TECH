@@ -28,6 +28,8 @@ import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.outlined.SentimentSatisfied
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -90,6 +92,7 @@ fun ToolsScreen(
     onTrash: () -> Unit,
     onPermissionDrift: () -> Unit,
     onQuarantine: () -> Unit,
+    onSettings: () -> Unit,
 ) {
     // 12 tools — recomputed each composition (cheap; lambda keys change
     // identity across NavController recompositions anyway).
@@ -121,7 +124,22 @@ fun ToolsScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            TopAppBar(title = { BrandedTitle(stringResource(R.string.tools_screen_title)) })
+            TopAppBar(
+                title = { BrandedTitle(stringResource(R.string.tools_screen_title)) },
+                actions = {
+                    // v0.2.1 — Settings shortcut moved to TopAppBar (the
+                    // grid card was removed in v0.1.3 per UX feedback, but
+                    // users still need a 1-tap path to Paramètres from the
+                    // Outils tab. Icon-only gear with contentDescription
+                    // keeps the grid uncluttered.)
+                    IconButton(onClick = onSettings) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = stringResource(R.string.action_settings),
+                        )
+                    }
+                },
+            )
         },
     ) { innerPadding ->
         LazyVerticalGrid(

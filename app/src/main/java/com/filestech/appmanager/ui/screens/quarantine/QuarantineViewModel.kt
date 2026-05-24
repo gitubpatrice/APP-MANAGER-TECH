@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 /**
@@ -56,59 +57,80 @@ class QuarantineViewModel @Inject constructor(
     private val _events = oneShotEvents<Event>()
     val events: Flow<Event> = _events.asFlow()
 
+    /** v0.2.1 audit C1d — re-entrancy guard. The KDoc above mentioned an
+     *  `_isWorking` flag but none was implemented → double-tap on "Restaurer"
+     *  could fire two PackageInstaller intents. AtomicBoolean now enforces
+     *  single-in-flight per action across the 3 entry points. */
+    private val isWorking = AtomicBoolean(false)
+
     /** Quarantine an app (called from AppDetail / list screens via QuarantineLauncher). */
     fun quarantine(
         packageName: String,
         mode: QuarantineMode,
         durationDays: Int,
     ) {
+        if (!isWorking.compareAndSet(false, true)) return
         viewModelScope.launch {
-            val backupTreeUri = if (mode == QuarantineMode.HARD_UNINSTALL) {
-                settings.flow.first().quarantine.backupTreeUri?.let { Uri.parse(it) }
-            } else null
+            try {
+                val backupTreeUri = if (mode == QuarantineMode.HARD_UNINSTALL) {
+                    settings.flow.first().quarantine.backupTreeUri?.let { Uri.parse(it) }
+                } else null
 
-            if (mode == QuarantineMode.HARD_UNINSTALL && backupTreeUri == null) {
-                _events.trySend(Event.NeedsBackupFolder)
-                return@launch
-            }
+                if (mode == QuarantineMode.HARD_UNINSTALL && backupTreeUri == null) {
+                    _events.trySend(Event.NeedsBackupFolder)
+                    return@launch
+                }
 
-            val result = quarantine(
-                packageName   = packageName,
-                mode          = mode,
-                durationDays  = durationDays,
-                backupTreeUri = backupTreeUri,
-            )
-            when (result) {
-                is QuarantineAppUseCase.Result.HardReady ->
-                    _events.trySend(Event.LaunchIntent(result.uninstallIntent))
-                is QuarantineAppUseCase.Result.SoftReady ->
-                    _events.trySend(Event.LaunchIntent(result.appDetailsIntent))
-                is QuarantineAppUseCase.Result.Failure ->
-                    _events.trySend(Event.ShowError(result.message))
+                val result = quarantine(
+                    packageName   = packageName,
+                    mode          = mode,
+                    durationDays  = durationDays,
+                    backupTreeUri = backupTreeUri,
+                )
+                when (result) {
+                    is QuarantineAppUseCase.Result.HardReady ->
+                        _events.trySend(Event.LaunchIntent(result.uninstallIntent))
+                    is QuarantineAppUseCase.Result.SoftReady ->
+                        _events.trySend(Event.LaunchIntent(result.appDetailsIntent))
+                    is QuarantineAppUseCase.Result.Failure ->
+                        _events.trySend(Event.ShowError(result.message))
+                }
+            } finally {
+                isWorking.set(false)
             }
         }
     }
 
     fun restoreEntry(packageName: String) {
+        if (!isWorking.compareAndSet(false, true)) return
         viewModelScope.launch {
-            when (val r = restore(packageName)) {
-                is RestoreFromQuarantineUseCase.Result.HardReinstall ->
-                    _events.trySend(Event.LaunchIntent(r.intent))
-                is RestoreFromQuarantineUseCase.Result.SoftReenable ->
-                    _events.trySend(Event.LaunchIntent(r.intent))
-                RestoreFromQuarantineUseCase.Result.BackupMissing ->
-                    _events.trySend(Event.BackupMissing(packageName))
-                RestoreFromQuarantineUseCase.Result.NotFound ->
-                    _events.trySend(Event.ShowError("Entry not found: $packageName"))
-                RestoreFromQuarantineUseCase.Result.InvalidPackage ->
-                    _events.trySend(Event.ShowError("Invalid package: $packageName"))
+            try {
+                when (val r = restore(packageName)) {
+                    is RestoreFromQuarantineUseCase.Result.HardReinstall ->
+                        _events.trySend(Event.LaunchIntent(r.intent))
+                    is RestoreFromQuarantineUseCase.Result.SoftReenable ->
+                        _events.trySend(Event.LaunchIntent(r.intent))
+                    RestoreFromQuarantineUseCase.Result.BackupMissing ->
+                        _events.trySend(Event.BackupMissing(packageName))
+                    RestoreFromQuarantineUseCase.Result.NotFound ->
+                        _events.trySend(Event.ShowError("Entry not found: $packageName"))
+                    RestoreFromQuarantineUseCase.Result.InvalidPackage ->
+                        _events.trySend(Event.ShowError("Invalid package: $packageName"))
+                }
+            } finally {
+                isWorking.set(false)
             }
         }
     }
 
     fun dropEntry(packageName: String) {
+        if (!isWorking.compareAndSet(false, true)) return
         viewModelScope.launch {
-            drop(packageName)
+            try {
+                drop(packageName)
+            } finally {
+                isWorking.set(false)
+            }
         }
     }
 

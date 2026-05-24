@@ -55,6 +55,7 @@ import com.filestech.appmanager.R
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.settings.SectionHeader
+import com.filestech.appmanager.ui.theme.BrandDanger
 import timber.log.Timber
 
 /**
@@ -167,7 +168,11 @@ private fun SecurityAuditBody(
                 Text(
                     text     = error,
                     style    = MaterialTheme.typography.bodyMedium,
-                    color    = MaterialTheme.colorScheme.error,
+                    // v0.2.1 audit M5 fix — was `colorScheme.error` which
+                    // can drift to pink/purple under Material You dynamic
+                    // colour. The brand discipline mandates BrandDanger
+                    // for every destructive / error surface.
+                    color    = BrandDanger,
                     modifier = Modifier.padding(16.dp),
                 )
             }

@@ -1,11 +1,17 @@
 package com.filestech.appmanager.data.repository
 
+import android.content.Context
+import android.content.pm.PackageManager
 import com.filestech.appmanager.data.local.db.dao.TrashItemDao
 import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
 import com.filestech.appmanager.domain.model.TrashItem
 import com.filestech.appmanager.domain.repository.TrashRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,6 +22,7 @@ import javax.inject.Singleton
 @Singleton
 class TrashRepositoryImpl @Inject constructor(
     private val dao: TrashItemDao,
+    @ApplicationContext private val context: Context,
 ) : TrashRepository {
 
     override fun observe(): Flow<List<TrashItem>> =
@@ -39,6 +46,45 @@ class TrashRepositoryImpl @Inject constructor(
 
     override suspend fun restoreAll() {
         dao.deleteAll()
+    }
+
+    /**
+     * Iterates over every trash row and asks PackageManager whether the
+     * package is still installed. Rows whose package is gone are deleted.
+     *
+     * `PackageManager.getPackageInfo` throws [PackageManager.NameNotFoundException]
+     * for a missing package — caught per row so one missing entry does not
+     * abort the sweep.
+     *
+     * Runs on [Dispatchers.IO] because PM lookups are IPC + the per-row
+     * `deleteByPackage` writes hit Room IO.
+     */
+    override suspend fun purgeOrphaned(): Int = withContext(Dispatchers.IO) {
+        val pm = context.packageManager
+        val snapshot = dao.getAll()
+        // v0.2.1 audit H-1 fix — batch the deletes. Previous implementation
+        // did N IPC probes + N individual Room writes serially. With ~20 rows
+        // that's noticeable jank on slow devices. Collect orphans first, then
+        // delete in a single transaction via the new `deleteByPackages` query.
+        val orphaned = snapshot.mapNotNull { row ->
+            val stillInstalled = try {
+                pm.getPackageInfo(row.packageName, 0)
+                true
+            } catch (e: PackageManager.NameNotFoundException) {
+                false
+            } catch (e: Exception) {
+                // Any other PM failure (e.g. transient binder death) — leave
+                // the row alone. We will retry next ON_RESUME tick.
+                Timber.w(e, "purgeOrphaned: PM probe failed for %s — keeping row", row.packageName)
+                true
+            }
+            if (!stillInstalled) row.packageName else null
+        }
+        if (orphaned.isNotEmpty()) {
+            dao.deleteByPackages(orphaned)
+            Timber.i("Trash purge: %d orphaned rows removed", orphaned.size)
+        }
+        orphaned.size
     }
 
     private fun TrashItemEntity.toDomain(): TrashItem = TrashItem(

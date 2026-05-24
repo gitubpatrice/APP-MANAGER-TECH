@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import com.filestech.appmanager.core.ext.isValidPackageName
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,10 +31,18 @@ class IntentFactory @Inject constructor(
      * sheet; the user must tap "Uninstall" themselves.
      *
      * Requires `REQUEST_DELETE_PACKAGES` (declared in our manifest).
+     *
+     * v0.2.1 audit M1 fix — defence-in-depth `require` on the packageName.
+     * Every existing caller already validates via [isValidPackageName] in the
+     * UseCase layer, but a future caller could forget; the require here makes
+     * any malformed input fail fast instead of producing a malformed URI that
+     * Android would silently mishandle.
      */
-    fun uninstallIntent(packageName: String): Intent =
-        Intent(Intent.ACTION_DELETE, "package:$packageName".toPackageUri())
+    fun uninstallIntent(packageName: String): Intent {
+        require(packageName.isValidPackageName()) { "Invalid packageName: $packageName" }
+        return Intent(Intent.ACTION_DELETE, "package:$packageName".toPackageUri())
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
 
     /**
      * OS Settings → App info screen for [packageName]. Used as the cache-clear

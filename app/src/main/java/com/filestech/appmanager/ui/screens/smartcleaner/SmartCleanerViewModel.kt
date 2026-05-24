@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 /**
@@ -53,6 +54,12 @@ class SmartCleanerViewModel @Inject constructor(
     private val _events = oneShotEvents<Event>()
     val events: Flow<Event> = _events.asFlow()
 
+    /** v0.2.1 audit C1b — re-entrancy guard separated from UiState.isAnalyzing.
+     *  The previous `if (_state.value.isAnalyzing) return` read the StateFlow
+     *  without compare-and-set, allowing 2 concurrent analyses to both pass
+     *  the guard if they interleaved before the first `_state.update`. */
+    private val isAnalyzing = AtomicBoolean(false)
+
     init {
         // First analysis on every screen entry — reads the Room cache only,
         // so it's fast (~50 ms). MainApplication.triggerInitialScanIfNeeded
@@ -70,9 +77,9 @@ class SmartCleanerViewModel @Inject constructor(
      *   fast.
      */
     fun analyze(rescanFirst: Boolean = false) {
-        // Guard re-entrancy — a double-tap on Refresh shouldn't fork two
-        // concurrent analyses.
-        if (_state.value.isAnalyzing) return
+        // v0.2.1 audit C1b — atomic re-entrancy guard. Was StateFlow read
+        // without CAS → 2 rapidly-triggered analyses could both pass.
+        if (!isAnalyzing.compareAndSet(false, true)) return
         _state.update { it.copy(isAnalyzing = true) }
 
         viewModelScope.launch {
@@ -102,6 +109,8 @@ class SmartCleanerViewModel @Inject constructor(
                 Timber.w(e, "Smart Cleaner analyze timed out after %d ms", ANALYZE_TIMEOUT_MS)
                 _state.update { it.copy(isAnalyzing = false) }
                 _events.trySend(Event.ShowError("Analyse trop longue — réessayez"))
+            } finally {
+                isAnalyzing.set(false)
             }
         }
     }

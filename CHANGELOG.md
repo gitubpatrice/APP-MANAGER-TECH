@@ -7,6 +7,113 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.2.1] — 2026-05-24 — UX hardening + audit fixes
+
+### Fixed — User-reported bugs (v0.2.0 polish)
+- **Trash**: rows for apps the user already uninstalled stayed in the list
+  with stale Restore/Uninstall buttons. New `TrashRepository.purgeOrphaned()`
+  sweeps via `PackageManager` at ViewModel `init` + every screen
+  `ON_RESUME`, batches the deletes via a new `deleteByPackages` DAO query,
+  and is guarded by an `AtomicBoolean` so the `init` + `ON_RESUME` double-
+  fire at first composition is now a single sweep.
+- **SecurityAudit**: refresh button stuck on the spinner forever. The
+  initial `UiState(isLoading = true)` (audit L-2 fix for empty-flash
+  prevention) was tripping the `if (_state.value.isLoading) return`
+  re-entrancy guard before the first refresh could ever run.
+  Re-entrancy now uses a dedicated `AtomicBoolean isRefreshing`,
+  decoupled from the UI `isLoading` flag.
+- **Zombies**: tapping refresh gave no visible feedback (use case
+  resolves in < 50 ms so the spinner is invisible). Added an explicit
+  `Event.RefreshDone(count)` snackbar. Also the entire row is now
+  clickable (was only the trailing chevron `IconButton` — unintuitive).
+- **Storage**: refresh button did not update the cache/data sizes
+  because `PACKAGE_USAGE_STATS` was not granted (`StorageStatsManager`
+  silently returns 0). Added `UsageStatsAccessBanner` with a deep-link
+  to OS Settings → Usage access + `ON_RESUME` re-probe + auto-rescan
+  when the permission flips from denied → granted.
+- **AppDetail**: "Dernière utilisation" was always "Jamais utilisée"
+  for the same root cause as Storage. Same fix: banner + re-probe +
+  reload-on-grant.
+- **AppDetail Permissions section**: added a "Modifier dans Paramètres
+  Android" button — one-tap deep-link to the OS App-permissions page
+  (uses runtime `queryIntentActivities` to discover the
+  `MANAGE_APP_PERMISSIONS` handler on this specific device + falls back
+  to App Info if not exposed by the OEM).
+- **AppDetail → Move to trash**: a "Voir la corbeille" shortcut now
+  appears under the Uninstall button right after the trash staging
+  (per user request: "ce serait bien que dessous désinstaller apparaisse
+  un bouton voir la corbeille").
+
+### Added — UX
+- **ToolsScreen TopAppBar**: gear shortcut to Settings (was only
+  reachable via the home overflow menu).
+- **SettingsScreen → Outils**: 2 missing NavigationRows for
+  "Changements de permissions" + "Quarantaine" (v0.2.0 routes existed
+  in AppRoot but were never wired into Settings — silent dead links).
+- **Snackbar feedback** on Trackers scan completion
+  (`X apps analysées · Y pisteurs détectés`).
+
+### Fixed — Audit findings (full-app peigne fin)
+- **HIGH H1**: `CriticalWarningDialog` hold-3s timer was using
+  `System.currentTimeMillis()` which can jump backward/forward on NTP
+  sync or DST change → user could either skip the 3s safety window or
+  never complete it. Switched to `SystemClock.elapsedRealtime()`
+  (monotone, immune to wall-clock changes).
+- **HIGH C2a + C8a**: RarelyUsed screen had no `UsageStatsAccessBanner`
+  and no `ON_RESUME` probe → without `PACKAGE_USAGE_STATS`, every app's
+  `lastUsedTime == 0` and the use case classified the entire catalogue
+  as "rarely used" (noise). Same fix as Storage / AppDetail.
+- **HIGH C2b + C8b**: Zombies screen had the same bug for
+  `NEVER_OPENED` classification. Same fix.
+- **HIGH C7a/b/c/d + M4**: 5 sites missing `withTimeout` (Trackers
+  scan, GetZombieAppsUseCase, Storage analyze + rescan, PermissionDrift
+  capture, AppDetail load fan-out) → an OEM-stalled PackageManager
+  could freeze the corresponding refresh button forever. All now
+  wrapped with sensible caps (60s / 10s / 30s / 90s / 30s / 15s).
+- **MEDIUM C1a/b/c/d**: re-entrancy guards via
+  `if (_state.value.isXxx) return` were racy across rapid double-taps.
+  Replaced with `AtomicBoolean.compareAndSet` + `finally` in
+  Trackers / SmartCleaner / PermissionDrift / Quarantine VMs.
+  Quarantine VM had NO guard at all (KDoc mentioned one but it was
+  never implemented) — double-tap on "Restaurer" was firing 2
+  PackageInstaller intents.
+- **MEDIUM M1**: `IntentFactory.uninstallIntent` now `require`s
+  `isValidPackageName(packageName)` defensively. Every existing call
+  site already validates, but the require makes any future regression
+  fail-fast instead of producing a malformed URI.
+- **MEDIUM M2**: notification IDs in `postQuarantineExpired` were
+  computed via `packageName.hashCode()` which can return Int.MIN_VALUE
+  (negative). `notify(negativeId, ...)` is silently dropped or aliased
+  to ID 0 on some OEMs. Now masked with `and Int.MAX_VALUE`.
+- **MEDIUM M5**: `SecurityAuditScreen` error text used
+  `colorScheme.error` (drifts to pink/purple under Material You).
+  Switched to `BrandDanger` per brand discipline.
+- **MEDIUM M-1 delta**: `StorageViewModel.init` and
+  `AppDetailViewModel.load()` were calling `hasUsageStatsAccess()`
+  (AppOps Binder IPC) on the main thread. Moved into
+  `withContext(Dispatchers.IO)` parallel coroutine.
+- **MEDIUM M-4 / LOW L-2 delta**: `Box(Modifier.fillMaxSize())` inside
+  `Column(Modifier.fillMaxSize())` in Storage + AppDetail bodies could
+  squeeze the `UsageStatsAccessBanner` out. Replaced with
+  `Modifier.weight(1f)` on the inner Box so Column lays out the banner
+  at its natural height first, then the Box absorbs the remainder.
+- **MEDIUM C3a**: TrackersViewModel was missing the standard
+  `Event.RefreshDone` snackbar — added.
+- **MEDIUM C6a**: `BatchActionUseCase` now `filter`s
+  `isValidPackageName()` BEFORE the per-app loop so invalid input is
+  pre-rejected with a clear reason instead of buried in per-app
+  failures.
+
+### CI
+- **CodeQL workflow**: was failing with "CodeQL detected code written
+  in Java/Kotlin but could not process any of it" because the Gradle
+  build cache returned `compileDebugKotlin FROM-CACHE` — when the task
+  hits the cache no compiler runs, so the CodeQL tracer has no
+  bytecode to extract. Added `--no-build-cache --rerun-tasks` to force
+  fresh execution.
+
+---
+
 ## [0.2.0] — 2026-05-23 — Permission Drift + Quarantine + Safety Guardrails
 
 ### Added — Permission Drift Tracker (new tool)

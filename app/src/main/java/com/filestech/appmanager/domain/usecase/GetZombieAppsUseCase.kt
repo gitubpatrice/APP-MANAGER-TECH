@@ -7,7 +7,9 @@ import com.filestech.appmanager.core.result.runCatchingOutcome
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.ZombieApp
 import com.filestech.appmanager.domain.repository.AppInfoRepository
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
 /**
@@ -40,8 +42,18 @@ class GetZombieAppsUseCase @Inject constructor(
             val newInstallCutoff = now - neverOpenedGraceDays * MS_PER_DAY
 
             // Drain the first non-Loading emission of the user-apps catalogue.
-            val first = repository.observeApps(includeSystemApps = false)
-                .first { it !is Outcome.Loading }
+            // v0.2.1 audit C7b/M3/L4 fix — wrap in withTimeout so a Room
+            // Flow that never progresses (binder death, DB lock, OEM stall)
+            // cannot suspend the caller (and therefore the Zombies refresh
+            // AtomicBoolean) indefinitely.
+            val first = try {
+                withTimeout(OBSERVE_TIMEOUT_MS) {
+                    repository.observeApps(includeSystemApps = false)
+                        .first { it !is Outcome.Loading }
+                }
+            } catch (e: TimeoutCancellationException) {
+                throw IllegalStateException("Timeout waiting for app catalogue", e)
+            }
 
             val apps = when (first) {
                 is Outcome.Success -> first.value
@@ -77,4 +89,9 @@ class GetZombieAppsUseCase @Inject constructor(
     }
 
     // MS_PER_DAY now imported from core.ext.TimeConstants (VII C1 fix — single source).
+
+    private companion object {
+        /** 10-second cap on the Room Flow drain — protects against DB stall. */
+        const val OBSERVE_TIMEOUT_MS: Long = 10_000L
+    }
 }

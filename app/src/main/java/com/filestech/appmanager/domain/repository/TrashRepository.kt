@@ -39,4 +39,22 @@ interface TrashRepository {
 
     /** Bulk restore — single Room transaction (delegated to DAO.deleteAll). */
     suspend fun restoreAll()
+
+    /**
+     * Removes rows whose `package_name` is no longer installed on the device.
+     *
+     * Why: the Trash is a soft-delete staging buffer ON TOP of the system
+     * uninstall intent — once the user confirms the OS dialog, the app is
+     * gone from `PackageManager` but the trash row stays "orphaned" with
+     * stale Restore / Uninstall buttons. v0.2.0 user report:
+     * `"quand je désinstalle une appli depuis la corbeille, [...] l'appli
+     *  ne disparait pas de la corbeille"`.
+     *
+     * Called on TrashScreen lifecycle ON_RESUME (after returning from the
+     * OS uninstall dialog) and on ViewModel `init`. Idempotent — running
+     * twice in a row is a no-op the second time.
+     *
+     * Returns the number of orphaned rows purged (for logging / debug).
+     */
+    suspend fun purgeOrphaned(): Int
 }

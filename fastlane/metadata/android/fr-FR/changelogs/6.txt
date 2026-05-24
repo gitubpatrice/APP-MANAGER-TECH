@@ -1,0 +1,10 @@
+v0.2.1 — Polish UX + corrections audit
+
+- Corbeille : les apps désinstallées sortent automatiquement
+- Audit sécurité : bouton actualiser ne se bloque plus
+- Stockage / Fiche app / Rarement utilisées / Zombies : bandeau
+  d'accès à l'usage si permission manque
+- Bouton « Voir la corbeille » après mise en corbeille
+- Raccourci Paramètres dans Outils
+- Hold-3s critique : horloge monotone
+- 5 sites withTimeout + 4 guards atomiques

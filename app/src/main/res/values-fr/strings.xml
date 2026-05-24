@@ -132,6 +132,7 @@
     <string name="app_detail_action_disable">Désactiver</string>
     <string name="app_detail_action_enable">Activer</string>
     <string name="app_detail_action_quarantine">Mettre en quarantaine</string>
+    <string name="app_detail_action_view_trash">Voir la corbeille</string>
     <string name="app_detail_open_android_permissions">Modifier dans Paramètres Android</string>
 
     <!-- ================================================================ -->
@@ -342,6 +343,7 @@
     <string name="trackers_scanning">Analyse des apps installées en cours…</string>
     <string name="trackers_empty_title">Rien à analyser</string>
     <string name="trackers_empty_body">Aucune application installée n\'a été trouvée.</string>
+    <string name="trackers_scan_done">%1$d applications analysées · %2$d pisteur(s) détecté(s)</string>
     <string name="trackers_summary_contamination">apps avec pisteurs</string>
     <string name="trackers_summary_subtitle">%1$d apps sur %2$d contiennent des pisteurs · %3$d détections au total</string>
     <string name="trackers_summary_categories">Par catégorie</string>
@@ -440,6 +442,7 @@
     <string name="screen_zombies_title">Apps zombies</string>
     <string name="zombies_empty_title">Aucune app zombie</string>
     <string name="zombies_empty_body">Aucune app installée n\'est inutilisée. Les apps installées depuis plus de 7 jours sans avoir été ouvertes, ou celles non utilisées depuis plus de 30 jours, apparaîtraient ici.</string>
+    <string name="zombies_refresh_done">Actualisé — %1$d app(s) zombie(s) trouvée(s)</string>
 
     <!-- ================================================================ -->
     <!-- Phase X.B — Écran « Filtrer par permission »                      -->

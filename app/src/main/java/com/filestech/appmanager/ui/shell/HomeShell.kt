@@ -119,6 +119,7 @@ fun HomeShell(
                     onTrash           = onNavigateToTrash,
                     onPermissionDrift = onNavigateToPermissionDrift,
                     onQuarantine      = onNavigateToQuarantine,
+                    onSettings        = onNavigateToSettings,
                 )
                 // v0.1.3 — About is a 3rd tab on the right of Outils. Reuses
                 // AboutScreen with `onBack = null` so the back arrow disappears

@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withTimeout
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,6 +54,10 @@ class PermissionDriftViewModel @Inject constructor(
 
     private val _isCapturing = MutableStateFlow(false)
     val isCapturing: StateFlow<Boolean> = _isCapturing.asStateFlow()
+
+    /** v0.2.1 audit C1c — atomic re-entrancy guard separated from the
+     *  UI StateFlow. Previous `if (_isCapturing.value) return` was racy. */
+    private val capturingGuard = AtomicBoolean(false)
 
     private val _events = oneShotEvents<Event>()
     val events: Flow<Event> = _events.asFlow()
@@ -92,12 +98,24 @@ class PermissionDriftViewModel @Inject constructor(
     }
 
     fun captureNow() {
-        if (_isCapturing.value) return
+        if (!capturingGuard.compareAndSet(false, true)) return
         _isCapturing.update { true }
         viewModelScope.launch {
             try {
                 val privacy = settings.flow.first().privacyMonitor
-                val r = capture(includeSystemApps = privacy.permissionDriftIncludeSystemApps)
+                // v0.2.1 audit C7d fix — capture iterates over every user app
+                // + per-app DangerousPermissionInspector probe + Room writes.
+                // Wrap in withTimeout so a stalled PM IPC on a misbehaving
+                // OEM cannot freeze the Capture button indefinitely.
+                val r = try {
+                    withTimeout(CAPTURE_TIMEOUT_MS) {
+                        capture(includeSystemApps = privacy.permissionDriftIncludeSystemApps)
+                    }
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    timber.log.Timber.w(e, "PermissionDrift capture timed out after %d ms", CAPTURE_TIMEOUT_MS)
+                    _events.trySend(Event.ShowError("Capture trop longue — réessayez"))
+                    return@launch
+                }
                 when (r) {
                     is Outcome.Success -> _events.trySend(
                         Event.CaptureDone(
@@ -110,8 +128,14 @@ class PermissionDriftViewModel @Inject constructor(
                 }
             } finally {
                 _isCapturing.update { false }
+                capturingGuard.set(false)
             }
         }
+    }
+
+    private companion object {
+        /** 30s cap on capture sweep (typical < 2s for ~50 user apps). */
+        const val CAPTURE_TIMEOUT_MS: Long = 30_000L
     }
 
     /** UX time-window options exposed by the picker. */

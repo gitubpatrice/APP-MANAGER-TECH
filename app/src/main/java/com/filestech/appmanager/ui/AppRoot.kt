@@ -101,6 +101,9 @@ fun AppRoot() {
             AppDetailScreen(
                 packageName = pkg,
                 onBack      = { navController.popBackStack() },
+                // v0.2.1 UX add — wire the "Voir la corbeille" shortcut that
+                // appears after a successful Move-to-trash from AppDetail.
+                onOpenTrash = { navController.navigate(NavRoute.Trash.route) { launchSingleTop = true } },
             )
         }
 
@@ -124,6 +127,11 @@ fun AppRoot() {
                 onOpenZombies        = { navController.navigate(NavRoute.Zombies.route) { launchSingleTop = true } },
                 onOpenPermissionFilter = { navController.navigate(NavRoute.PermissionFilter.route) { launchSingleTop = true } },
                 onOpenTrash          = { navController.navigate(NavRoute.Trash.route) { launchSingleTop = true } },
+                // v0.2.1 audit H3 fix — v0.2.0 routes existed in AppRoot but
+                // were never wired into Settings → Outils. Adding the
+                // launchSingleTop nav so the section is now complete.
+                onOpenPermissionDrift = { navController.navigate(NavRoute.PermissionDrift.route) { launchSingleTop = true } },
+                onOpenQuarantine     = { navController.navigate(NavRoute.Quarantine.route) { launchSingleTop = true } },
             )
         }
 

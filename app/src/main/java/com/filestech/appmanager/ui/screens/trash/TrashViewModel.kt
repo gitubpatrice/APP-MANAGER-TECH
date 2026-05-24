@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 /**
@@ -44,6 +45,46 @@ class TrashViewModel @Inject constructor(
 
     private val _events = oneShotEvents<Event>()
     val events: Flow<Event> = _events.asFlow()
+
+    /** v0.2.1 audit H-1 fix — shared atomic guard between `init` purge and
+     *  ON_RESUME purge. The two were firing back-to-back at the first
+     *  composition (init runs, then Lifecycle hits ON_RESUME ~1 frame later),
+     *  duplicating the PM IPC sweep. CAS guarantees a single in-flight purge. */
+    private val isPurging = AtomicBoolean(false)
+
+    init {
+        // v0.2.1 bug fix — orphaned-row sweep at ViewModel creation. Covers
+        // the case where the user opens the Trash for the first time after
+        // having uninstalled apps from elsewhere (Settings, Smart Cleaner,
+        // direct uninstall outside this app).
+        launchPurge()
+    }
+
+    /**
+     * Re-runs the orphaned-row sweep. Called by the screen on
+     * `Lifecycle.Event.ON_RESUME` — typically right after returning from the
+     * OS uninstall confirmation dialog, where the app may have just been
+     * uninstalled and its trash row needs to disappear.
+     *
+     * v0.2.1 fix to user report: "quand je désinstalle une appli depuis la
+     * corbeille, l'appli ne disparait pas de la corbeille, j'ai encore
+     * désinstaller ou restaurer malgré que l'appli ait été désinstallée
+     * complètement".
+     */
+    fun onResumed() {
+        launchPurge()
+    }
+
+    private fun launchPurge() {
+        if (!isPurging.compareAndSet(false, true)) return
+        viewModelScope.launch {
+            try {
+                trashRepo.purgeOrphaned()
+            } finally {
+                isPurging.set(false)
+            }
+        }
+    }
 
     /** Restore a single entry (app stays installed, just leaves the trash). */
     fun restore(packageName: String) {

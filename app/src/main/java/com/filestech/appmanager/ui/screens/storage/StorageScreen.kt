@@ -48,18 +48,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppCategory
 import com.filestech.appmanager.domain.model.StorageReport
 import com.filestech.appmanager.ui.components.BrandedTitle
+import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.components.settings.ToggleRow
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
 import com.filestech.appmanager.ui.theme.BrandBlue
+import timber.log.Timber
 
 /**
  * Storage analyser — aggregate stats + top-N apps + per-category breakdown.
@@ -76,13 +80,31 @@ fun StorageScreen(
     viewModel: StorageViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // v0.2.1 — re-probe PACKAGE_USAGE_STATS on ON_RESUME so that once the
+    // user grants the permission in Settings and comes back, the banner
+    // disappears AND a fresh rescan runs immediately to populate real
+    // cache / data sizes (the user report was "si j'actualise, ça met pas
+    // à jour la taille des fichiers ou le cache utilisé" — root cause was
+    // missing PACKAGE_USAGE_STATS so StorageStatsManager returned zeros).
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onResumed()
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 is StorageViewModel.Event.ShowError ->
                     snackbarHostState.showSnackbar(event.message)
+                is StorageViewModel.Event.LaunchIntent -> {
+                    runCatching {
+                        context.startActivity(
+                            event.intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }.onFailure { Timber.w(it, "StorageScreen: failed to launch %s", event.intent) }
+                }
             }
         }
     }
@@ -112,11 +134,12 @@ fun StorageScreen(
         },
     ) { innerPadding ->
         StorageBody(
-            state         = state,
-            innerPadding  = innerPadding,
-            onToggleSystem = viewModel::toggleIncludeSystemApps,
-            onRescan      = viewModel::rescanAndAnalyze,
-            onRetry       = viewModel::analyzeAllApps,
+            state                     = state,
+            innerPadding              = innerPadding,
+            onToggleSystem            = viewModel::toggleIncludeSystemApps,
+            onRescan                  = viewModel::rescanAndAnalyze,
+            onRetry                   = viewModel::analyzeAllApps,
+            onRequestUsageStatsPerm   = viewModel::requestUsageStatsPermission,
         )
     }
 }
@@ -128,29 +151,45 @@ private fun StorageBody(
     onToggleSystem: (Boolean) -> Unit,
     onRescan: () -> Unit,
     onRetry: () -> Unit,
+    onRequestUsageStatsPerm: () -> Unit,
 ) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
     ) {
-        when (val o = state.reportOutcome) {
-            Outcome.Loading -> LoadingState()
-            is Outcome.Failure -> ErrorState(message = o.error.toString(), onRetry = onRetry)
-            is Outcome.Success -> {
-                if (o.value.totalAppCount == 0) {
-                    EmptyState(
-                        icon  = Icons.Outlined.Apps,
-                        title = stringResource(R.string.storage_empty_title),
-                        body  = stringResource(R.string.storage_empty_body),
-                    )
-                } else {
-                    StorageReportContent(
-                        report           = o.value,
-                        includeSystemApps = state.includeSystemApps,
-                        onToggleSystem   = onToggleSystem,
-                        onRescan         = onRescan,
-                    )
+        // v0.2.1 fix — missing PACKAGE_USAGE_STATS makes StorageStatsManager
+        // return 0 for every queryStatsForUid → the refresh button shows the
+        // same (empty) totals. Banner deep-links to Settings → Usage access;
+        // ON_RESUME re-probe in the parent Composable auto-rescans on grant.
+        UsageStatsAccessBanner(
+            visible      = !state.usageStatsGranted,
+            onGrantClick = onRequestUsageStatsPerm,
+        )
+        // v0.2.1 audit M-4 fix — Box uses `weight(1f)` not `fillMaxSize()`.
+        // The Column parent already fillMaxSize; a child Box with fillMaxSize
+        // demands all available height and may push the banner off-screen.
+        // weight(1f) lets the banner take its natural height first, then the
+        // Box fills the remainder.
+        Box(modifier = Modifier.weight(1f)) {
+            when (val o = state.reportOutcome) {
+                Outcome.Loading -> LoadingState()
+                is Outcome.Failure -> ErrorState(message = o.error.toString(), onRetry = onRetry)
+                is Outcome.Success -> {
+                    if (o.value.totalAppCount == 0) {
+                        EmptyState(
+                            icon  = Icons.Outlined.Apps,
+                            title = stringResource(R.string.storage_empty_title),
+                            body  = stringResource(R.string.storage_empty_body),
+                        )
+                    } else {
+                        StorageReportContent(
+                            report           = o.value,
+                            includeSystemApps = state.includeSystemApps,
+                            onToggleSystem   = onToggleSystem,
+                            onRescan         = onRescan,
+                        )
+                    }
                 }
             }
         }

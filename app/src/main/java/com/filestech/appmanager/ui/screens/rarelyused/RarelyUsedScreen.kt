@@ -36,7 +36,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.MS_PER_DAY
@@ -44,11 +47,13 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
+import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
 import com.filestech.appmanager.ui.components.settings.NavigationRow
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
+import timber.log.Timber
 
 /**
  * Rarely-used apps screen — lists user apps not opened for `thresholdDays`
@@ -63,7 +68,31 @@ fun RarelyUsedScreen(
 ) {
     val outcome by viewModel.listOutcome.collectAsStateWithLifecycle()
     val threshold by viewModel.thresholdDays.collectAsStateWithLifecycle()
+    val usageStatsGranted by viewModel.usageStatsGranted.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     var pickerOpen by rememberSaveable { mutableStateOf(false) }
+
+    // v0.2.1 audit C8a fix — re-probe PACKAGE_USAGE_STATS on ON_RESUME
+    // so the banner disappears once the user grants the permission and
+    // comes back. Without this perm, lastUsedTime = 0 for every app and
+    // the "rarely used" list is scientifically meaningless.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onResumed()
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is RarelyUsedViewModel.Event.LaunchIntent -> {
+                    runCatching {
+                        context.startActivity(
+                            event.intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }.onFailure { Timber.w(it, "RarelyUsedScreen launch failed") }
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -84,6 +113,14 @@ fun RarelyUsedScreen(
             .fillMaxSize()
             .padding(innerPadding),
         ) {
+            // v0.2.1 audit C2a fix — without PACKAGE_USAGE_STATS, every app's
+            // lastUsedTime = 0 → whole catalogue classified as "rarely used".
+            // Banner deep-links to Settings → Usage access; ON_RESUME re-probe
+            // makes it disappear automatically once granted.
+            UsageStatsAccessBanner(
+                visible      = !usageStatsGranted,
+                onGrantClick = { viewModel.requestUsageStatsPermission() },
+            )
             NavigationRow(
                 title       = stringResource(R.string.rarely_used_threshold_title),
                 onClick     = { pickerOpen = true },

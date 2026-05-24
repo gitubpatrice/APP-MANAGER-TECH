@@ -1,9 +1,11 @@
 package com.filestech.appmanager.domain.usecase
 
+import com.filestech.appmanager.core.ext.isValidPackageName
 import com.filestech.appmanager.core.result.AppError
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppAction
 import com.filestech.appmanager.domain.model.BatchActionResult
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -45,9 +47,23 @@ class BatchActionUseCase @Inject constructor(
             )
         }
 
+        // v0.2.1 audit C6a fix — defence-in-depth: filter invalid package
+        // names BEFORE the per-app loop. The downstream ForceStopAppUseCase
+        // already validates each pkg, but pre-filtering keeps the batch
+        // result clean (invalid pkgs are pre-rejected with a clear reason
+        // rather than buried in a per-app failure).
+        val validPackages = packages.filter { it.isValidPackageName() }
+        val preRejected = packages - validPackages.toSet()
+        if (preRejected.isNotEmpty()) {
+            Timber.w("BatchActionUseCase: %d invalid package names rejected", preRejected.size)
+        }
+
         val succeeded = mutableListOf<String>()
         val failed = mutableMapOf<String, String>()
-        for (pkg in packages) {
+        for (pkg in preRejected) {
+            failed[pkg] = "Invalid package name"
+        }
+        for (pkg in validPackages) {
             when (val outcome = forceStop(pkg)) {
                 is Outcome.Success -> succeeded.add(pkg)
                 is Outcome.Failure -> failed[pkg] = outcome.error.toString()

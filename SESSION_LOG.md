@@ -409,3 +409,94 @@ Room 2.6.1 / DataStore 1.1.1 / WorkManager 2.10.0 / Coil 2.7.0 / Timber 5.0.1
 - Safety Guardrails Phase B (Disable / ClearData / MoveToTrash / SmartCleaner
   uninstall / Trash uninstallNow) + Settings "Apps protégées" édition manuelle
   dark theme marge faible (3.9:1)
+
+---
+
+# v0.2.1 — 2026-05-24 — UX hardening + audit "peigne fin"
+
+## Vue d'ensemble
+
+Session intense de fixes 6 user-reported bugs + audit full-app 3-axes +
+audit cohérence transversale, débouchant sur 6 vagues de corrections
+chirurgicales appliquées avec build vert après chaque vague.
+
+## User-reported bugs corrigés (motivent la release)
+
+1. **Corbeille** : entrées restent affichées avec Restore/Uninstall après
+   désinstallation système (rows fantômes). Fix : `TrashRepository.purgeOrphaned()`
+   via PackageManager probe + AtomicBoolean isPurging + `LifecycleEventEffect ON_RESUME`
+   + batch `deleteByPackages` DAO query.
+2. **SecurityAudit refresh bloqué** en spinner permanent. Cause : initial
+   `UiState(isLoading = true)` (audit L-2 v0.1.3) déclenche le guard `if (isLoading) return`
+   au 1er refresh. Fix : `AtomicBoolean isRefreshing` séparé.
+3. **Zombies refresh sans feedback** + tap row uniquement sur flèche.
+   Fix : Event.RefreshDone snackbar + AtomicBoolean + Row.clickable.
+4. **Storage refresh n'update pas tailles/cache**. Cause racine :
+   PACKAGE_USAGE_STATS pas accordé → StorageStatsManager.queryStatsForUid retourne 0.
+   Fix : UsageStatsAccessBanner + onResumed() re-probe + auto-rescan on grant.
+5. **AppDetail "Dernière utilisation" toujours "Jamais utilisée"**.
+   Même cause + même fix.
+6. **Paramètres inaccessible depuis Outils**. Fix : icône gear TopAppBar.
+
+## UX add
+
+- **Bouton "Voir la corbeille"** (fond rouge clair, texte sombre) apparaît
+  dans AppDetail ActionsCard sous Uninstall **après MoveToTrash réussi**.
+  Driven par `recentlyMovedToTrash: Boolean` dans UiState, reset à load().
+
+## Audit full-app "peigne fin" (3-axes + cohérence transversale)
+
+Lancé 2 agents en parallèle :
+- `android-3-axes-auditor` — sécurité+perf+qualité sur toute l'app
+- `android-architecture-coherence-checker` — 12 patterns transversaux
+
+Score cohérence : **72/100** post-v0.2.0.
+
+## Plan d'attaque chirurgical 6 vagues
+
+| Vague | Findings appliqués | Build |
+|---|---|---|
+| V1 Quick wins | H1 SystemClock + H3 AppRoot Settings callbacks + M2 hash positif + M5 BrandDanger + M1 require validPkg | ✅ |
+| V2 withTimeout (5 sites) | C7a Trackers + C7b/M3/L4 GetZombies + C7c Storage (×2) + C7d PermissionDrift + M4 AppDetail load fan-out | ✅ |
+| V3 AtomicBoolean (4 sites) | C1a Trackers + C1b SmartCleaner + C1c PermissionDrift + C1d Quarantine (manquait totalement) | ✅ |
+| V4 UsageStats banner | C2a+C8a RarelyUsed + C2b+C8b Zombies (zones fragiles préservées) | ✅ |
+| V5 Delta v0.2.1 reportés | H-1 purgeOrphaned batch deleteByPackages + AtomicBoolean isPurging + M-1 hasUsageStatsAccess IO (Storage + AppDetail) + M-4/L-2 Box weight au lieu de fillMaxSize | ✅ |
+| V6 MEDIUM polish | C3a Trackers Event.ScanDone snackbar + C6a BatchActionUseCase filter validPackageName | ✅ |
+
+## Audit summary
+
+**Avant audit** : 0 CRITICAL / 8 HIGH / 12 MEDIUM / 12 LOW
+**Après corrections appliquées** : tous les HIGH + 10/12 MEDIUM fixés
+**Reportés v0.2.2** : 2 MEDIUM (M7 combine-5 fragile, L1 SystemClock dans Quarantine UseCases) + 5 LOW (L2 séparateur SQL, L3 emptyTrash dialogs superposés, L5 Serializable, L6 multi-classe fichier, autres LOW cosmétiques)
+
+## CI fix
+
+CodeQL job échouait sur v0.2.0 avec "CodeQL detected code written in
+Java/Kotlin but could not process any of it" — cause : Gradle build cache
+retourne `compileDebugKotlin FROM-CACHE` → aucun compilateur ne s'exécute
+→ tracer CodeQL n'a rien à extraire. Fix : ajout `--no-build-cache --rerun-tasks`
+au workflow `.github/workflows/codeql.yml`. Run suivant : SUCCESS.
+
+## Memory feedback ajouté
+
+Nouvelle règle `feedback_audit_prudence_no_regression.md` : lors des
+corrections d'audit, vigilance maximale sur ne rien casser de ce qui
+fonctionne déjà — chaque patch doit être chirurgical et préserver
+comportement + branchements existants.
+
+## Validations build finales
+
+- `compileDebugKotlin` ✅ (après chaque vague)
+- `testDebugUnitTest` ✅ tous tests verts
+- `assembleRelease` ✅ (R8 + lintVital + signing OK)
+- Install debug + release S24 RZCY41EGKYL ✅
+
+## Cert SHA-256 (inchangée vs v0.1.x et v0.2.0)
+
+`76e8772e09951369405f58e70c4afffd41c4687553c6cfa03d08145ff60ff1cf`
+
+## v0.3.0 prévue (plan inchangé)
+
+- #1 Lifecycle History (PackageMonitor + Room v5 + timeline + raison suppression)
+- #3 Diagnostic PDF Export (extension ExportReportUseCase + PdfDocument natif)
+- Safety Guardrails Phase B

@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 /**
@@ -54,12 +55,23 @@ class SecurityAuditViewModel @Inject constructor(
     private val _events = oneShotEvents<Event>()
     val events: Flow<Event> = _events.asFlow()
 
+    /**
+     * v0.2.1 bug fix — dedicated re-entrancy flag, decoupled from
+     * [UiState.isLoading]. Was a single isLoading flag doing double duty
+     * (UI spinner + re-entry guard) → since [_state] starts with
+     * `isLoading = true` (audit L-2 fix for the empty-list flash), the
+     * `init { refresh() }` immediately tripped the guard and never ran.
+     * User report: "si je tape sur refresh, ça refresh en permanence, comme
+     * si c'était bloqué".
+     */
+    private val isRefreshing = AtomicBoolean(false)
+
     init {
         refresh()
     }
 
     fun refresh() {
-        if (_state.value.isLoading) return
+        if (!isRefreshing.compareAndSet(false, true)) return
         _state.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             try {
@@ -93,6 +105,8 @@ class SecurityAuditViewModel @Inject constructor(
                         error     = "Système a mis trop longtemps à répondre",
                     )
                 }
+            } finally {
+                isRefreshing.set(false)
             }
         }
     }

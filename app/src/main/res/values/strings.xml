@@ -132,6 +132,7 @@
     <string name="app_detail_action_disable">Disable</string>
     <string name="app_detail_action_enable">Enable</string>
     <string name="app_detail_action_quarantine">Quarantine</string>
+    <string name="app_detail_action_view_trash">View the trash</string>
     <string name="app_detail_open_android_permissions">Modify in Android Settings</string>
 
     <!-- ================================================================ -->
@@ -342,6 +343,7 @@
     <string name="trackers_scanning">Scanning installed apps for trackers…</string>
     <string name="trackers_empty_title">Nothing to scan</string>
     <string name="trackers_empty_body">No installed apps were found.</string>
+    <string name="trackers_scan_done">Scanned %1$d apps · %2$d tracker(s) detected</string>
     <string name="trackers_summary_contamination">apps with trackers</string>
     <string name="trackers_summary_subtitle">%1$d of %2$d apps contain trackers · %3$d total detections</string>
     <string name="trackers_summary_categories">By category</string>
@@ -468,6 +470,7 @@
     <string name="screen_zombies_title">Zombie apps</string>
     <string name="zombies_empty_title">No zombie apps</string>
     <string name="zombies_empty_body">No installed app is sitting unused. Apps installed more than 7 days ago and never opened, or apps unused for more than 30 days, would appear here.</string>
+    <string name="zombies_refresh_done">Refreshed — %1$d zombie app(s) found</string>
 
     <!-- ================================================================ -->
     <!-- Phase X.B — Permission-filter screen                              -->

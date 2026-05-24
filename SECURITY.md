@@ -1,6 +1,6 @@
 # App Manager Tech — Security model
 
-Current release: **v0.2.0**
+Current release: **v0.2.1**
 
 ## Signing certificate
 
@@ -73,6 +73,7 @@ Tink AEAD (AES-256-GCM). No home-grown crypto.
 
 | Version | Date | Scope | Findings |
 |---|---|---|---|
+| v0.2.1 | 2026-05-24 | FULL-APP "peigne fin" audit (3-axes + cohérence transversale) post-v0.2.0 + 6 user-reported UX bugs (Trash ghost rows, SecurityAudit refresh stuck, Zombies row tap, Storage refresh, AppDetail "last used", Settings shortcut Outils) | 0 CRITICAL, 8 HIGH (H1 SystemClock vs wall-clock in hold-3s timer, H3 SettingsScreen missing PermissionDrift+Quarantine callbacks, C2a/b + C8a/b RarelyUsed+Zombies missing UsageStats banner+ON_RESUME, C7a/b/c/d 4 withTimeout sites missing) + 12 MEDIUM (C1a/b/c/d AtomicBoolean replacing racy guards, M1 IntentFactory require validPkg, M2 notif ID negative hashCode mask, M4 AppDetail load fan-out timeout, M5 SecurityAuditScreen BrandDanger, M-1 delta hasUsageStatsAccess off-main, M-4/L-2 Box weight, C3a Trackers ScanDone snackbar, C6a BatchAction filter) + 12 LOW — **all blocking findings fixed before tag**. CI fix: CodeQL `--no-build-cache --rerun-tasks` so tracer observes compilation. |
 | v0.2.0 | 2026-05-23 | v0.2.0 delta — Permission Drift Tracker + App Quarantine (HARD APK backup + SOFT reminder) + Safety Guardrails (`CriticalAppDetector` + `CriticalWarningDialog` hold-3s) + Room v3→v4 migration + new IntentFactory.appPermissionsSettingsChain + SAF backup folder | 0 CRITICAL, 1 HIGH (USER_PROTECTED enum phantom — fixed by adding empty Set + ranking entry), 4 MEDIUM (notif hash collision 0x7FFF → full 32-bit, restore HARD ConfirmDialog → DestructiveDialog, detectTapGestures no drag-cancel → pointerInput awaitPointerEventScope with touchSlop, label resolution cap deferred v0.2.1) + 5 LOW — **all blocking findings fixed before tag** |
 | v0.1.0 | 2026-05-23 | Phase X final — Trash feature (Room v3 migration + 3-way uninstall dialog) + batch confirmation dialogs + 3 list-by-criterion screens (Rarely-used / Zombies / Permission-filter) + brand-discipline red | 0 CRITICAL, 1 HIGH (MigrationTest_2_3 missing — fixed), 6 MEDIUM (try/catch dao.upsert, fillMaxWidth(0f) invisible label, Spacer.padding anti-pattern, 3 IconButton contentDescription, dead strings settings_trash_default_*, UninstallChoiceDialog M3-deviation doc) + 4 LOW — **all fixed before tag** |
 | v0.1.0 | 2026-05-23 | Phases I→IX — scaffold + Room v2 + Storage analyser + WorkManager + Smart Cleaner + Trackers scan + Transparency screen + i18n FR+EN + signed release infra | All audit findings resolved per phase (see git history) |

@@ -49,6 +49,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.TrashItem
@@ -81,6 +83,15 @@ fun TrashScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     var dialog by rememberSaveable { mutableStateOf<TrashDialog?>(null) }
+
+    // v0.2.1 bug fix — when the user returns from the OS uninstall
+    // confirmation dialog (Android pauses our Activity for the system one),
+    // sweep the Trash for orphaned rows whose package PackageManager no
+    // longer knows about. Without this, the trashed app stays in the list
+    // with stale Restore / Uninstall buttons even though it is fully gone.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onResumed()
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->

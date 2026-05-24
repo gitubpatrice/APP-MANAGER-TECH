@@ -61,6 +61,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.core.result.Outcome
@@ -71,6 +73,7 @@ import com.filestech.appmanager.domain.model.TrackerReport
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.PrivacyDataPanel
+import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog
@@ -103,6 +106,13 @@ import java.util.Date
 fun AppDetailScreen(
     packageName: String,
     onBack: () -> Unit,
+    /**
+     * v0.2.1 UX add — navigates to the Trash screen. Used by the
+     * "Voir la corbeille" shortcut button that appears in the ActionsCard
+     * after a successful Move-to-trash. Default {} keeps the function
+     * usable in isolation (tests, previews) without breaking the signature.
+     */
+    onOpenTrash: () -> Unit = {},
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -120,6 +130,16 @@ fun AppDetailScreen(
 
     LaunchedEffect(packageName) {
         viewModel.load(packageName)
+    }
+
+    // v0.2.1 — re-probe PACKAGE_USAGE_STATS on ON_RESUME so once the user
+    // grants the permission in Settings and comes back, the banner disappears
+    // and the screen reloads with real lastUsedTime (was always "Jamais
+    // utilisée" without this permission — root cause of user report
+    // "dans information d'installation, la fonction dernière utilisation
+    // ne marche pas, toujours jamais utilisée").
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onResumed()
     }
 
     LaunchedEffect(viewModel) {
@@ -215,6 +235,8 @@ fun AppDetailScreen(
             onQuarantine             = { quarantineDialogOpen = true },
             onOpenPermissionsSettings = viewModel::openAppPermissionsSettings,
             onToggleIgnore           = viewModel::toggleIgnore,
+            onRequestUsageStatsPerm  = viewModel::openUsageAccessSettings,
+            onOpenTrash              = onOpenTrash,
         )
     }
 
@@ -363,31 +385,49 @@ private fun AppDetailBody(
     onQuarantine: () -> Unit,
     onOpenPermissionsSettings: () -> Unit,
     onToggleIgnore: () -> Unit,
+    onRequestUsageStatsPerm: () -> Unit,
+    onOpenTrash: () -> Unit,
 ) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
     ) {
-        when (val o = state.detailOutcome) {
-            Outcome.Loading -> LoadingState()
-            is Outcome.Failure -> ErrorState(
-                message = o.error.toString(),
-                onRetry = onRetry,
-            )
-            is Outcome.Success -> AppDetailContent(
-                detail                    = o.value,
-                privacyScore              = state.privacyScore,
-                trackerReport             = state.trackerReport,
-                isIgnored                 = state.isIgnored,
-                onUninstall               = onUninstall,
-                onClearCache              = onClearCache,
-                onForceStop               = onForceStop,
-                onToggleEnabled           = onToggleEnabled,
-                onQuarantine              = onQuarantine,
-                onOpenPermissionsSettings = onOpenPermissionsSettings,
-                onToggleIgnore            = onToggleIgnore,
-            )
+        // v0.2.1 fix — missing PACKAGE_USAGE_STATS makes lastUsedTime = 0
+        // (rendered as "Jamais utilisée") and storage sizes empty. Banner
+        // deep-links to Settings → Usage access; ON_RESUME re-probe in the
+        // parent Composable auto-reloads on grant.
+        UsageStatsAccessBanner(
+            visible      = !state.usageStatsGranted,
+            onGrantClick = onRequestUsageStatsPerm,
+        )
+        // v0.2.1 audit M-4 / L-2 fix — `weight(1f)` not `fillMaxSize()`. The
+        // Column parent is fillMaxSize; a child Box with fillMaxSize demands
+        // all available height and squeezes the banner out. weight(1f) lets
+        // the banner take its natural height and the Box absorbs the remainder.
+        Box(modifier = Modifier.weight(1f)) {
+            when (val o = state.detailOutcome) {
+                Outcome.Loading -> LoadingState()
+                is Outcome.Failure -> ErrorState(
+                    message = o.error.toString(),
+                    onRetry = onRetry,
+                )
+                is Outcome.Success -> AppDetailContent(
+                    detail                    = o.value,
+                    privacyScore              = state.privacyScore,
+                    trackerReport             = state.trackerReport,
+                    isIgnored                 = state.isIgnored,
+                    recentlyMovedToTrash      = state.recentlyMovedToTrash,
+                    onUninstall               = onUninstall,
+                    onClearCache              = onClearCache,
+                    onForceStop               = onForceStop,
+                    onToggleEnabled           = onToggleEnabled,
+                    onQuarantine              = onQuarantine,
+                    onOpenPermissionsSettings = onOpenPermissionsSettings,
+                    onToggleIgnore            = onToggleIgnore,
+                    onOpenTrash               = onOpenTrash,
+                )
+            }
         }
     }
 }
@@ -398,6 +438,7 @@ private fun AppDetailContent(
     privacyScore: PrivacyScore?,
     trackerReport: TrackerReport?,
     isIgnored: Boolean,
+    recentlyMovedToTrash: Boolean,
     onUninstall: () -> Unit,
     onClearCache: () -> Unit,
     onForceStop: () -> Unit,
@@ -405,6 +446,7 @@ private fun AppDetailContent(
     onQuarantine: () -> Unit,
     onOpenPermissionsSettings: () -> Unit,
     onToggleIgnore: () -> Unit,
+    onOpenTrash: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -426,14 +468,16 @@ private fun AppDetailContent(
         StorageBreakdownCard(detail.info)
         SectionHeader(stringResource(R.string.app_detail_section_actions))
         ActionsCard(
-            info            = detail.info,
-            isIgnored       = isIgnored,
-            onUninstall     = onUninstall,
-            onClearCache    = onClearCache,
-            onForceStop     = onForceStop,
-            onToggleEnabled = onToggleEnabled,
-            onQuarantine    = onQuarantine,
-            onToggleIgnore  = onToggleIgnore,
+            info                 = detail.info,
+            isIgnored            = isIgnored,
+            recentlyMovedToTrash = recentlyMovedToTrash,
+            onUninstall          = onUninstall,
+            onClearCache         = onClearCache,
+            onForceStop          = onForceStop,
+            onToggleEnabled      = onToggleEnabled,
+            onQuarantine         = onQuarantine,
+            onToggleIgnore       = onToggleIgnore,
+            onOpenTrash          = onOpenTrash,
         )
         SectionHeader(stringResource(R.string.app_detail_section_permissions))
         PermissionsCard(
@@ -568,12 +612,14 @@ private fun SizeRow(label: String, value: String, color: Color, bold: Boolean = 
 private fun ActionsCard(
     info: AppInfo,
     isIgnored: Boolean,
+    recentlyMovedToTrash: Boolean,
     onUninstall: () -> Unit,
     onClearCache: () -> Unit,
     onForceStop: () -> Unit,
     onToggleEnabled: (Boolean) -> Unit,
     onQuarantine: () -> Unit,
     onToggleIgnore: () -> Unit,
+    onOpenTrash: () -> Unit,
 ) {
     SectionCard {
         Column(
@@ -589,6 +635,29 @@ private fun ActionsCard(
                 Icon(Icons.Outlined.Delete, contentDescription = null, tint = BrandDanger)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.app_detail_action_uninstall), color = BrandDanger)
+            }
+            // v0.2.1 UX add — "Voir la corbeille" shortcut appears under
+            // Uninstall right after a successful Move-to-trash, so the user
+            // can immediately jump to the Trash screen and confirm the
+            // staged app. Fond rouge clair + texte sombre per user request
+            // ("intuitif comme ça").
+            if (recentlyMovedToTrash) {
+                FilledTonalButton(
+                    onClick  = onOpenTrash,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors   = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
+                        containerColor = BrandDanger.copy(alpha = 0.15f),
+                        contentColor   = MaterialTheme.colorScheme.onSurface,
+                    ),
+                ) {
+                    Icon(
+                        imageVector        = Icons.Outlined.Delete,
+                        contentDescription = null,
+                        tint               = BrandDanger,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.app_detail_action_view_trash))
+                }
             }
             FilledTonalButton(
                 onClick  = onClearCache,

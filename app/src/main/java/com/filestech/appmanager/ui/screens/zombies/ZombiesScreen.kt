@@ -1,6 +1,7 @@
 package com.filestech.appmanager.ui.screens.zombies
 
 import android.text.format.Formatter
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,10 +23,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -36,16 +40,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.ZombieApp
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
+import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
 import com.filestech.appmanager.ui.theme.BrandDanger
+import timber.log.Timber
 
 /**
  * Zombie apps screen — lists apps NEVER_OPENED (>7 d install grace) or
@@ -59,7 +67,40 @@ fun ZombiesScreen(
     viewModel: ZombiesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // v0.2.1 audit C8b fix — re-probe PACKAGE_USAGE_STATS on ON_RESUME so
+    // the banner disappears + an auto-refresh triggers when the user returns
+    // from Settings after granting the permission.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onResumed()
+    }
+
+    // v0.2.1 — refresh feedback. The use case responds in < 50 ms so the
+    // spinner is invisible; the snackbar makes the refresh's effect
+    // perceivable (user report "si je tape sur la roue refresh, rien ne
+    // se passe ?").
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is ZombiesViewModel.Event.RefreshDone ->
+                    snackbarHostState.showSnackbar(
+                        context.getString(R.string.zombies_refresh_done, event.count),
+                    )
+                is ZombiesViewModel.Event.LaunchIntent -> {
+                    runCatching {
+                        context.startActivity(
+                            event.intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }.onFailure { Timber.w(it, "ZombiesScreen launch failed") }
+                }
+            }
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 navigationIcon = {
@@ -79,25 +120,35 @@ fun ZombiesScreen(
             )
         },
     ) { innerPadding ->
-        Box(
+        // v0.2.1 audit C2b fix — Column wrapping so the UsageStatsAccessBanner
+        // sits above the list. Without PACKAGE_USAGE_STATS, lastUsedTime = 0
+        // for every app → GetZombieAppsUseCase classifies everything as
+        // NEVER_OPENED (false positives). The banner makes the cause visible.
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            when (val o = state.outcome) {
-                Outcome.Loading      -> LoadingState()
-                is Outcome.Failure   -> ErrorState(message = o.error.toString(), onRetry = viewModel::refresh)
-                is Outcome.Success   -> {
-                    if (o.value.isEmpty()) {
-                        EmptyState(
-                            icon  = Icons.Outlined.SentimentSatisfied,
-                            title = stringResource(R.string.zombies_empty_title),
-                            body  = stringResource(R.string.zombies_empty_body),
-                        )
-                    } else {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(items = o.value, key = { it.info.packageName }) { zombie ->
-                                ZombieRow(zombie = zombie, onClick = { onItemClick(zombie.info.packageName) })
+            UsageStatsAccessBanner(
+                visible      = !state.usageStatsGranted,
+                onGrantClick = { viewModel.requestUsageStatsPermission() },
+            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (val o = state.outcome) {
+                    Outcome.Loading      -> LoadingState()
+                    is Outcome.Failure   -> ErrorState(message = o.error.toString(), onRetry = viewModel::refresh)
+                    is Outcome.Success   -> {
+                        if (o.value.isEmpty()) {
+                            EmptyState(
+                                icon  = Icons.Outlined.SentimentSatisfied,
+                                title = stringResource(R.string.zombies_empty_title),
+                                body  = stringResource(R.string.zombies_empty_body),
+                            )
+                        } else {
+                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                items(items = o.value, key = { it.info.packageName }) { zombie ->
+                                    ZombieRow(zombie = zombie, onClick = { onItemClick(zombie.info.packageName) })
+                                }
                             }
                         }
                     }
@@ -113,9 +164,14 @@ private fun ZombieRow(zombie: ZombieApp, onClick: () -> Unit) {
     val sizeLabel = remember(zombie.info.totalSizeBytes) {
         Formatter.formatShortFileSize(context, zombie.info.totalSizeBytes)
     }
+    // v0.2.1 — entire row clickable (was only the trailing arrow IconButton,
+    // unintuitive — user feedback "pouvoir taper sur l'appli afin d'afficher
+    // le détail, mieux que la flèche qui est à coté"). The chevron stays as
+    // a visual affordance but is no longer the only tap target.
     Row(
         modifier          = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -139,13 +195,14 @@ private fun ZombieRow(zombie: ZombieApp, onClick: () -> Unit) {
                 )
             }
         }
-        IconButton(onClick = onClick) {
-            Icon(
-                imageVector        = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                contentDescription = stringResource(R.string.cd_view_details),
-                tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        // Visual chevron only — no separate IconButton (the whole Row is
+        // the tap target now). Marked with a non-null contentDescription so
+        // TalkBack still announces "Détails de l'application".
+        Icon(
+            imageVector        = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+            contentDescription = stringResource(R.string.cd_view_details),
+            tint               = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

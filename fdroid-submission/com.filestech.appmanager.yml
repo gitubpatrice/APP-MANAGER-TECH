@@ -84,6 +84,19 @@ Builds:
       - sed -i -e '/signingConfigs/,/}\s*$/d' build.gradle.kts
       - sed -i -e '/if (keystorePropertiesFile.exists()) {/,/}/d' build.gradle.kts
 
+  - versionName: 0.2.1
+    versionCode: 6
+    commit: v0.2.1
+    subdir: app
+    gradle:
+      - yes
+    rm:
+      - app/lint-baseline.xml
+    prebuild:
+      - sed -i -e '/keystoreProperties = Properties/,/}/d' build.gradle.kts
+      - sed -i -e '/signingConfigs/,/}\s*$/d' build.gradle.kts
+      - sed -i -e '/if (keystorePropertiesFile.exists()) {/,/}/d' build.gradle.kts
+
 # SHA-256 fingerprint of the upstream APK signing certificate, lowercase hex
 # (colons stripped). F-Droid uses this to verify the reproducible build matches
 # the upstream signature — guaranteeing identical signature across both
@@ -93,5 +106,5 @@ AllowedAPKSigningKeys: 76e8772e09951369405f58e70c4afffd41c4687553c6cfa03d08145ff
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: 'app/build.gradle.kts|versionName\s*=\s*"(.*?)"|.|versionCode\s*=\s*(\d+)'
-CurrentVersion: 0.2.0
-CurrentVersionCode: 5
+CurrentVersion: 0.2.1
+CurrentVersionCode: 6

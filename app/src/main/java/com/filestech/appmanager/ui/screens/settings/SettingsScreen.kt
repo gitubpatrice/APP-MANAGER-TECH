@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.PrivacyTip
@@ -83,6 +84,12 @@ fun SettingsScreen(
     onOpenZombies: () -> Unit = {},
     onOpenPermissionFilter: () -> Unit = {},
     onOpenTrash: () -> Unit = {},
+    // v0.2.1 audit H3 fix — v0.2.0 added these tools to the Outils grid
+    // (ToolsScreen) and to the bottom nav, but the SettingsScreen tools
+    // section never got the NavigationRow shortcuts. Adding them here +
+    // wiring in AppRoot makes both paths reachable from Settings too.
+    onOpenPermissionDrift: () -> Unit = {},
+    onOpenQuarantine: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -153,6 +160,8 @@ fun SettingsScreen(
             onZombiesClick       = onOpenZombies,
             onPermissionFilterClick = onOpenPermissionFilter,
             onTrashClick         = onOpenTrash,
+            onPermissionDriftClick = onOpenPermissionDrift,
+            onQuarantineClick    = onOpenQuarantine,
         )
     }
 
@@ -237,6 +246,8 @@ private fun SettingsBody(
     onZombiesClick: () -> Unit,
     onPermissionFilterClick: () -> Unit,
     onTrashClick: () -> Unit,
+    onPermissionDriftClick: () -> Unit,
+    onQuarantineClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -394,6 +405,20 @@ private fun SettingsBody(
                 description = stringResource(R.string.settings_tools_permission_filter_desc),
                 leadingIcon = Icons.Outlined.FilterAlt,
                 onClick     = onPermissionFilterClick,
+            )
+            // v0.2.1 audit H3 fix — v0.2.0 features were missing from the
+            // Settings → Outils section even though they had routes + cards
+            // in the Outils tab. Adding NavigationRows here so users who
+            // start from Settings can also reach them.
+            NavigationRow(
+                title       = stringResource(R.string.screen_permission_drift_title),
+                leadingIcon = Icons.Outlined.History,
+                onClick     = onPermissionDriftClick,
+            )
+            NavigationRow(
+                title       = stringResource(R.string.screen_quarantine_title),
+                leadingIcon = Icons.Outlined.Inventory2,
+                onClick     = onQuarantineClick,
             )
             NavigationRow(
                 title       = stringResource(R.string.screen_ignore_list_title),

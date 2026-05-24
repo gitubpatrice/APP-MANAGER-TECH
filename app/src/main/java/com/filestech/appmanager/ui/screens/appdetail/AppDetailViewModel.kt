@@ -13,6 +13,7 @@ import com.filestech.appmanager.domain.model.AppDetail
 import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.model.PrivacyScore
 import com.filestech.appmanager.domain.model.TrackerReport
+import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.repository.IgnoreListRepository
 import com.filestech.appmanager.domain.usecase.ClearAppCacheUseCase
 import com.filestech.appmanager.domain.usecase.DetectTrackersUseCase
@@ -28,9 +29,14 @@ import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import android.net.Uri
 import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import timber.log.Timber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -65,6 +71,7 @@ class AppDetailViewModel @Inject constructor(
     private val ignoreList: IgnoreListRepository,
     private val settings: SettingsRepository,
     private val criticalDetector: CriticalAppDetector,
+    private val appInfoRepo: AppInfoRepository,
     private val intents: IntentFactory,
 ) : ViewModel() {
 
@@ -81,27 +88,55 @@ class AppDetailViewModel @Inject constructor(
     fun load(packageName: String) {
         _state.update {
             it.copy(
-                packageName    = packageName,
-                detailOutcome  = Outcome.Loading,
-                privacyScore   = null,
-                trackerReport  = null,
+                packageName       = packageName,
+                detailOutcome     = Outcome.Loading,
+                privacyScore      = null,
+                trackerReport     = null,
+                // Keep last known granted-state until the IO probe re-emits below.
+                usageStatsGranted = it.usageStatsGranted,
+                // v0.2.1 UX — reset on fresh load (new app or re-entry).
+                recentlyMovedToTrash = false,
             )
         }
         viewModelScope.launch {
-            coroutineScope {
-                val detail   = async { getDetail(packageName) }
-                val score    = async { getPrivacyScore(packageName) }
-                val trackers = async { detectTrackers(packageName) }
-                val ignored  = async { ignoreList.isIgnored(packageName) }
-                val (detailR, scoreR, trackersR, ignoredR) = awaitAll(detail, score, trackers, ignored)
+            // v0.2.1 audit M-1 fix — run hasUsageStatsAccess() on Dispatchers.IO,
+            // not on the main thread (AppOps IPC). Probe runs in parallel with
+            // the awaitAll fan-out below.
+            launch {
+                val granted = withContext(Dispatchers.IO) { appInfoRepo.hasUsageStatsAccess() }
+                _state.update { it.copy(usageStatsGranted = granted) }
+            }
+            // v0.2.1 audit M4 fix — wrap the parallel fan-out in withTimeout
+            // so any of the 4 awaitAll branches stalling (PM probe slow on
+            // OEM, Room IO contention, tracker DB hash) cannot leave the
+            // detail screen in Outcome.Loading forever.
+            try {
+                withTimeout(LOAD_TIMEOUT_MS) {
+                    coroutineScope {
+                        val detail   = async { getDetail(packageName) }
+                        val score    = async { getPrivacyScore(packageName) }
+                        val trackers = async { detectTrackers(packageName) }
+                        val ignored  = async { ignoreList.isIgnored(packageName) }
+                        val (detailR, scoreR, trackersR, ignoredR) = awaitAll(detail, score, trackers, ignored)
 
-                @Suppress("UNCHECKED_CAST")
+                        @Suppress("UNCHECKED_CAST")
+                        _state.update {
+                            it.copy(
+                                detailOutcome = detailR as Outcome<AppDetail>,
+                                privacyScore  = (scoreR as Outcome<PrivacyScore>).getOrNull(),
+                                trackerReport = (trackersR as Outcome<TrackerReport>).getOrNull(),
+                                isIgnored     = ignoredR as Boolean,
+                            )
+                        }
+                    }
+                }
+            } catch (e: TimeoutCancellationException) {
+                Timber.w(e, "AppDetail load timed out after %d ms", LOAD_TIMEOUT_MS)
                 _state.update {
                     it.copy(
-                        detailOutcome = detailR as Outcome<AppDetail>,
-                        privacyScore  = (scoreR as Outcome<PrivacyScore>).getOrNull(),
-                        trackerReport = (trackersR as Outcome<TrackerReport>).getOrNull(),
-                        isIgnored     = ignoredR as Boolean,
+                        detailOutcome = Outcome.Failure(
+                            com.filestech.appmanager.core.result.AppError.Unknown(e),
+                        ),
                     )
                 }
             }
@@ -145,12 +180,20 @@ class AppDetailViewModel @Inject constructor(
      *
      * Snapshots `label` + `totalSizeBytes` from the cached [AppDetail] so the
      * trash row stays consistent even if the app is uninstalled out-of-band.
+     *
+     * v0.2.1 UX add — on success, flips `recentlyMovedToTrash = true` so the
+     * ActionsCard surfaces a "Voir la corbeille" shortcut right below the
+     * Uninstall button (user feedback: "ce serait bien que dessous
+     * désinstaller apparaisse un bouton voir la corbeille").
      */
     fun moveToTrash() {
         val detail = (_state.value.detailOutcome as? Outcome.Success)?.value ?: return
         viewModelScope.launch {
             when (val r = moveAppToTrash(detail.info)) {
-                is Outcome.Success -> _events.trySend(Event.MovedToTrash(detail.info.label))
+                is Outcome.Success -> {
+                    _state.update { it.copy(recentlyMovedToTrash = true) }
+                    _events.trySend(Event.MovedToTrash(detail.info.label))
+                }
                 is Outcome.Failure -> _events.trySend(Event.ShowError(r.error.toString()))
                 Outcome.Loading    -> Unit
             }
@@ -213,6 +256,27 @@ class AppDetailViewModel @Inject constructor(
 
     fun openUsageAccessSettings() {
         _events.trySend(Event.LaunchIntent(intents.usageAccessSettingsIntent()))
+    }
+
+    /**
+     * v0.2.1 — re-probe PACKAGE_USAGE_STATS on ON_RESUME. If the user just
+     * granted it in Settings and came back, refresh the detail load so the
+     * Installation Info "Last used" field shows the real timestamp instead
+     * of "Jamais utilisée".
+     */
+    fun onResumed() {
+        // v0.2.1 audit M-1 fix — IO probe (AppOps IPC).
+        viewModelScope.launch {
+            val wasGranted = _state.value.usageStatsGranted
+            val nowGranted = withContext(Dispatchers.IO) { appInfoRepo.hasUsageStatsAccess() }
+            if (wasGranted != nowGranted) {
+                _state.update { it.copy(usageStatsGranted = nowGranted) }
+                if (nowGranted) {
+                    val pkg = currentPackage()
+                    if (pkg != null) load(pkg)
+                }
+            }
+        }
     }
 
     /**
@@ -322,6 +386,21 @@ class AppDetailViewModel @Inject constructor(
         val privacyScore: PrivacyScore? = null,
         val trackerReport: TrackerReport? = null,
         val isIgnored: Boolean = false,
+        /**
+         * v0.2.1 — PACKAGE_USAGE_STATS probe set on every load + ON_RESUME.
+         * When false, the `lastUsedTime` field on AppInfo is always 0 (which
+         * Installation Info renders as "Jamais utilisée") and storage sizes
+         * are also broken. The screen shows a banner inviting the user to
+         * Settings → Usage access when this is false.
+         */
+        val usageStatsGranted: Boolean = true,
+        /**
+         * v0.2.1 UX add — set true after a successful [moveToTrash], reset on
+         * the next [load]. Drives a "Voir la corbeille" shortcut button under
+         * the Uninstall action so the user can jump straight to the Trash
+         * after staging an app.
+         */
+        val recentlyMovedToTrash: Boolean = false,
     )
 
     sealed interface Event {
@@ -368,4 +447,9 @@ class AppDetailViewModel @Inject constructor(
 
     /** Actions that trigger the Safety Guardrails dialog. */
     enum class CriticalAction { UNINSTALL, QUARANTINE_HARD }
+
+    private companion object {
+        /** 15s cap on the parallel fan-out load (typical < 1s). */
+        const val LOAD_TIMEOUT_MS: Long = 15_000L
+    }
 }

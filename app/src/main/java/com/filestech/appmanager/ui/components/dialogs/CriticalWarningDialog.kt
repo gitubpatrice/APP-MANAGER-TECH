@@ -140,9 +140,15 @@ private fun HoldToConfirmButton(
             progress = 0f
             return@LaunchedEffect
         }
-        val startMs = System.currentTimeMillis()
+        // v0.2.1 audit H1 fix — was System.currentTimeMillis() which is the
+        // wall-clock and NOT monotone: an NTP sync or DST change during the
+        // 3-second hold could either skip the timer (jump forward) or never
+        // complete it (jump backward). SystemClock.elapsedRealtime() is
+        // monotone (uptime since boot, including deep sleep) and immune to
+        // wall-clock changes — the correct primitive for short UI timers.
+        val startMs = android.os.SystemClock.elapsedRealtime()
         while (isHolding) {
-            val elapsed = System.currentTimeMillis() - startMs
+            val elapsed = android.os.SystemClock.elapsedRealtime() - startMs
             progress = (elapsed.toFloat() / holdMs.toFloat()).coerceIn(0f, 1f)
             if (elapsed >= holdMs) {
                 isHolding = false

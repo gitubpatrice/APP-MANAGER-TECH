@@ -40,6 +40,15 @@ interface TrashItemDao {
     @Query("DELETE FROM trash_item WHERE package_name = :packageName")
     suspend fun deleteByPackage(packageName: String): Int
 
+    /**
+     * v0.2.1 audit H-1 fix — batch delete used by
+     * [com.filestech.appmanager.data.repository.TrashRepositoryImpl.purgeOrphaned]
+     * to avoid N individual writes when sweeping multiple orphaned rows.
+     * Returns the count of rows actually removed.
+     */
+    @Query("DELETE FROM trash_item WHERE package_name IN (:packageNames)")
+    suspend fun deleteByPackages(packageNames: List<String>): Int
+
     @Query("DELETE FROM trash_item")
     suspend fun deleteAll(): Int
 }
