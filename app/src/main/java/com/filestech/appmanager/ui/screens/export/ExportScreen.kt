@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -78,6 +79,15 @@ fun ExportScreen(
         if (uri != null) viewModel.export(uri)
     }
 
+    // v0.2.2 — dedicated launcher for the PDF diagnostic. SAF needs the MIME
+    // pinned per launcher; we keep a separate instance instead of recreating
+    // the JSON/CSV one based on a mutable mode.
+    val pdfLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf"),
+    ) { uri ->
+        if (uri != null) viewModel.exportDiagnosticPdf(uri)
+    }
+
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
@@ -117,13 +127,17 @@ fun ExportScreen(
             isExporting  = state.isExporting,
             onFormatClick = { formatDialog = true },
             onExportClick = { launcher.launch(suggestedFileName(format)) },
+            onExportPdfClick = { pdfLauncher.launch(suggestedPdfFileName()) },
         )
     }
 
     if (formatDialog) {
+        // PDF is exposed via the dedicated diagnostic button below the JSON/CSV
+        // export; keeping the format picker scoped to JSON/CSV avoids confusing
+        // users (the PDF flow has a different payload and a different SAF MIME).
         RadioPickerDialog(
             title    = stringResource(R.string.cleaner_export_format_title),
-            options  = ExportFormat.entries,
+            options  = listOf(ExportFormat.JSON, ExportFormat.CSV),
             selected = format,
             labelOf  = { exportFormatLabel(it) },
             onSelect = viewModel::setFormat,
@@ -139,6 +153,7 @@ private fun ExportBody(
     isExporting: Boolean,
     onFormatClick: () -> Unit,
     onExportClick: () -> Unit,
+    onExportPdfClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -203,6 +218,46 @@ private fun ExportBody(
                 CircularProgressIndicator(modifier = Modifier.padding(top = 8.dp))
             }
         }
+
+        // v0.2.2 — Diagnostic PDF (separate section + button to avoid confusion
+        // with the lightweight JSON/CSV inventory above).
+        Spacer(modifier = Modifier.height(24.dp))
+        SectionHeader(stringResource(R.string.export_pdf_section_export))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            colors   = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ),
+        ) {
+            Text(
+                text     = stringResource(R.string.export_pdf_description),
+                style    = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(16.dp),
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier            = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp),
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Button(
+                onClick  = onExportPdfClick,
+                enabled  = !isExporting,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    Icons.Outlined.PictureAsPdf,
+                    contentDescription = null,
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.export_action_pdf))
+            }
+        }
     }
 }
 
@@ -211,12 +266,19 @@ private fun exportFormatLabel(format: ExportFormat): String = stringResource(
     when (format) {
         ExportFormat.JSON -> R.string.export_format_json
         ExportFormat.CSV  -> R.string.export_format_csv
+        // PDF is never exposed via the JSON/CSV picker, but the enum is
+        // exhaustive so we provide a fallback label for safety.
+        ExportFormat.PDF  -> R.string.export_format_pdf
     }
 )
 
 private fun mimeOf(format: ExportFormat): String = when (format) {
     ExportFormat.JSON -> "application/json"
     ExportFormat.CSV  -> "text/csv"
+    // The PDF flow uses its own SAF launcher pinned to "application/pdf";
+    // the JSON/CSV launcher would never be invoked with PDF. Defensive default
+    // so the function stays total over the enum.
+    ExportFormat.PDF  -> "application/pdf"
 }
 
 private fun suggestedFileName(format: ExportFormat): String {
@@ -224,7 +286,13 @@ private fun suggestedFileName(format: ExportFormat): String {
     val ext = when (format) {
         ExportFormat.JSON -> "json"
         ExportFormat.CSV  -> "csv"
+        ExportFormat.PDF  -> "pdf"
     }
     return "app_manager_tech_$ts.$ext"
+}
+
+private fun suggestedPdfFileName(): String {
+    val ts = SimpleDateFormat("yyyyMMdd_HHmm", Locale.ROOT).format(Date())
+    return "app_manager_tech_diagnostic_$ts.pdf"
 }
 

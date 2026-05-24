@@ -7,6 +7,82 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.2.2] — 2026-05-24 — Expert mode + Diagnostic PDF export
+
+### Added — Expert Mode (advanced inspector)
+- New **Mode expert / Expert mode** screen reachable from any
+  AppDetail via an "Mode expert (composants internes)" outlined button
+  at the bottom of the detail content. Surfaces, in read-only:
+  - **Identity**: label, package, version + code, UID, installer,
+    first install + last update timestamps, system/user flag, enabled
+    state.
+  - **SDK envelope**: minSdk / targetSdk / compileSdk (compileSdk
+    available only on Android 12+, surfaced as "Non disponible" below).
+  - **Native code**: primaryCpuAbi (read via reflection on the public
+    `ApplicationInfo` field — null when the app ships no native code)
+    + nativeLibraryDir.
+  - **APK paths**: base APK, public APK path, split APKs (each split
+    listed with monospace font).
+  - **Signature**: signer count + SHA-256 fingerprint. Detects debug-
+    signed APKs by parsing the X.509 certificate Subject DN
+    (`CN=Android Debug`) — more robust than a hardcoded SHA-256.
+  - **Components**: activities / services / receivers / providers
+    with the `exported` flag, `enabled` state, and per-component
+    permission gate. Unprotected-exported components are tinted red
+    (real attack-surface signal). Providers additionally surface
+    authority + read/write permission + `grantUriPermissions` flag.
+  - **Permissions**: full declared list with grant state +
+    dangerous-protection flag, monospace font.
+  - **App ops**: curated subset (location, mic, camera, contacts, SMS,
+    body sensors, draw-over-other-apps, modify settings, usage stats)
+    probed via `AppOpsManager.unsafeCheckOpNoThrow`. A banner explains
+    the OS hides most ops from non-root callers, surfaced as "Default"
+    rather than misleading "Denied".
+- A clear info banner at the top of the screen sets expectations:
+  read-only inspector; editing components / denying app-ops / rewriting
+  permissions requires ADB, Shizuku or root and is intentionally out of
+  scope for the F-Droid release.
+
+### Added — Diagnostic PDF export
+- New "Exporter le diagnostic PDF" button on the **Export** screen
+  (Outils → Export). Builds a printable diagnostic report suitable for
+  family / professional tech support.
+- Sections rendered:
+  - **Device**: manufacturer, model, Android release + SDK, total +
+    free internal storage.
+  - **App Manager Tech**: app version, our own signature SHA-256,
+    number of apps tracked.
+  - **Detected issues**: zombies (disabled / never used), rarely used
+    (≥ 60 days), oversized (≥ 200 MB), sideloaded count.
+  - **Inventory**: every user-installed app with label, package,
+    version, installer, total size.
+  - **Apps with dangerous permissions granted**: per app, the sorted
+    list of granted dangerous-protection permissions (short names).
+  - **Apps installed outside known stores**: sideloaded provenance.
+  - **Apps with sensitive access**: device admins + accessibility
+    services.
+- Native AOSP `android.graphics.pdf.PdfDocument` — zero external
+  dependency (no iText / Foxit / Adobe SDK). A4 portrait, paginated
+  with footer "Page N", monospace for technical fields. SAF-only
+  destination (user picks the folder); no `MANAGE_EXTERNAL_STORAGE`.
+
+### Changed
+- `ExportFormat` enum gains a `PDF` value, dispatched separately from
+  JSON/CSV by `ExportReportUseCase`. The JSON/CSV format picker no
+  longer offers PDF as a persistable default — PDF has its own
+  dedicated launcher because the SAF MIME differs.
+
+### Notes
+- Room schema unchanged (still v4 — no migration needed).
+- Cert SHA-256 stable:
+  `76:E8:77:2E:09:95:13:69:40:5F:58:E7:0C:4A:FF:FD:41:C4:68:75:53:C6:CF:A0:3D:08:14:5F:F6:0F:F1:CF`
+- 0 GMS dependency, 0 Internet permission, no new runtime permission.
+- APK size: ~2.18 MB (+0.29 MB vs v0.2.1, fits Expert Mode + PDF
+  builder).
+- Strings FR ↔ EN parity 100% (~ 70 new keys total).
+
+---
+
 ## [0.2.1] — 2026-05-24 — UX hardening + audit fixes
 
 ### Fixed — User-reported bugs (v0.2.0 polish)

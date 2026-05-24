@@ -1,6 +1,26 @@
 # App Manager Tech — Security model
 
-Current release: **v0.2.1**
+Current release: **v0.2.2**
+
+## v0.2.2 — Expert mode + Diagnostic PDF
+
+- **Mode Expert**: read-only inspection of internal components
+  (activities, services, receivers, providers + `exported` flag, declared
+  permissions + grant state + dangerous-protection flag, signature SHA-256
+  + debug-keystore detection via X.509 Subject DN, UID, SDK envelope, ABI,
+  APK paths / splits, curated AppOps probed via
+  `AppOpsManager.unsafeCheckOpNoThrow`). Strictly read-only — no PackageManager
+  mutation, no app-op rewrite, no component enable/disable (those require
+  ADB, Shizuku or root and are intentionally out of scope for an F-Droid
+  release).
+- **PDF diagnostic export**: built via `android.graphics.pdf.PdfDocument`
+  (native AOSP, API 19+), 0 external dependency. Output stream is the
+  user-picked SAF Uri — no `MANAGE_EXTERNAL_STORAGE`. Report contents
+  never include APK Manager's own runtime state, only what we read from
+  the OS surface (`PackageManager`, `StorageStatsManager`,
+  `UsageStatsManager`, `DevicePolicyManager`, `AccessibilityManager`).
+- No new permission declared in the manifest. No new dependency added.
+- Same threat-model envelope as v0.2.1.
 
 ## Signing certificate
 

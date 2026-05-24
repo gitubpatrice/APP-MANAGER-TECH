@@ -10,6 +10,7 @@ import com.filestech.appmanager.ui.screens.about.AboutScreen
 import com.filestech.appmanager.ui.screens.appdetail.AppDetailScreen
 import com.filestech.appmanager.ui.screens.cleaner.CleanerSettingsScreen
 import com.filestech.appmanager.ui.shell.HomeShell
+import com.filestech.appmanager.ui.screens.expert.ExpertScreen
 import com.filestech.appmanager.ui.screens.export.ExportScreen
 import com.filestech.appmanager.ui.screens.ignorelist.IgnoreListScreen
 import com.filestech.appmanager.ui.screens.permissiondrift.PermissionDriftScreen
@@ -104,6 +105,10 @@ fun AppRoot() {
                 // v0.2.1 UX add — wire the "Voir la corbeille" shortcut that
                 // appears after a successful Move-to-trash from AppDetail.
                 onOpenTrash = { navController.navigate(NavRoute.Trash.route) { launchSingleTop = true } },
+                // v0.2.2 — "Mode expert" deep-dive into the app's low-level
+                // components (activities/services/receivers/providers/perms/
+                // signature/SDK/ABI/APK paths/app-ops best-effort).
+                onOpenExpert = { navController.navigate(NavRoute.Expert.buildRoute(pkg)) { launchSingleTop = true } },
             )
         }
 
@@ -222,6 +227,22 @@ fun AppRoot() {
         composable(NavRoute.QuarantinePicker.route) {
             QuarantinePickerScreen(onBack = { navController.popBackStack() })
         }
+
+        // v0.2.2 — Expert Mode (advanced inspector)
+        composable(
+            route = NavRoute.Expert.route,
+            arguments = listOf(
+                navArgument(NavRoute.Expert.ARG_PACKAGE) { type = NavType.StringType },
+            ),
+        ) { backStackEntry ->
+            val pkg = backStackEntry.arguments
+                ?.getString(NavRoute.Expert.ARG_PACKAGE)
+                .orEmpty()
+            ExpertScreen(
+                packageName = pkg,
+                onBack      = { navController.popBackStack() },
+            )
+        }
     }
 }
 
@@ -273,4 +294,11 @@ sealed class NavRoute(val route: String) {
     data object PermissionDrift : NavRoute("permission_drift")
     data object Quarantine : NavRoute("quarantine")
     data object QuarantinePicker : NavRoute("quarantine_picker")
+
+    // v0.2.2 — Expert Mode (advanced inspector accessible from AppDetail)
+    data object Expert : NavRoute("expert/{packageName}") {
+        const val ARG_PACKAGE = "packageName"
+        fun buildRoute(packageName: String): String =
+            "expert/${android.net.Uri.encode(packageName)}"
+    }
 }

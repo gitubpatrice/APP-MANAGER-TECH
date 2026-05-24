@@ -26,6 +26,7 @@ import com.filestech.appmanager.data.local.db.entity.AppInfoEntity
 import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.AppCategory
 import com.filestech.appmanager.domain.model.AppInfo
+import com.filestech.appmanager.domain.model.ExpertReport
 import com.filestech.appmanager.domain.model.FilterOptions
 import com.filestech.appmanager.domain.model.InstallerFilter
 import com.filestech.appmanager.domain.model.StorageReport
@@ -304,6 +305,266 @@ class AppInfoRepositoryImpl @Inject constructor(
     }
 
     // -----------------------------------------------------------------------
+    // Expert Mode (v0.2.2)
+    // -----------------------------------------------------------------------
+
+    override suspend fun getExpertReport(packageName: String): Outcome<ExpertReport> {
+        if (!packageName.isValidPackageName()) {
+            return Outcome.Failure(AppError.Validation("Invalid package name"))
+        }
+        return runCatchingOutcome(::mapError) {
+            withContext(io) {
+                buildExpertReport(packageName)
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun buildExpertReport(packageName: String): ExpertReport {
+        val flags = (PackageManager.GET_ACTIVITIES
+            or PackageManager.GET_SERVICES
+            or PackageManager.GET_RECEIVERS
+            or PackageManager.GET_PROVIDERS
+            or PackageManager.GET_PERMISSIONS)
+        val pkg = packageManager.getPackageInfo(packageName, flags)
+        val ai = pkg.applicationInfo
+            ?: throw PackageManager.NameNotFoundException(packageName)
+        val label = packageManager.getApplicationLabel(ai).toString()
+        val identity = ExpertReport.AppIdentity(
+            packageName      = pkg.packageName,
+            label            = label,
+            versionName      = pkg.versionName.orEmpty(),
+            versionCode      = PackageInfoCompat.getLongVersionCode(pkg),
+            uid              = ai.uid,
+            installerPackage = queryInstallerPackage(pkg.packageName),
+            firstInstallTime = pkg.firstInstallTime,
+            lastUpdateTime   = pkg.lastUpdateTime,
+            isSystemApp      = (ai.flags and ApplicationInfo.FLAG_SYSTEM) != 0,
+            isEnabled        = ai.enabled,
+        )
+        val sdkInfo = ExpertReport.SdkInfo(
+            // minSdkVersion field is exposed since API 24; older runtimes report 0
+            // for ai.minSdkVersion which we coerce to null for "non disponible".
+            minSdk     = ai.minSdkVersion.takeIf { it > 0 },
+            targetSdk  = ai.targetSdkVersion,
+            compileSdk = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ai.compileSdkVersion.takeIf { it > 0 }
+            } else null,
+        )
+        val nativeInfo = ExpertReport.NativeInfo(
+            primaryAbi       = readPrimaryAbi(ai),
+            nativeLibraryDir = ai.nativeLibraryDir,
+        )
+        val apkPaths = ExpertReport.ApkPaths(
+            base            = ai.sourceDir,
+            splits          = ai.splitSourceDirs?.toList().orEmpty(),
+            publicSourceDir = ai.publicSourceDir,
+        )
+        val signature = collectSignature(packageName)
+        val components = ExpertReport.ComponentsInfo(
+            activities = pkg.activities?.map { componentEntry(it) }?.sortedBy { it.className }.orEmpty(),
+            services   = pkg.services?.map { componentEntry(it) }?.sortedBy { it.className }.orEmpty(),
+            receivers  = pkg.receivers?.map { componentEntry(it) }?.sortedBy { it.className }.orEmpty(),
+            providers  = pkg.providers?.map { providerEntry(it) }?.sortedBy { it.className }.orEmpty(),
+        )
+        val permissions = collectExpertPermissions(pkg)
+        val appOps = collectAppOpsSnapshot(packageName, ai.uid)
+        return ExpertReport(
+            identity   = identity,
+            sdkInfo    = sdkInfo,
+            nativeInfo = nativeInfo,
+            apkPaths   = apkPaths,
+            signature  = signature,
+            components = components,
+            permissions = permissions,
+            appOps     = appOps,
+        )
+    }
+
+    private fun componentEntry(info: android.content.pm.ComponentInfo): ExpertReport.ComponentEntry {
+        // ActivityInfo / ServiceInfo / ProviderInfo all inherit `permission` field;
+        // ActivityInfo + ServiceInfo expose it directly. For ProviderInfo we use
+        // the dedicated providerEntry() helper.
+        val permission: String? = when (info) {
+            is android.content.pm.ActivityInfo -> info.permission
+            is android.content.pm.ServiceInfo  -> info.permission
+            else                               -> null
+        }
+        return ExpertReport.ComponentEntry(
+            className  = info.name.orEmpty(),
+            exported   = info.exported,
+            enabled    = info.enabled,
+            permission = permission,
+        )
+    }
+
+    private fun providerEntry(info: android.content.pm.ProviderInfo): ExpertReport.ProviderEntry =
+        ExpertReport.ProviderEntry(
+            className           = info.name.orEmpty(),
+            authority           = info.authority,
+            exported            = info.exported,
+            enabled             = info.enabled,
+            readPermission      = info.readPermission,
+            writePermission     = info.writePermission,
+            grantUriPermissions = info.grantUriPermissions,
+        )
+
+    private fun collectExpertPermissions(pkg: PackageInfo): ExpertReport.ExpertPermissions {
+        val names = pkg.requestedPermissions ?: return ExpertReport.ExpertPermissions(
+            declared = emptyList(),
+            grantedCount = 0,
+            declaredCount = 0,
+        )
+        val flags = pkg.requestedPermissionsFlags
+        val list = names.mapIndexed { i, name ->
+            val granted = ((flags?.getOrNull(i) ?: 0) and
+                PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0
+            ExpertReport.DeclaredPermission(
+                name        = name,
+                granted     = granted,
+                isDangerous = isDangerousPermission(name),
+            )
+        }.sortedBy { it.name }
+        return ExpertReport.ExpertPermissions(
+            declared      = list,
+            grantedCount  = list.count { it.granted },
+            declaredCount = list.size,
+        )
+    }
+
+    private fun isDangerousPermission(name: String): Boolean = try {
+        val info = packageManager.getPermissionInfo(name, 0)
+        val level = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info.protection
+        } else {
+            @Suppress("DEPRECATION")
+            info.protectionLevel and android.content.pm.PermissionInfo.PROTECTION_MASK_BASE
+        }
+        level == android.content.pm.PermissionInfo.PROTECTION_DANGEROUS
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
+    }
+
+    /**
+     * App-ops probe — best-effort. The list of ops below is curated for an
+     * inspector audience: location, mic, camera, contacts/SMS, body sensors,
+     * draw-over-other-apps, modify settings, usage stats, schedule exact alarm.
+     *
+     * `unsafeCheckOpNoThrow` returns `MODE_DEFAULT` when the caller is not
+     * allowed to peek at the op for that UID; we surface that as "—" so the user
+     * understands the OS hides it, rather than mistakenly thinking it's denied.
+     */
+    private fun collectAppOpsSnapshot(packageName: String, uid: Int): ExpertReport.AppOpsSnapshot {
+        val ops = appOps ?: return ExpertReport.AppOpsSnapshot(emptyList(), isFullyAccessible = false)
+        val curated = listOf(
+            AppOpsManager.OPSTR_FINE_LOCATION,
+            AppOpsManager.OPSTR_COARSE_LOCATION,
+            AppOpsManager.OPSTR_CAMERA,
+            AppOpsManager.OPSTR_RECORD_AUDIO,
+            AppOpsManager.OPSTR_READ_CONTACTS,
+            AppOpsManager.OPSTR_WRITE_CONTACTS,
+            AppOpsManager.OPSTR_READ_SMS,
+            AppOpsManager.OPSTR_SEND_SMS,
+            AppOpsManager.OPSTR_BODY_SENSORS,
+            AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW,
+            AppOpsManager.OPSTR_WRITE_SETTINGS,
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+        )
+        var anyAccessible = false
+        val entries = curated.map { op ->
+            val mode = try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ops.unsafeCheckOpNoThrow(op, uid, packageName)
+                } else {
+                    @Suppress("DEPRECATION")
+                    ops.checkOpNoThrow(op, uid, packageName)
+                }
+            } catch (e: SecurityException) {
+                APP_OP_MODE_UNAVAILABLE
+            } catch (e: IllegalArgumentException) {
+                APP_OP_MODE_UNAVAILABLE
+            }
+            if (mode != APP_OP_MODE_UNAVAILABLE && mode != AppOpsManager.MODE_DEFAULT) {
+                anyAccessible = true
+            }
+            ExpertReport.AppOpEntry(
+                op        = op,
+                mode      = mode,
+                modeLabel = formatAppOpMode(mode),
+            )
+        }
+        return ExpertReport.AppOpsSnapshot(entries = entries, isFullyAccessible = anyAccessible)
+    }
+
+    private fun formatAppOpMode(mode: Int): String = when (mode) {
+        AppOpsManager.MODE_ALLOWED  -> "Allowed"
+        AppOpsManager.MODE_IGNORED  -> "Ignored"
+        AppOpsManager.MODE_ERRORED  -> "Denied"
+        AppOpsManager.MODE_DEFAULT  -> "Default"
+        else                        -> "—"
+    }
+
+    /**
+     * Reads `ApplicationInfo.primaryCpuAbi` via reflection — it's a system-API
+     * field exposed since API 21 but never added to the public SDK. Returns null
+     * when the field is missing on the running OS or when the app ships no
+     * native code (then `nativeLibraryDir` is also typically absent).
+     */
+    private fun readPrimaryAbi(ai: ApplicationInfo): String? = try {
+        val field = ApplicationInfo::class.java.getDeclaredField("primaryCpuAbi")
+        field.isAccessible = true
+        (field.get(ai) as? String)?.takeIf { it.isNotBlank() }
+    } catch (e: NoSuchFieldException) {
+        null
+    } catch (e: SecurityException) {
+        null
+    } catch (e: IllegalAccessException) {
+        null
+    }
+
+    /**
+     * Collects all signers, hashes the first signer to SHA-256, and detects
+     * debug-signed APKs by parsing the certificate Subject DN. Apps signed
+     * with the AOSP debug keystore (Android SDK) always carry
+     * `CN=Android Debug,O=Android,C=US` — a useful red flag when an inspector
+     * spots one shipped to a production device.
+     */
+    @Suppress("DEPRECATION")
+    private fun collectSignature(packageName: String): ExpertReport.SignatureInfo {
+        val signers: Array<Signature>? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val info = packageManager.getPackageInfo(
+                packageName,
+                PackageManager.GET_SIGNING_CERTIFICATES,
+            )
+            info.signingInfo?.apkContentsSigners
+        } else {
+            packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES).signatures
+        }
+        if (signers.isNullOrEmpty()) {
+            return ExpertReport.SignatureInfo(sha256 = null, signerCount = 0, isDebugSigned = false)
+        }
+        val first = signers.first()
+        val sha = hashSha256Hex(first.toByteArray())
+        return ExpertReport.SignatureInfo(
+            sha256        = sha,
+            signerCount   = signers.size,
+            isDebugSigned = isDebugSignerCert(first),
+        )
+    }
+
+    private fun isDebugSignerCert(signer: Signature): Boolean = try {
+        val cf = java.security.cert.CertificateFactory.getInstance("X.509")
+        val cert = cf.generateCertificate(signer.toByteArray().inputStream())
+            as? java.security.cert.X509Certificate
+            ?: return false
+        cert.subjectX500Principal.name.contains(DEBUG_SIGNER_DN_SUBSTRING, ignoreCase = true)
+    } catch (e: java.security.cert.CertificateException) {
+        false
+    } catch (e: IllegalArgumentException) {
+        false
+    }
+
+    // -----------------------------------------------------------------------
     // Permission probes
     // -----------------------------------------------------------------------
 
@@ -555,5 +816,21 @@ class AppInfoRepositoryImpl @Inject constructor(
         /** Look back 30 days when aggregating UsageStats — enough for "rarely used" detection. */
         private const val USAGE_LOOKBACK_MS: Long = 30L * 24 * 60 * 60 * 1000
         // MS_PER_DAY now imported from core.ext.TimeConstants (VII C1 fix — single source).
+
+        /**
+         * Sentinel value for [collectAppOpsSnapshot] when the OS refused or
+         * threw on a probe. Distinct from `AppOpsManager.MODE_*` constants
+         * (0..4) so the UI can render "—" instead of misreporting a denial.
+         */
+        private const val APP_OP_MODE_UNAVAILABLE: Int = -1
+
+        /**
+         * Heuristic to detect dev / debug-signed APKs by their certificate
+         * Subject DN. The AOSP debug keystore (Android SDK, `debug.keystore`)
+         * always signs with `CN=Android Debug,O=Android,C=US`. The SHA-256 of
+         * that certificate varies across JVMs / SDK versions, so a hardcoded
+         * fingerprint would be unreliable — the subject DN does not.
+         */
+        private const val DEBUG_SIGNER_DN_SUBSTRING: String = "CN=Android Debug"
     }
 }

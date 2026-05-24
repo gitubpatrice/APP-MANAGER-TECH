@@ -645,4 +645,106 @@
     <string name="settings_retention_365_days">1 an</string>
     <string name="settings_retention_picker_title">Conservation de l\'historique</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.2.2 — Mode expert (inspecteur avancé depuis Détail d\'app)     -->
+    <!-- ================================================================ -->
+    <string name="screen_expert_title">Mode expert</string>
+    <string name="app_detail_open_expert">Mode expert (composants internes)</string>
+    <string name="expert_info_banner_body">Inspection en lecture seule. Modifier les composants, refuser des app-ops ou réécrire les permissions accordées nécessite ADB, Shizuku ou root — volontairement hors périmètre.</string>
+
+    <string name="expert_section_identity">Identité</string>
+    <string name="expert_section_sdk">Cible SDK</string>
+    <string name="expert_section_native">Code natif</string>
+    <string name="expert_section_apk_paths">Chemins APK</string>
+    <string name="expert_section_signature">Signature</string>
+    <string name="expert_section_components_count">Composants (%1$d déclarés / %2$d exportés)</string>
+    <string name="expert_section_permissions_count">Permissions (%1$d déclarées / %2$d accordées)</string>
+    <string name="expert_section_app_ops">App ops</string>
+
+    <string name="expert_field_label">Libellé</string>
+    <string name="expert_field_package">Package</string>
+    <string name="expert_field_version">Version</string>
+    <string name="expert_field_uid">UID</string>
+    <string name="expert_field_installer">Installeur</string>
+    <string name="expert_field_first_install">1ère installation</string>
+    <string name="expert_field_last_update">Dernière mise à jour</string>
+    <string name="expert_field_app_type">Type d\'app</string>
+    <string name="expert_field_state">État</string>
+    <string name="expert_field_min_sdk">minSdk</string>
+    <string name="expert_field_target_sdk">targetSdk</string>
+    <string name="expert_field_compile_sdk">compileSdk</string>
+    <string name="expert_field_primary_abi">ABI principale</string>
+    <string name="expert_field_native_lib_dir">Dossier libs natives</string>
+    <string name="expert_field_apk_base">APK base</string>
+    <string name="expert_field_apk_public">Chemin APK public</string>
+    <string name="expert_field_apk_splits">APK splittés</string>
+    <string name="expert_field_apk_splits_n">APK splittés (%1$d)</string>
+    <string name="expert_field_signers">Signataires</string>
+    <string name="expert_field_signature_sha256">SHA-256 signature</string>
+
+    <string name="expert_value_unavailable">Non disponible</string>
+    <string name="expert_value_no_native">Aucun code natif</string>
+    <string name="expert_value_no_splits">Pas de split (APK monolithique)</string>
+    <string name="expert_value_system_app">Système</string>
+    <string name="expert_value_user_app">Utilisateur</string>
+    <string name="expert_value_enabled">Activée</string>
+    <string name="expert_value_disabled">Désactivée</string>
+
+    <string name="expert_signature_debug_warning">Signé avec le keystore AOSP de debug — probablement une version de développement.</string>
+
+    <string name="expert_components_activities">Activités (%1$d)</string>
+    <string name="expert_components_services">Services (%1$d)</string>
+    <string name="expert_components_receivers">Receivers (%1$d)</string>
+    <string name="expert_components_providers">Providers (%1$d)</string>
+    <string name="expert_components_none">Aucun déclaré.</string>
+    <string name="expert_chip_exported">Exporté</string>
+    <string name="expert_chip_internal">Interne</string>
+    <string name="expert_chip_disabled">Désactivé</string>
+    <string name="expert_chip_gated">Protégé par permission</string>
+    <string name="expert_chip_grant_uri">grantUriPermissions</string>
+    <string name="expert_provider_authority">Authority : %1$s</string>
+    <string name="expert_provider_read_perm">Permission lecture : %1$s</string>
+    <string name="expert_provider_write_perm">Permission écriture : %1$s</string>
+
+    <string name="expert_permissions_none_declared">Aucune permission déclarée.</string>
+    <string name="expert_permission_dangerous">Dangereuse (demande runtime)</string>
+
+    <string name="expert_app_ops_intro">Sous-ensemble sélectionné d\'AppOps. La plupart des ops sont protégées par GET_APP_OPS_STATS (signature) sur Android standard et apparaissent en Default quand l\'OS les masque.</string>
+    <string name="expert_app_ops_limited">Visibilité limitée — l\'OS n\'expose que les app-ops que l\'appelant peut interroger sans root.</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.2.2 — Export PDF diagnostic                                   -->
+    <!-- ================================================================ -->
+    <string name="export_format_pdf">PDF (rapport diagnostic)</string>
+    <string name="export_action_pdf">Exporter le diagnostic PDF</string>
+    <string name="export_pdf_description">Un rapport diagnostic imprimable avec profil de l\'appareil, inventaire, permissions dangereuses, traqueurs et problèmes détectés — adapté au support familial / professionnel.</string>
+    <string name="export_pdf_section_export">Rapport diagnostic</string>
+
+    <string name="pdf_title">App Manager Tech — Rapport diagnostic</string>
+    <string name="pdf_generated_at">Généré le %1$s</string>
+    <string name="pdf_page_footer">Page %1$d</string>
+    <string name="pdf_section_device">Appareil</string>
+    <string name="pdf_section_amt">App Manager Tech</string>
+    <string name="pdf_section_inventory">Applications installées (utilisateur)</string>
+    <string name="pdf_section_dangerous_perms">Apps avec permissions dangereuses accordées</string>
+    <string name="pdf_section_sideloaded">Apps installées hors stores connus</string>
+    <string name="pdf_section_sensitive_access">Apps avec accès sensible (admin appareil / accessibilité)</string>
+    <string name="pdf_section_issues">Problèmes détectés</string>
+    <string name="pdf_label_manufacturer">Constructeur</string>
+    <string name="pdf_label_model">Modèle</string>
+    <string name="pdf_label_android">Android</string>
+    <string name="pdf_label_sdk">SDK</string>
+    <string name="pdf_label_total_storage">Stockage interne total</string>
+    <string name="pdf_label_free_storage">Stockage interne libre</string>
+    <string name="pdf_label_amt_version">Version</string>
+    <string name="pdf_label_amt_signature">SHA-256 signature</string>
+    <string name="pdf_label_amt_apps_tracked">Apps suivies</string>
+    <string name="pdf_inventory_header">Libellé · Package · Version · Installeur · Total</string>
+    <string name="pdf_issue_zombies">%1$d app(s) désactivée(s) / jamais utilisée(s)</string>
+    <string name="pdf_issue_rarely_used">%1$d app(s) rarement utilisée(s) (≥ 60 jours)</string>
+    <string name="pdf_issue_oversized">%1$d app(s) de plus de 200 Mo</string>
+    <string name="pdf_issue_sideloaded">%1$d app(s) installée(s) hors stores connus</string>
+    <string name="pdf_issue_none">Aucun problème détecté.</string>
+    <string name="pdf_no_apps">Aucune application à reporter.</string>
+
 </resources>

@@ -1,0 +1,10 @@
+v0.2.2 — Mode expert + Export PDF diagnostic
+
+- Mode expert (depuis Fiche app, lecture seule) :
+  activités, services, receivers, providers + flag exporté,
+  permissions déclarées/accordées + tag dangereuse, UID,
+  SDK (min/target/compile), ABI, chemins APK + splits,
+  SHA-256 + détection debug, app-ops curées.
+- Export PDF diagnostic (natif AOSP, F-Droid friendly) :
+  appareil, AMT, problèmes, inventaire, perms dangereuses,
+  sideload, accès sensible. A4 SAF, aucune nouvelle perm.

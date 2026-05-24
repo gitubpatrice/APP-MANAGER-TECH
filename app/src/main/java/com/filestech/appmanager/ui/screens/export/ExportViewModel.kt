@@ -57,7 +57,35 @@ class ExportViewModel @Inject constructor(
         _state.update { it.copy(isExporting = true) }
         viewModelScope.launch {
             val format = preferredFormat.value
-            when (val outcome = exportReport(uri, format, includeSystemApps)) {
+            // The JSON/CSV launcher must never produce a PDF Uri. If the
+            // persisted preference somehow drifted to PDF (legacy migration,
+            // race during in-flight format change), coerce back to JSON to
+            // keep the lightweight backup pipeline reachable.
+            val safeFormat = if (format == ExportFormat.PDF) ExportFormat.JSON else format
+            when (val outcome = exportReport(uri, safeFormat, includeSystemApps)) {
+                is Outcome.Success -> {
+                    _state.update { it.copy(isExporting = false, lastReport = outcome.value) }
+                    _events.trySend(Event.Done(outcome.value))
+                }
+                is Outcome.Failure -> {
+                    _state.update { it.copy(isExporting = false) }
+                    _events.trySend(Event.ShowError(outcome.error.toString()))
+                }
+                Outcome.Loading -> Unit
+            }
+        }
+    }
+
+    /**
+     * v0.2.2 — Streams the Diagnostic PDF to a user-picked SAF Uri. Bypasses
+     * the JSON/CSV format preference because the PDF SAF launcher pins MIME =
+     * `application/pdf` and the export pipeline is fundamentally different
+     * (uses [BuildDiagnosticReportUseCase] under the hood).
+     */
+    fun exportDiagnosticPdf(uri: Uri) {
+        _state.update { it.copy(isExporting = true) }
+        viewModelScope.launch {
+            when (val outcome = exportReport(uri, ExportFormat.PDF, includeSystemApps = false)) {
                 is Outcome.Success -> {
                     _state.update { it.copy(isExporting = false, lastReport = outcome.value) }
                     _events.trySend(Event.Done(outcome.value))

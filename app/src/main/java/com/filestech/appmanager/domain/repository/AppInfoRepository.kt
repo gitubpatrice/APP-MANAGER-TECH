@@ -2,6 +2,7 @@ package com.filestech.appmanager.domain.repository
 
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppInfo
+import com.filestech.appmanager.domain.model.ExpertReport
 import com.filestech.appmanager.domain.model.FilterOptions
 import com.filestech.appmanager.domain.model.StorageReport
 import kotlinx.coroutines.flow.Flow
@@ -103,6 +104,18 @@ interface AppInfoRepository {
      * colon-separated uppercase hex (e.g. `AB:CD:EF:...`).
      */
     suspend fun getSignatureSha256(packageName: String): Outcome<String>
+
+    /**
+     * v0.2.2 — Expert Mode payload: identity / SDK / ABI / APK paths / signature /
+     * declared components (activities, services, receivers, providers, with the
+     * `exported` flag) / permissions / app-ops best-effort.
+     *
+     * Read live from PackageManager — NOT cached. The OS may surface fewer app-ops
+     * than requested when the caller lacks `GET_APP_OPS_STATS` (the common case on
+     * non-rooted devices); the report carries an `isFullyAccessible` flag and a
+     * pre-rendered mode label so the UI never has to format raw constants.
+     */
+    suspend fun getExpertReport(packageName: String): Outcome<ExpertReport>
 
     // -----------------------------------------------------------------------
     // Permission probes (no side effect)

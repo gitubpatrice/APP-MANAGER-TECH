@@ -111,9 +111,12 @@ fun CleanerSettingsScreen(
         )
     }
     if (exportDialog) {
+        // v0.2.2 — PDF is a one-shot diagnostic action with its own SAF launcher
+        // on the Export screen; it is intentionally NOT exposed as a persistable
+        // default format here.
         RadioPickerDialog(
             title    = stringResource(R.string.cleaner_export_format_title),
-            options  = ExportFormat.entries,
+            options  = listOf(ExportFormat.JSON, ExportFormat.CSV),
             selected = settings.scanner.exportFormat,
             labelOf  = { exportFormatLabel(it) },
             onSelect = viewModel::setExportFormat,
@@ -214,6 +217,9 @@ private fun exportFormatLabel(format: ExportFormat): String = stringResource(
     when (format) {
         ExportFormat.JSON -> R.string.export_format_json
         ExportFormat.CSV  -> R.string.export_format_csv
+        // PDF is never offered as a persistable default in this picker, but the
+        // enum is exhaustive — fall through to its label for safety.
+        ExportFormat.PDF  -> R.string.export_format_pdf
     }
 )
 

@@ -5,6 +5,7 @@ import android.net.Uri
 import com.filestech.appmanager.core.result.AppError
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.runCatchingOutcome
+import com.filestech.appmanager.data.system.PdfDocumentBuilder
 import com.filestech.appmanager.domain.model.ExportFormat
 import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.AppSummary
@@ -33,6 +34,8 @@ class ExportReportUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     @IoDispatcher private val io: CoroutineDispatcher,
     private val backup: BackupAppListUseCase,
+    private val buildDiagnostic: BuildDiagnosticReportUseCase,
+    private val pdfBuilder: PdfDocumentBuilder,
 ) {
 
     suspend operator fun invoke(
@@ -40,6 +43,22 @@ class ExportReportUseCase @Inject constructor(
         format: ExportFormat,
         includeSystemApps: Boolean = false,
     ): Outcome<ExportReport> = runCatchingOutcome(mapError = { AppError.Unknown(it) }) {
+        when (format) {
+            ExportFormat.JSON,
+            ExportFormat.CSV -> exportBackup(destination, format, includeSystemApps)
+            ExportFormat.PDF -> exportDiagnosticPdf(destination)
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // JSON / CSV — lightweight backup snapshot
+    // -----------------------------------------------------------------------
+
+    private suspend fun exportBackup(
+        destination: Uri,
+        format: ExportFormat,
+        includeSystemApps: Boolean,
+    ): ExportReport {
         val snapshot = when (val r = backup(includeSystemApps)) {
             is Outcome.Success -> r.value
             is Outcome.Failure -> throw IllegalStateException(r.error.toString())
@@ -48,6 +67,7 @@ class ExportReportUseCase @Inject constructor(
         val payload = when (format) {
             ExportFormat.JSON -> renderJson(snapshot).toByteArray(Charsets.UTF_8)
             ExportFormat.CSV  -> renderCsv(snapshot).toByteArray(Charsets.UTF_8)
+            ExportFormat.PDF  -> error("PDF dispatched separately")
         }
         val displayPath = destination.lastPathSegment ?: destination.toString()
         withContext(io) {
@@ -55,10 +75,41 @@ class ExportReportUseCase @Inject constructor(
                 ?.use { it.write(payload) }
                 ?: throw java.io.IOException("Cannot open output stream for $destination")
         }
-        ExportReport(
+        return ExportReport(
             format       = format,
             bytesWritten = payload.size.toLong(),
             appCount     = snapshot.apps.size,
+            displayPath  = displayPath,
+        )
+    }
+
+    // -----------------------------------------------------------------------
+    // PDF — diagnostic report
+    // -----------------------------------------------------------------------
+
+    /**
+     * Streams the PDF directly to the SAF Uri — keeps memory bounded for large
+     * inventories (every page is written incrementally by PdfDocument.writeTo).
+     *
+     * The caller's `ActivityResultContracts.CreateDocument("application/pdf")`
+     * gives us the right MIME on disk; no need to override it here.
+     */
+    private suspend fun exportDiagnosticPdf(destination: Uri): ExportReport {
+        val report = when (val r = buildDiagnostic()) {
+            is Outcome.Success -> r.value
+            is Outcome.Failure -> throw IllegalStateException(r.error.toString())
+            Outcome.Loading    -> throw IllegalStateException("Unexpected Loading")
+        }
+        val displayPath = destination.lastPathSegment ?: destination.toString()
+        val written = withContext(io) {
+            context.contentResolver.openOutputStream(destination, "wt")
+                ?.use { stream -> pdfBuilder.render(report, stream) }
+                ?: throw java.io.IOException("Cannot open output stream for $destination")
+        }
+        return ExportReport(
+            format       = ExportFormat.PDF,
+            bytesWritten = written,
+            appCount     = report.inventory.size,
             displayPath  = displayPath,
         )
     }

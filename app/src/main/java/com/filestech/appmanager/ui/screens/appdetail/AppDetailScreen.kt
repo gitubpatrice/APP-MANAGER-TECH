@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.DataObject
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.PowerSettingsNew
@@ -113,6 +114,11 @@ fun AppDetailScreen(
      * usable in isolation (tests, previews) without breaking the signature.
      */
     onOpenTrash: () -> Unit = {},
+    /**
+     * v0.2.2 — navigates to the Expert Mode screen for the current package.
+     * Default {} preserves backward compat for previews / tests.
+     */
+    onOpenExpert: () -> Unit = {},
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -237,6 +243,7 @@ fun AppDetailScreen(
             onToggleIgnore           = viewModel::toggleIgnore,
             onRequestUsageStatsPerm  = viewModel::openUsageAccessSettings,
             onOpenTrash              = onOpenTrash,
+            onOpenExpert             = onOpenExpert,
         )
     }
 
@@ -387,6 +394,7 @@ private fun AppDetailBody(
     onToggleIgnore: () -> Unit,
     onRequestUsageStatsPerm: () -> Unit,
     onOpenTrash: () -> Unit,
+    onOpenExpert: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -426,6 +434,7 @@ private fun AppDetailBody(
                     onOpenPermissionsSettings = onOpenPermissionsSettings,
                     onToggleIgnore            = onToggleIgnore,
                     onOpenTrash               = onOpenTrash,
+                    onOpenExpert              = onOpenExpert,
                 )
             }
         }
@@ -447,6 +456,7 @@ private fun AppDetailContent(
     onOpenPermissionsSettings: () -> Unit,
     onToggleIgnore: () -> Unit,
     onOpenTrash: () -> Unit,
+    onOpenExpert: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -486,6 +496,22 @@ private fun AppDetailContent(
         )
         SectionHeader(stringResource(R.string.app_detail_section_install_info))
         InstallInfoCard(detail.info)
+        // v0.2.2 — entry point to the Expert Mode (advanced inspector). Kept
+        // at the bottom so it doesn't compete visually with the action card.
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick  = onOpenExpert,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+        ) {
+            Icon(
+                imageVector        = Icons.Outlined.DataObject,
+                contentDescription = null,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(R.string.app_detail_open_expert))
+        }
     }
 }
 
