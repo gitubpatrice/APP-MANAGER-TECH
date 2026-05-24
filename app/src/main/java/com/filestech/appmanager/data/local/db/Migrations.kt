@@ -120,6 +120,53 @@ object Migrations {
     }
 
     /**
+     * v0.3.0 — App Lifecycle History feature.
+     *
+     * Adds the `app_lifecycle_event` append-only log: one row per OS broadcast
+     * (`PACKAGE_ADDED` / `_REMOVED` / `_REPLACED`) plus a one-shot BASELINE
+     * row per already-installed app inserted on first launch post-upgrade.
+     *
+     * Three indices (each `IF NOT EXISTS` for idempotency):
+     *  - `(package_name, captured_at)` composite — per-package timeline +
+     *    `latestByPackage` lookup.
+     *  - `captured_at` — global timeline + retention purge.
+     *  - `type` — "all UNINSTALLED" filter for the reason-aggregation UX.
+     */
+    val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `app_lifecycle_event` (
+                  `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                  `package_name` TEXT NOT NULL,
+                  `label` TEXT,
+                  `type` TEXT NOT NULL,
+                  `captured_at` INTEGER NOT NULL,
+                  `version_name` TEXT,
+                  `version_code` INTEGER NOT NULL,
+                  `installer_package` TEXT,
+                  `total_size_bytes` INTEGER NOT NULL DEFAULT 0,
+                  `granted_dangerous_perms` TEXT,
+                  `user_reason` TEXT
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_app_lifecycle_event_package_name_captured_at` " +
+                    "ON `app_lifecycle_event` (`package_name`, `captured_at`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_app_lifecycle_event_captured_at` " +
+                    "ON `app_lifecycle_event` (`captured_at`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_app_lifecycle_event_type` " +
+                    "ON `app_lifecycle_event` (`type`)",
+            )
+        }
+    }
+
+    /**
      * All migrations in version order. Spread (`*ALL_MIGRATIONS`) into
      * `Room.databaseBuilder(...).addMigrations()`.
      */
@@ -127,5 +174,6 @@ object Migrations {
         MIGRATION_1_2,
         MIGRATION_2_3,
         MIGRATION_3_4,
+        MIGRATION_4_5,
     )
 }

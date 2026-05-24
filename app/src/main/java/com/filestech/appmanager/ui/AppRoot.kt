@@ -13,6 +13,8 @@ import com.filestech.appmanager.ui.shell.HomeShell
 import com.filestech.appmanager.ui.screens.expert.ExpertScreen
 import com.filestech.appmanager.ui.screens.export.ExportScreen
 import com.filestech.appmanager.ui.screens.ignorelist.IgnoreListScreen
+import com.filestech.appmanager.ui.screens.lifecycle.LifecycleHistoryScreen
+import com.filestech.appmanager.ui.screens.lifecycle.LifecycleReasonHost
 import com.filestech.appmanager.ui.screens.permissiondrift.PermissionDriftScreen
 import com.filestech.appmanager.ui.screens.permissionfilter.PermissionFilterScreen
 import com.filestech.appmanager.ui.screens.quarantine.QuarantinePickerScreen
@@ -61,6 +63,11 @@ import com.filestech.appmanager.ui.screens.zombies.ZombiesScreen
 fun AppRoot() {
     val navController = rememberNavController()
 
+    // v0.3.0 — global host for the uninstall-reason dialog. Mounted once
+    // outside the NavHost so the dialog can pop on ANY destination when
+    // PackageMonitor records an UNINSTALLED event.
+    LifecycleReasonHost()
+
     NavHost(
         navController = navController,
         startDestination = NavRoute.AppList.route,
@@ -87,6 +94,7 @@ fun AppRoot() {
                 onNavigateToTrash            = { navController.navigate(NavRoute.Trash.route) { launchSingleTop = true } },
                 onNavigateToPermissionDrift  = { navController.navigate(NavRoute.PermissionDrift.route) { launchSingleTop = true } },
                 onNavigateToQuarantine       = { navController.navigate(NavRoute.Quarantine.route) { launchSingleTop = true } },
+                onNavigateToLifecycle        = { navController.navigate(NavRoute.Lifecycle.route) { launchSingleTop = true } },
             )
         }
 
@@ -228,6 +236,14 @@ fun AppRoot() {
             QuarantinePickerScreen(onBack = { navController.popBackStack() })
         }
 
+        // v0.3.0 — App Lifecycle History
+        composable(NavRoute.Lifecycle.route) {
+            LifecycleHistoryScreen(
+                onBack      = { navController.popBackStack() },
+                onItemClick = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+            )
+        }
+
         // v0.2.2 — Expert Mode (advanced inspector)
         composable(
             route = NavRoute.Expert.route,
@@ -301,4 +317,7 @@ sealed class NavRoute(val route: String) {
         fun buildRoute(packageName: String): String =
             "expert/${android.net.Uri.encode(packageName)}"
     }
+
+    // v0.3.0 — App Lifecycle History
+    data object Lifecycle : NavRoute("lifecycle")
 }

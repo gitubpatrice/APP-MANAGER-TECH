@@ -98,6 +98,7 @@ fun SettingsScreen(
     var themeDialog by rememberSaveable { mutableStateOf(false) }
     var sortDialog by rememberSaveable { mutableStateOf(false) }
     var retentionDialog by rememberSaveable { mutableStateOf(false) }
+    var lifecycleRetentionDialog by rememberSaveable { mutableStateOf(false) }
 
     // SAF folder picker for the HARD-mode APK backup destination.
     // OPEN_DOCUMENT_TREE returns a content:// tree URI; we take a persistable
@@ -148,6 +149,10 @@ fun SettingsScreen(
             // v0.2.0 — Quarantine
             onPickBackupFolderClick = { backupFolderLauncher.launch(null) },
             onQuarantineReminderChange = viewModel::setQuarantineRestoreReminderEnabled,
+            // v0.3.0 — Lifecycle History
+            onLifecycleEnabledChange       = viewModel::setLifecycleEnabled,
+            onLifecycleRetentionClick      = { lifecycleRetentionDialog = true },
+            onLifecyclePromptReasonChange  = viewModel::setLifecyclePromptReason,
             onAboutClick         = onOpenAbout,
             onCleanerClick       = onOpenCleaner,
             onIgnoreListClick    = onOpenIgnoreList,
@@ -197,6 +202,23 @@ fun SettingsScreen(
             onDismiss = { retentionDialog = false },
         )
     }
+
+    if (lifecycleRetentionDialog) {
+        // v0.3.0 — lifecycle retention picker. Re-uses the existing
+        // [RetentionOption] enum for parity with the drift tracker UX —
+        // both features speak in the same 30/90/180/365 vocabulary so the
+        // user doesn't have to learn a second mental model. The floor is
+        // higher in storage (30) but DataStore coerces silently if the
+        // saved value falls below.
+        RadioPickerDialog(
+            title    = stringResource(R.string.settings_retention_picker_title),
+            options  = RetentionOption.entries.toList(),
+            selected = RetentionOption.closestTo(settings.lifecycle.retentionDays),
+            labelOf  = { stringResource(it.labelRes) },
+            onSelect = { viewModel.setLifecycleRetentionDays(it.days) },
+            onDismiss = { lifecycleRetentionDialog = false },
+        )
+    }
 }
 
 /**
@@ -234,6 +256,9 @@ private fun SettingsBody(
     onPermissionDriftNotifyChange: (Boolean) -> Unit,
     onPickBackupFolderClick: () -> Unit,
     onQuarantineReminderChange: (Boolean) -> Unit,
+    onLifecycleEnabledChange: (Boolean) -> Unit,
+    onLifecycleRetentionClick: () -> Unit,
+    onLifecyclePromptReasonChange: (Boolean) -> Unit,
     onAboutClick: () -> Unit,
     onCleanerClick: () -> Unit,
     onIgnoreListClick: () -> Unit,
@@ -361,6 +386,31 @@ private fun SettingsBody(
                 description    = stringResource(R.string.settings_quarantine_reminder_desc),
                 checked        = settings.quarantine.restoreReminderEnabled,
                 onCheckedChange = onQuarantineReminderChange,
+            )
+        }
+
+        // v0.3.0 — Lifecycle History
+        SectionHeader(stringResource(R.string.settings_section_lifecycle))
+        SettingsCard {
+            ToggleRow(
+                title          = stringResource(R.string.settings_lifecycle_enabled_title),
+                description    = stringResource(R.string.settings_lifecycle_enabled_desc),
+                checked        = settings.lifecycle.enabled,
+                onCheckedChange = onLifecycleEnabledChange,
+            )
+            NavigationRow(
+                title          = stringResource(R.string.settings_lifecycle_retention_title),
+                currentValue   = stringResource(
+                    R.string.settings_lifecycle_retention_desc,
+                    settings.lifecycle.retentionDays,
+                ),
+                onClick        = onLifecycleRetentionClick,
+            )
+            ToggleRow(
+                title          = stringResource(R.string.settings_lifecycle_prompt_reason_title),
+                description    = stringResource(R.string.settings_lifecycle_prompt_reason_desc),
+                checked        = settings.lifecycle.promptReason,
+                onCheckedChange = onLifecyclePromptReasonChange,
             )
         }
 

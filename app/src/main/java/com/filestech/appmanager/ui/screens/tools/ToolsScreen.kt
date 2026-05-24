@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.outlined.SentimentSatisfied
+import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.CardDefaults
@@ -92,6 +93,7 @@ fun ToolsScreen(
     onTrash: () -> Unit,
     onPermissionDrift: () -> Unit,
     onQuarantine: () -> Unit,
+    onLifecycle: () -> Unit,
     onSettings: () -> Unit,
 ) {
     // 12 tools — recomputed each composition (cheap; lambda keys change
@@ -119,6 +121,11 @@ fun ToolsScreen(
         // tools).
         ToolEntry(R.string.screen_permission_drift_title,    R.string.tool_subtitle_permission_drift, Icons.Outlined.History,            ToolColors.IndigoDeep, onPermissionDrift),
         ToolEntry(R.string.screen_quarantine_title,          R.string.tool_subtitle_quarantine,       Icons.Outlined.Inventory2,         ToolColors.Slate,      onQuarantine),
+        // v0.3.0 — App Lifecycle History (install/uninstall/replace timeline
+        // with optional user-entered uninstall reason). Distinct hue from
+        // the existing IndigoDeep / Slate to avoid visual confusion with the
+        // sibling privacy / quarantine tools.
+        ToolEntry(R.string.screen_lifecycle_title,           R.string.tool_subtitle_lifecycle,        Icons.Outlined.Timeline,           ToolColors.Burgundy,   onLifecycle),
     )
 
     Scaffold(
@@ -260,5 +267,11 @@ private object ToolColors {
     // v0.2.0 additions — both ≥4.5:1 on Material's light + dark surfaceContainerLow:
     val IndigoDeep = Color(0xFF283593) // Material Indigo 800 — distinct from Indigo (600) used by PermissionFilter
     val Slate      = Color(0xFF455A64) // Material Blue Grey 700 — neutral / utilitarian
+
+    // v0.3.0 addition — burgundy (Pink 900) for the Lifecycle timeline card.
+    // 5.94:1 on light surfaceContainerLow, 5.44:1 on dark — passes WCAG AA
+    // for bodyMedium/SemiBold (4.5:1 floor). Distinct hue from IndigoDeep
+    // (privacy drift) + Slate (quarantine) + Coral (security audit).
+    val Burgundy   = Color(0xFF880E4F) // Material Pink 900
 }
 

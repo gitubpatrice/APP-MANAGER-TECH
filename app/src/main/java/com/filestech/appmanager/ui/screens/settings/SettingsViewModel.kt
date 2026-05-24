@@ -130,5 +130,30 @@ class SettingsViewModel @Inject constructor(
         workScheduler.applyQuarantineRestoreScheduling(enabled = enabled)
     }
 
+    // -----------------------------------------------------------------------
+    // Lifecycle History (v0.3.0)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Master toggle. MainApplication's `observeLifecycleToggle` reacts to this
+     * change to register / unregister [com.filestech.appmanager.data.system.PackageMonitor]
+     * and to schedule / cancel the purge worker — we therefore only need to
+     * persist the value here. The cross-process WorkScheduler call IS still
+     * fired for parity with the other features so the toggle is immediately
+     * effective even before MainApplication's flow collector ticks.
+     */
+    fun setLifecycleEnabled(enabled: Boolean) = viewModelScope.launch {
+        repository.update { copy(lifecycle = lifecycle.copy(enabled = enabled)) }
+        workScheduler.applyLifecyclePurgeScheduling(enabled = enabled)
+    }
+
+    fun setLifecycleRetentionDays(days: Int) = viewModelScope.launch {
+        repository.update { copy(lifecycle = lifecycle.copy(retentionDays = days)) }
+    }
+
+    fun setLifecyclePromptReason(enabled: Boolean) = viewModelScope.launch {
+        repository.update { copy(lifecycle = lifecycle.copy(promptReason = enabled)) }
+    }
+
     // VIII C7 fix: STOP_TIMEOUT_MS factored to core.ext.STATEFLOW_STOP_TIMEOUT_MS.
 }

@@ -7,6 +7,77 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.3.0] — 2026-05-24 — App Lifecycle History
+
+### Added — App Lifecycle History (major feature)
+- **New "Cycle de vie des apps" tool** (Outils tab + Settings tools list).
+  Append-only history of every detected install / uninstall / update event
+  for the apps on the device. Stays on the device, no network.
+- **PackageMonitor** runtime-registered BroadcastReceiver listening to
+  `ACTION_PACKAGE_ADDED` / `_REMOVED` / `_REPLACED`. Gated by the new
+  `lifecycle.enabled` setting → zero overhead when the feature is off.
+  Idempotent register / unregister via `AtomicBoolean` guard.
+- **Baseline scan** on first toggle-on: inserts one `BASELINE` row per
+  already-installed app so the history isn't empty for legacy installs.
+  Idempotent — re-running on later toggle-ons skips packages already
+  baselined via the new `hasBaseline` DAO query.
+- **Optional uninstall-reason dialog**: after each `UNINSTALLED` event,
+  a global host composable (`LifecycleReasonHost`, mounted at the root of
+  `AppRoot`) surfaces a 5-option picker — `Unused` / `Replaced by another` /
+  `Too large` / `Tracker concern` / `Other`. Skippable, gated by
+  `lifecycle.promptReason`.
+- **LifecycleHistoryScreen**: timeline (newest first) with a 30j / 90j /
+  All window picker. Per-row metadata (version, installer, captured-at
+  timestamp, reason chip if present). Tap a row → drill down to AppDetail
+  for apps still installed.
+- **Settings** section "Historique du cycle de vie" with master toggle,
+  retention picker (30/90/180/365 days), reason-prompt toggle.
+- **LifecyclePurgeWorker** (24h cadence): drops rows older than
+  `lifecycle.retentionDays`. Scheduled / cancelled by `WorkScheduler` in
+  lock-step with the master toggle so no background work survives the
+  feature being switched off.
+
+### Added — Architecture
+- New domain models `LifecycleEvent`, `LifecycleEventType` (BASELINE /
+  INSTALLED / UNINSTALLED / REPLACED), `UninstallReason` (5 enum values).
+- New Room v5 table `app_lifecycle_event` (append-only). Migration
+  `MIGRATION_4_5` strictly additive: `CREATE TABLE` + 3 `CREATE INDEX
+  IF NOT EXISTS` (`package_name+captured_at`, `captured_at`, `type`).
+- New `MigrationTest_v4_v5` covering all four prior tables preserved
+  + new table accepts insert + three indices exist.
+- New `AppLifecycleRepository` (interface + impl) with mapper handling
+  pipe-separated dangerous-perm encoding + forward-compat type/reason
+  parsing.
+- New use cases `RecordLifecycleEventUseCase` (broadcast capture path with
+  UNINSTALLED cache fallback so the row stays meaningful even after the
+  OS removes the package), `BaselineLifecycleScanUseCase` (idempotent
+  per-package gate), `ObserveLifecycleEventsUseCase` (window enum →
+  `flatMapLatest` upstream swap), `PurgeLifecycleEventsUseCase`.
+
+### Fixed
+- **MainActivity.kt:87 — FlowOperatorInvokedInComposition** lint error
+  preexisting since v0.1.1. The `settings.flow.map.distinctUntilChanged()`
+  chain was rebuilt on every recomposition; now wrapped in
+  `remember(settings) { ... }` so the derived Flow survives recompositions
+  and the DataStore subscription is established exactly once.
+
+### Changed
+- `DangerousPermissionInspector.isDangerous(perm)` visibility widened from
+  `private` to `public` so `RecordLifecycleEventUseCase` reuses the
+  process-wide protection-level cache when snapshotting an event's granted
+  dangerous-perm list (avoids redundant PM IPC per broadcast).
+
+### Notes
+- Room schema bumped v4 → v5 (additive only, no destructive migration).
+- Cert SHA-256 stable:
+  `76:E8:77:2E:09:95:13:69:40:5F:58:E7:0C:4A:FF:FD:41:C4:68:75:53:C6:CF:A0:3D:08:14:5F:F6:0F:F1:CF`
+- 0 GMS, 0 INTERNET, 0 new runtime permission (broadcasts are exempt — the
+  OS sends them; we only register a receiver).
+- APK size ~2.22 MB (+37 KB vs v0.2.2).
+- Strings FR ↔ EN parity 100% (~30 new keys).
+
+---
+
 ## [0.2.2] — 2026-05-24 — Expert mode + Diagnostic PDF export
 
 ### Added — Expert Mode (advanced inspector)

@@ -116,8 +116,14 @@ class DangerousPermissionInspector @Inject constructor(
      * Unknown permissions (PM throws NameNotFoundException — e.g. a permission
      * declared by an uninstalled app, or a vendor-specific perm) are cached as
      * "not dangerous" → excluded from drift tracking.
+     *
+     * Visibility: public so [com.filestech.appmanager.domain.usecase.RecordLifecycleEventUseCase]
+     * can reuse the process-wide protection-level cache when capturing a
+     * lifecycle event's `granted_dangerous_perms` snapshot — re-resolving the
+     * level via a fresh `PackageManager.getPermissionInfo` IPC on every
+     * broadcast would be wasteful.
      */
-    private fun isDangerous(permission: String): Boolean {
+    fun isDangerous(permission: String): Boolean {
         isDangerousCache[permission]?.let { return it }
         val protection = runCatching { pm.getPermissionInfo(permission, 0) }
             .getOrNull()

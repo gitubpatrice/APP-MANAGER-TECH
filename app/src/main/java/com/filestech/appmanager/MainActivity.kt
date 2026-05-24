@@ -83,10 +83,19 @@ class MainActivity : ComponentActivity() {
             // DataStore subscription is paused while the Activity is in
             // background — mirrors the FLAG_SECURE observer above and avoids
             // a background-process battery drain on Android 14+.
-            val appearance by settings.flow
-                .map { it.appearance }
-                .distinctUntilChanged()
-                .collectAsStateWithLifecycle(initialValue = null)
+            //
+            // v0.3.0 fix — Flow operator chain (`map { ... }.distinctUntilChanged()`)
+            // was previously rebuilt on every recomposition, which Compose's
+            // `FlowOperatorInvokedInComposition` lint correctly flagged. The
+            // chain is wrapped in a `remember(settings) {}` so the derived
+            // `Flow<Appearance>` survives recompositions and the upstream
+            // DataStore subscription is established exactly once.
+            val appearanceFlow = androidx.compose.runtime.remember(settings) {
+                settings.flow
+                    .map { it.appearance }
+                    .distinctUntilChanged()
+            }
+            val appearance by appearanceFlow.collectAsStateWithLifecycle(initialValue = null)
 
             val resolvedDarkTheme = when (appearance?.themeMode) {
                 ThemeMode.LIGHT  -> false

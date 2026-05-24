@@ -22,8 +22,11 @@ import org.junit.runner.RunWith
  *   `app_info` + `trash_item` data survive; the two new tables
  *   `permission_snapshot` and `quarantine_entry` accept inserts; the three
  *   new indices are present.
+ * - `MIGRATION_4_5` (v0.3.0 App Lifecycle History): existing data survives;
+ *   the new `app_lifecycle_event` table accepts inserts (with the autoincrement
+ *   PK + default `total_size_bytes`); the three new indices are present.
  *
- * Requires the v1..v4 schemas to be exported under `schemas/` (Room plugin
+ * Requires the v1..v5 schemas to be exported under `schemas/` (Room plugin
  * handles this — checked into git).
  */
 @RunWith(AndroidJUnit4::class)
@@ -247,6 +250,117 @@ class AppDatabaseMigrationTest {
             "index_permission_snapshot_package_name_captured_at",
             "index_permission_snapshot_captured_at",
             "index_quarantine_entry_restore_at",
+        )
+        for (idx in expectedIndices) {
+            migrated.query(
+                "SELECT name FROM sqlite_master WHERE type='index' AND name='$idx'",
+            ).use {
+                assertThat(it.moveToFirst()).isTrue()
+            }
+        }
+
+        migrated.close()
+    }
+
+    @Test
+    fun migrate_v4_to_v5_creates_lifecycle_event_table_and_preserves_data() {
+        // 1. Seed v4 database with rows in app_info, trash_item, permission_snapshot,
+        //    quarantine_entry to verify pre-existing data survives the migration.
+        helper.createDatabase(TEST_DB_NAME, 4).apply {
+            execSQL(
+                """
+                INSERT INTO app_info (
+                  package_name, label, version_name, version_code,
+                  install_size_bytes, cache_size_bytes, data_size_bytes,
+                  first_install_time, last_update_time, last_used_time,
+                  is_system_app, is_uninstallable, is_enabled, category, cached_at,
+                  installer_package, apk_source_dir
+                ) VALUES (
+                  'com.example', 'Example', '1.0', 1,
+                  1000, 100, 500, 0, 0, 0,
+                  0, 1, 1, 'UNDEFINED', 0,
+                  NULL, NULL
+                )
+                """.trimIndent(),
+            )
+            execSQL(
+                """
+                INSERT INTO trash_item (package_name, label, total_size_bytes, added_at)
+                VALUES ('com.test', 'Test', 2048, 1700000000000)
+                """.trimIndent(),
+            )
+            execSQL(
+                """
+                INSERT INTO permission_snapshot
+                  (package_name, permission, granted, captured_at)
+                VALUES ('com.example', 'android.permission.CAMERA', 1, 1700000000000)
+                """.trimIndent(),
+            )
+            execSQL(
+                """
+                INSERT INTO quarantine_entry
+                  (package_name, label, mode, quarantined_at, restore_at, version_name, version_code, apk_backup_uri)
+                VALUES ('com.example', 'Example', 'HARD_UNINSTALL', 1700000000000, 1702000000000, '1.0', 1, 'content://x/y')
+                """.trimIndent(),
+            )
+            close()
+        }
+
+        // 2. Run the v4 → v5 migration.
+        val migrated = helper.runMigrationsAndValidate(
+            TEST_DB_NAME,
+            5,
+            true,
+            Migrations.MIGRATION_4_5,
+        )
+
+        // 3. Pre-existing rows in all four prior tables survive untouched.
+        migrated.query("SELECT package_name FROM app_info").use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("com.example")
+        }
+        migrated.query("SELECT package_name FROM trash_item").use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("com.test")
+        }
+        migrated.query("SELECT permission FROM permission_snapshot").use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("android.permission.CAMERA")
+        }
+        migrated.query("SELECT mode FROM quarantine_entry").use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("HARD_UNINSTALL")
+        }
+
+        // 4. app_lifecycle_event accepts an insert + applies the default total_size_bytes.
+        migrated.execSQL(
+            """
+            INSERT INTO app_lifecycle_event
+              (package_name, label, type, captured_at, version_name, version_code,
+               installer_package, granted_dangerous_perms, user_reason)
+            VALUES ('com.example', 'Example', 'BASELINE', 1700000000000,
+                    '1.0', 1, NULL, '', NULL)
+            """.trimIndent(),
+        )
+        migrated.query(
+            """
+            SELECT package_name, type, total_size_bytes, granted_dangerous_perms, user_reason
+            FROM app_lifecycle_event WHERE package_name = 'com.example'
+            """.trimIndent(),
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("com.example")
+            assertThat(it.getString(1)).isEqualTo("BASELINE")
+            assertThat(it.getLong(2)).isEqualTo(0L) // default 0
+            assertThat(it.getString(3)).isEqualTo("")
+            assertThat(it.isNull(4)).isTrue() // user_reason NULL
+        }
+
+        // 5. The three new indices exist.
+        val expectedIndices = listOf(
+            "index_app_lifecycle_event_package_name_captured_at",
+            "index_app_lifecycle_event_captured_at",
+            "index_app_lifecycle_event_type",
         )
         for (idx in expectedIndices) {
             migrated.query(

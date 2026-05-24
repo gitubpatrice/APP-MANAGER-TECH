@@ -747,4 +747,45 @@
     <string name="pdf_issue_none">Aucun problème détecté.</string>
     <string name="pdf_no_apps">Aucune application à reporter.</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.3.0 — Historique du cycle de vie des applications             -->
+    <!-- ================================================================ -->
+    <string name="screen_lifecycle_title">Cycle de vie des apps</string>
+    <string name="tool_subtitle_lifecycle">Historique installations, mises à jour, désinstallations</string>
+
+    <string name="lifecycle_window_30">30 jours</string>
+    <string name="lifecycle_window_90">90 jours</string>
+    <string name="lifecycle_window_all">Tout</string>
+
+    <string name="lifecycle_empty_title">Aucun événement</string>
+    <string name="lifecycle_empty_body">Activez le suivi dans les Paramètres pour enregistrer les événements d\'installation / désinstallation / mise à jour.</string>
+
+    <string name="lifecycle_type_baseline">Référence</string>
+    <string name="lifecycle_type_installed">Installée</string>
+    <string name="lifecycle_type_uninstalled">Désinstallée</string>
+    <string name="lifecycle_type_replaced">Mise à jour</string>
+
+    <string name="lifecycle_row_meta">v%1$s · installée par %2$s</string>
+    <string name="lifecycle_row_reason">Raison : %1$s</string>
+    <string name="lifecycle_row_open_detail">Ouvrir la fiche de l\'app →</string>
+
+    <string name="lifecycle_reason_unused">Inutilisée</string>
+    <string name="lifecycle_reason_replaced_by_another">Remplacée par une autre app</string>
+    <string name="lifecycle_reason_too_heavy">Trop lourde / Espace insuffisant</string>
+    <string name="lifecycle_reason_privacy_tracker">Traqueur / Vie privée</string>
+    <string name="lifecycle_reason_other">Autre</string>
+
+    <string name="uninstall_reason_title">%1$s désinstallée</string>
+    <string name="uninstall_reason_body">Pourquoi désinstallez-vous cette application ? Optionnel — l\'information reste sur votre appareil.</string>
+    <string name="uninstall_reason_later">Plus tard</string>
+
+    <!-- Paramètres — Historique cycle de vie -->
+    <string name="settings_section_lifecycle">Historique du cycle de vie</string>
+    <string name="settings_lifecycle_enabled_title">Suivre les événements d\'installation / désinstallation</string>
+    <string name="settings_lifecycle_enabled_desc">Enregistre chaque diffusion PACKAGE_ADDED / REMOVED / REPLACED de l\'OS, plus une référence initiale des apps déjà installées. Tout reste sur votre appareil.</string>
+    <string name="settings_lifecycle_retention_title">Conservation de l\'historique</string>
+    <string name="settings_lifecycle_retention_desc">%1$d jours</string>
+    <string name="settings_lifecycle_prompt_reason_title">Demander la raison à la désinstallation</string>
+    <string name="settings_lifecycle_prompt_reason_desc">Affiche éventuellement un dialogue après chaque désinstallation pour attacher une catégorie (inutilisée, remplacée, etc.) à la ligne d\'historique.</string>
+
 </resources>

@@ -1,0 +1,11 @@
+v0.3.0 — Historique du cycle de vie des apps
+
+- Nouvel outil « Cycle de vie » : historique append-only
+  des installations / désinstallations / mises à jour.
+  Receveur opt-in (OFF par défaut). Référence initiale
+  à l'activation : apps déjà installées listées.
+- Dialogue optionnel raison désinstallation (5 choix).
+- Filtre 30j / 90j / Tout sur la timeline.
+- Conservation 30..365j, purge 24h.
+- Sans réseau, sans nouvelle permission.
+- Fix : lint MainActivity FlowOperator.

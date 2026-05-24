@@ -78,6 +78,11 @@ class SettingsRepositoryImpl @Inject constructor(
         val QUAR_BACKUP_TREE_URI       = stringPreferencesKey("quarantine_backup_tree_uri")
         val QUAR_RESTORE_REMINDER      = booleanPreferencesKey("quarantine_restore_reminder")
 
+        // Lifecycle History (v0.3.0)
+        val LIFECYCLE_ENABLED          = booleanPreferencesKey("lifecycle_enabled")
+        val LIFECYCLE_RETENTION_DAYS   = intPreferencesKey("lifecycle_retention_days")
+        val LIFECYCLE_PROMPT_REASON    = booleanPreferencesKey("lifecycle_prompt_reason")
+
         // Ignore list (Phase VI)
         val IGNORED_PACKAGES           = stringSetPreferencesKey("ignored_packages")
     }
@@ -141,6 +146,15 @@ class SettingsRepositoryImpl @Inject constructor(
                 restoreReminderEnabled = this[Keys.QUAR_RESTORE_REMINDER]
                     ?: defaults.quarantine.restoreReminderEnabled,
             ),
+            lifecycle = AppSettings.Lifecycle(
+                enabled = this[Keys.LIFECYCLE_ENABLED]
+                    ?: defaults.lifecycle.enabled,
+                retentionDays = this[Keys.LIFECYCLE_RETENTION_DAYS]
+                    ?.coerceIn(MIN_LIFECYCLE_RETENTION_DAYS, MAX_LIFECYCLE_RETENTION_DAYS)
+                    ?: defaults.lifecycle.retentionDays,
+                promptReason = this[Keys.LIFECYCLE_PROMPT_REASON]
+                    ?: defaults.lifecycle.promptReason,
+            ),
             ignoredPackages = this[Keys.IGNORED_PACKAGES]
                 ?: defaults.ignoredPackages,
         )
@@ -191,6 +205,12 @@ class SettingsRepositoryImpl @Inject constructor(
             }
             prefs[Keys.QUAR_RESTORE_REMINDER]      = updated.quarantine.restoreReminderEnabled
 
+            // Lifecycle (v0.3.0)
+            prefs[Keys.LIFECYCLE_ENABLED]          = updated.lifecycle.enabled
+            prefs[Keys.LIFECYCLE_RETENTION_DAYS]   = updated.lifecycle.retentionDays
+                .coerceIn(MIN_LIFECYCLE_RETENTION_DAYS, MAX_LIFECYCLE_RETENTION_DAYS)
+            prefs[Keys.LIFECYCLE_PROMPT_REASON]    = updated.lifecycle.promptReason
+
             prefs[Keys.IGNORED_PACKAGES]           = updated.ignoredPackages
         }
     }
@@ -199,5 +219,13 @@ class SettingsRepositoryImpl @Inject constructor(
         /** UX-clamped retention range for the drift tracker (defensive read+write). */
         const val MIN_RETENTION_DAYS = 7
         const val MAX_RETENTION_DAYS = 365
+
+        /**
+         * Lifecycle history retention floor is higher than the drift tracker's
+         * because the user-facing UX is "history" not "feed" — a 7-day window
+         * would defeat the purpose. Ceiling matches drift for symmetry.
+         */
+        const val MIN_LIFECYCLE_RETENTION_DAYS = 30
+        const val MAX_LIFECYCLE_RETENTION_DAYS = 365
     }
 }

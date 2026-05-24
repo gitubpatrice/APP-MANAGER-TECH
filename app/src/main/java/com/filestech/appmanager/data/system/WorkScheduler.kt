@@ -8,6 +8,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.filestech.appmanager.domain.model.ScanInterval
 import com.filestech.appmanager.data.system.workers.BackgroundScanWorker
+import com.filestech.appmanager.data.system.workers.LifecyclePurgeWorker
 import com.filestech.appmanager.data.system.workers.PermissionSnapshotWorker
 import com.filestech.appmanager.data.system.workers.QuarantineRestoreWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -136,9 +137,47 @@ class WorkScheduler @Inject constructor(
         Timber.i("Quarantine restore worker scheduled (24h)")
     }
 
+    /**
+     * v0.3.0 — schedules / cancels the [LifecyclePurgeWorker].
+     *
+     * Idempotent ([ExistingPeriodicWorkPolicy.UPDATE]) — re-applying with the
+     * same [enabled] value is a no-op. When [enabled] is false the unique
+     * work is cancelled outright so no purge tick runs after the user opts out.
+     *
+     * The receiver (PackageMonitor) is registered separately at startup time
+     * from MainApplication — this scheduler ONLY owns the periodic purge of
+     * old rows.
+     */
+    fun applyLifecyclePurgeScheduling(enabled: Boolean) {
+        if (!enabled) {
+            workManager.cancelUniqueWork(UNIQUE_LIFECYCLE)
+            Timber.i("Lifecycle purge worker cancelled")
+            return
+        }
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val request = PeriodicWorkRequestBuilder<LifecyclePurgeWorker>(
+            24L,
+            TimeUnit.HOURS,
+        )
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            UNIQUE_LIFECYCLE,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            request,
+        )
+        Timber.i("Lifecycle purge worker scheduled (24h)")
+    }
+
     private companion object {
         const val UNIQUE_NAME             = "app_manager_tech_background_scan"
         const val UNIQUE_PERMISSION_DRIFT = "app_manager_tech_permission_drift"
         const val UNIQUE_QUARANTINE       = "app_manager_tech_quarantine_restore"
+        const val UNIQUE_LIFECYCLE        = "app_manager_tech_lifecycle_purge"
     }
 }

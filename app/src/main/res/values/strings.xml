@@ -754,4 +754,45 @@
     <string name="pdf_issue_none">No issue detected.</string>
     <string name="pdf_no_apps">No app to report.</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.3.0 — App Lifecycle History                                   -->
+    <!-- ================================================================ -->
+    <string name="screen_lifecycle_title">App lifecycle</string>
+    <string name="tool_subtitle_lifecycle">Install, update and uninstall history</string>
+
+    <string name="lifecycle_window_30">30 days</string>
+    <string name="lifecycle_window_90">90 days</string>
+    <string name="lifecycle_window_all">All</string>
+
+    <string name="lifecycle_empty_title">No event yet</string>
+    <string name="lifecycle_empty_body">Enable lifecycle tracking in Settings to start recording install / uninstall / update events.</string>
+
+    <string name="lifecycle_type_baseline">Baseline</string>
+    <string name="lifecycle_type_installed">Installed</string>
+    <string name="lifecycle_type_uninstalled">Uninstalled</string>
+    <string name="lifecycle_type_replaced">Updated</string>
+
+    <string name="lifecycle_row_meta">v%1$s · installed by %2$s</string>
+    <string name="lifecycle_row_reason">Reason: %1$s</string>
+    <string name="lifecycle_row_open_detail">Open app detail →</string>
+
+    <string name="lifecycle_reason_unused">Unused</string>
+    <string name="lifecycle_reason_replaced_by_another">Replaced by another app</string>
+    <string name="lifecycle_reason_too_heavy">Too large / Low storage</string>
+    <string name="lifecycle_reason_privacy_tracker">Tracker / Privacy concern</string>
+    <string name="lifecycle_reason_other">Other</string>
+
+    <string name="uninstall_reason_title">%1$s uninstalled</string>
+    <string name="uninstall_reason_body">Why are you uninstalling this app? Optional — this stays on your device.</string>
+    <string name="uninstall_reason_later">Skip</string>
+
+    <!-- Settings — Lifecycle History -->
+    <string name="settings_section_lifecycle">App lifecycle history</string>
+    <string name="settings_lifecycle_enabled_title">Track install / uninstall events</string>
+    <string name="settings_lifecycle_enabled_desc">Record every PACKAGE_ADDED / REMOVED / REPLACED broadcast from the OS, plus a one-shot baseline of currently-installed apps. Stays on the device.</string>
+    <string name="settings_lifecycle_retention_title">History retention</string>
+    <string name="settings_lifecycle_retention_desc">%1$d days</string>
+    <string name="settings_lifecycle_prompt_reason_title">Ask the reason on uninstall</string>
+    <string name="settings_lifecycle_prompt_reason_desc">Optionally show a dialog after each uninstall to attach a category (unused, replaced, etc.) to the history row.</string>
+
 </resources>

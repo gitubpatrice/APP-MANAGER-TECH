@@ -3,11 +3,13 @@ package com.filestech.appmanager.di
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.data.local.datastore.SettingsRepositoryImpl
 import com.filestech.appmanager.data.repository.AppInfoRepositoryImpl
+import com.filestech.appmanager.data.repository.AppLifecycleRepositoryImpl
 import com.filestech.appmanager.data.repository.IgnoreListRepositoryImpl
 import com.filestech.appmanager.data.repository.PermissionSnapshotRepositoryImpl
 import com.filestech.appmanager.data.repository.QuarantineRepositoryImpl
 import com.filestech.appmanager.data.repository.TrashRepositoryImpl
 import com.filestech.appmanager.domain.repository.AppInfoRepository
+import com.filestech.appmanager.domain.repository.AppLifecycleRepository
 import com.filestech.appmanager.domain.repository.IgnoreListRepository
 import com.filestech.appmanager.domain.repository.PermissionSnapshotRepository
 import com.filestech.appmanager.domain.repository.QuarantineRepository
@@ -64,4 +66,10 @@ abstract class RepositoryModule {
     abstract fun bindQuarantineRepository(
         impl: QuarantineRepositoryImpl,
     ): QuarantineRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAppLifecycleRepository(
+        impl: AppLifecycleRepositoryImpl,
+    ): AppLifecycleRepository
 }

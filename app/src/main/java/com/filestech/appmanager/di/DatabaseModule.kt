@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.filestech.appmanager.data.local.db.AppDatabase
 import com.filestech.appmanager.data.local.db.Migrations
 import com.filestech.appmanager.data.local.db.dao.AppInfoDao
+import com.filestech.appmanager.data.local.db.dao.AppLifecycleEventDao
 import com.filestech.appmanager.data.local.db.dao.PermissionSnapshotDao
 import com.filestech.appmanager.data.local.db.dao.QuarantineEntryDao
 import com.filestech.appmanager.data.local.db.dao.TrashItemDao
@@ -52,4 +53,8 @@ object DatabaseModule {
     @Provides
     fun provideQuarantineEntryDao(db: AppDatabase): QuarantineEntryDao =
         db.quarantineEntryDao()
+
+    @Provides
+    fun provideAppLifecycleEventDao(db: AppDatabase): AppLifecycleEventDao =
+        db.appLifecycleEventDao()
 }

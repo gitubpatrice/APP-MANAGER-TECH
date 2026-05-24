@@ -6,13 +6,17 @@ import androidx.work.Configuration
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.data.system.NotificationChannels
+import com.filestech.appmanager.data.system.PackageMonitor
 import com.filestech.appmanager.data.system.WorkScheduler
 import com.filestech.appmanager.di.ApplicationScope
 import com.filestech.appmanager.domain.repository.AppInfoRepository
+import com.filestech.appmanager.domain.usecase.BaselineLifecycleScanUseCase
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
@@ -43,6 +47,8 @@ class MainApplication : Application(), Configuration.Provider {
     @Inject lateinit var appInfoRepository: AppInfoRepository
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var workScheduler: WorkScheduler
+    @Inject lateinit var packageMonitor: PackageMonitor
+    @Inject lateinit var baselineLifecycleScan: BaselineLifecycleScanUseCase
     @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
     override val workManagerConfiguration: Configuration
@@ -60,6 +66,44 @@ class MainApplication : Application(), Configuration.Provider {
         notificationChannels.ensureRegistered()
         triggerInitialScanIfNeeded()
         syncBackgroundWorkers()
+        observeLifecycleToggle()
+    }
+
+    /**
+     * v0.3.0 — Reacts to the `settings.lifecycle.enabled` toggle for the
+     * entire process lifetime:
+     *  - true  → register the [PackageMonitor] receiver + trigger a one-shot
+     *    baseline scan + ensure the periodic purge worker is scheduled.
+     *  - false → unregister the receiver. The purge worker is also cancelled
+     *    via the same scheduler call so no background work survives the
+     *    feature being switched off.
+     *
+     * `distinctUntilChanged` keeps us from churning register/unregister on
+     * unrelated settings writes. Errors are logged but never thrown — the
+     * process must stay alive even if the DataStore read transiently fails.
+     */
+    private fun observeLifecycleToggle() {
+        appScope.launch {
+            settingsRepository.flow
+                .map { it.lifecycle.enabled }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    if (enabled) {
+                        packageMonitor.start()
+                        workScheduler.applyLifecyclePurgeScheduling(enabled = true)
+                        // Baseline scan is idempotent (per-package hasBaseline
+                        // gate) — running it on every toggle-on is cheap.
+                        when (val r = baselineLifecycleScan()) {
+                            is Outcome.Success -> Timber.i("Baseline lifecycle scan: %d rows", r.value)
+                            is Outcome.Failure -> Timber.w("Baseline lifecycle scan failed: %s", r.error)
+                            Outcome.Loading    -> Unit
+                        }
+                    } else {
+                        packageMonitor.stop()
+                        workScheduler.applyLifecyclePurgeScheduling(enabled = false)
+                    }
+                }
+        }
     }
 
     /**

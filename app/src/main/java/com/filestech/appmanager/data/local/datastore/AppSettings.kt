@@ -30,6 +30,8 @@ data class AppSettings(
     val privacyMonitor: PrivacyMonitor = PrivacyMonitor(),
     /** v0.2.0 — App Quarantine preferences. */
     val quarantine: Quarantine = Quarantine(),
+    /** v0.3.0 — App Lifecycle History preferences. */
+    val lifecycle: Lifecycle = Lifecycle(),
     /**
      * Packages explicitly excluded from batch actions (uninstall, force stop,
      * cache clean) and from background-scan notifications. Phase VI feature.
@@ -125,5 +127,30 @@ data class AppSettings(
     data class Quarantine(
         val backupTreeUri: String? = null,
         val restoreReminderEnabled: Boolean = true,
+    )
+
+    /**
+     * v0.3.0 — App Lifecycle History preferences.
+     *
+     * The feature is **opt-in** (default OFF) for the same reasons as
+     * [PrivacyMonitor]: avoid surprising background work + reserve the
+     * feature for users who actually want a lifecycle journal. The
+     * BroadcastReceiver registration in `MainApplication.onCreate` is gated
+     * by [enabled]; flipping the toggle in Settings registers / unregisters
+     * the receiver at runtime.
+     *
+     * [retentionDays] gates the periodic [com.filestech.appmanager.data.system.workers.LifecyclePurgeWorker]
+     * cutoff. Clamped to `[30, 365]` by the picker.
+     *
+     * [promptReason] gates the optional uninstall-reason dialog: when true
+     * (and the feature is enabled), the dialog is shown after we detect an
+     * UNINSTALLED event for a package that App Manager Tech tracked. The
+     * dialog answer is then attached to the just-inserted event via
+     * `AppLifecycleRepository.setReason`.
+     */
+    data class Lifecycle(
+        val enabled: Boolean = false,
+        val retentionDays: Int = 180,
+        val promptReason: Boolean = true,
     )
 }

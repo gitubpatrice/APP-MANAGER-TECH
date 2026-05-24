@@ -61,6 +61,7 @@ fun HomeShell(
     onNavigateToTrash: () -> Unit,
     onNavigateToPermissionDrift: () -> Unit,
     onNavigateToQuarantine: () -> Unit,
+    onNavigateToLifecycle: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableStateOf(HomeTab.HOME) }
 
@@ -119,6 +120,7 @@ fun HomeShell(
                     onTrash           = onNavigateToTrash,
                     onPermissionDrift = onNavigateToPermissionDrift,
                     onQuarantine      = onNavigateToQuarantine,
+                    onLifecycle       = onNavigateToLifecycle,
                     onSettings        = onNavigateToSettings,
                 )
                 // v0.1.3 — About is a 3rd tab on the right of Outils. Reuses

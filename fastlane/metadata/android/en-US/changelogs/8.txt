@@ -1,0 +1,11 @@
+v0.3.0 — App Lifecycle History
+
+- New "App lifecycle" tool: append-only history of every
+  install / uninstall / update on the device. Opt-in
+  PackageMonitor receiver (OFF by default). Baseline
+  scan on enable so already-installed apps are listed.
+- Optional uninstall-reason dialog (5 choices, skippable).
+- Timeline 30j / 90j / All filter.
+- Retention 30..365 days, 24h purge worker.
+- No network, no new permission.
+- Bug fix: MainActivity FlowOperator lint.

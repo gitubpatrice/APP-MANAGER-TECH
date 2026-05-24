@@ -3,10 +3,12 @@ package com.filestech.appmanager.data.local.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.filestech.appmanager.data.local.db.dao.AppInfoDao
+import com.filestech.appmanager.data.local.db.dao.AppLifecycleEventDao
 import com.filestech.appmanager.data.local.db.dao.PermissionSnapshotDao
 import com.filestech.appmanager.data.local.db.dao.QuarantineEntryDao
 import com.filestech.appmanager.data.local.db.dao.TrashItemDao
 import com.filestech.appmanager.data.local.db.entity.AppInfoEntity
+import com.filestech.appmanager.data.local.db.entity.AppLifecycleEventEntity
 import com.filestech.appmanager.data.local.db.entity.PermissionSnapshotEntity
 import com.filestech.appmanager.data.local.db.entity.QuarantineEntryEntity
 import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
@@ -47,6 +49,17 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
  *       Indexed on `restore_at` for the worker's expiry sweep.
  *     Migration `MIGRATION_3_4`: 2× CREATE TABLE + 3× CREATE INDEX IF NOT EXISTS.
  *
+ * - v5 (v0.3.0 — App Lifecycle History)
+ *     Adds `app_lifecycle_event` append-only log: one row per OS broadcast
+ *     (`PACKAGE_ADDED`/`_REMOVED`/`_REPLACED`) plus a one-shot BASELINE row
+ *     per already-installed app inserted on first launch post-upgrade. The
+ *     log carries snapshot metadata (version, installer, total size, granted
+ *     dangerous permissions) so the row stays meaningful even after the app
+ *     is uninstalled and `PackageManager` can no longer resolve it. Optional
+ *     `user_reason` (enum) captured via the uninstall dialog.
+ *     Indices: `(package_name, captured_at)`, `captured_at`, `type`.
+ *     Migration `MIGRATION_4_5`: 1× CREATE TABLE + 3× CREATE INDEX IF NOT EXISTS.
+ *
  * Migration rules (STRICT — enforced by code review):
  * - Every version bump MUST ship an additive Migration in [Migrations].
  * - Only `ALTER TABLE ... ADD COLUMN`, `CREATE INDEX IF NOT EXISTS`, `CREATE TABLE` are allowed.
@@ -62,6 +75,7 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
         TrashItemEntity::class,
         PermissionSnapshotEntity::class,
         QuarantineEntryEntity::class,
+        AppLifecycleEventEntity::class,
     ],
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -70,9 +84,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun trashItemDao(): TrashItemDao
     abstract fun permissionSnapshotDao(): PermissionSnapshotDao
     abstract fun quarantineEntryDao(): QuarantineEntryDao
+    abstract fun appLifecycleEventDao(): AppLifecycleEventDao
 
     companion object {
         const val DATABASE_NAME = "app_manager_tech.db"
-        const val SCHEMA_VERSION = 4
+        const val SCHEMA_VERSION = 5
     }
 }

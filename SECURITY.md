@@ -1,6 +1,27 @@
 # App Manager Tech — Security model
 
-Current release: **v0.2.2**
+Current release: **v0.3.0**
+
+## v0.3.0 — App Lifecycle History
+
+- **PackageMonitor BroadcastReceiver** — runtime-registered (NOT manifest),
+  gated by `lifecycle.enabled`. Idempotent register/unregister via
+  `AtomicBoolean`. The receiver is registered with `RECEIVER_NOT_EXPORTED`
+  (broadcasts are system-only on Android 8+, the flag is required on API 33+).
+  Defence-in-depth: `isValidPackageName()` validation of the broadcast's
+  `data.schemeSpecificPart` before any DB write.
+- **Append-only Room v5 log** — `app_lifecycle_event` table. Insert is the
+  only mutation, except `setReasonForId(id, reason)` which carries an
+  explicit narrow `WHERE id = :id` to keep the audit trail monotonic.
+- **No data egress** — no new INTERNET permission, no GMS, no FCM. The
+  Lifecycle History DB lives in the app's private files dir and is excluded
+  from cloud backup via the existing `backup_rules.xml`.
+- **Retention** — clamped `[30, 365]` days in the picker; the
+  `LifecyclePurgeWorker` cancels itself when the master toggle is OFF so
+  no background work survives the feature being disabled.
+- **Self-exclusion** — the receiver ignores events for App Manager Tech
+  itself (self-updates would otherwise pollute the timeline).
+- Cert SHA-256 stable (`76:E8:77...60FF1CF`) since v0.1.0.
 
 ## v0.2.2 — Expert mode + Diagnostic PDF
 
