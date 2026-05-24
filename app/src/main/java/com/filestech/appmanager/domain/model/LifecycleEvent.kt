@@ -54,8 +54,14 @@ data class LifecycleEvent(
      * the user swapping a Play install with a sideload that wears the
      * same versionCode. The UI surfaces this case as a red badge on the
      * Lifecycle History timeline.
+     *
+     * v0.4.0 audit MEDIUM-4 fix — no default value, every constructor
+     * site must pass the field explicitly. The Room mapper in
+     * [com.filestech.appmanager.data.repository.AppLifecycleRepositoryImpl.toDomain]
+     * is the only producer and already passes it, so the change is
+     * source-safe.
      */
-    val apkSha256: String? = null,
+    val apkSha256: String?,
 )
 
 /**

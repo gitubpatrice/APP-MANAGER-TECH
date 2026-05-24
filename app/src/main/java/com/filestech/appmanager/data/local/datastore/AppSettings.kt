@@ -34,6 +34,8 @@ data class AppSettings(
     val lifecycle: Lifecycle = Lifecycle(),
     /** v0.3.1 — Safety Guardrails user-customisation preferences. */
     val safety: Safety = Safety(),
+    /** v0.4.0 — AMT action journal preferences (opt-in). */
+    val actionJournal: ActionJournal = ActionJournal(),
     /**
      * Packages explicitly excluded from batch actions (uninstall, force stop,
      * cache clean) and from background-scan notifications. Phase VI feature.
@@ -191,5 +193,24 @@ data class AppSettings(
      */
     data class Safety(
         val userProtectedPackages: Set<String> = emptySet(),
+    )
+
+    /**
+     * v0.4.0 — AMT action journal preferences.
+     *
+     * **Opt-in** (default OFF) for the same reasons as [PrivacyMonitor]
+     * and [Lifecycle] : the feature is for users who actively want a
+     * forensic trail of AMT's own actions. A silent background insert
+     * on every uninstall / clear-cache is overhead the user should
+     * consciously accept.
+     *
+     * [retentionDays] gates the periodic
+     * [com.filestech.appmanager.data.system.workers.AmtActionJournalPurgeWorker]
+     * cutoff. Clamped to `[30, 365]` by the picker — same envelope as
+     * the Lifecycle retention so the user has one mental model.
+     */
+    data class ActionJournal(
+        val enabled: Boolean = false,
+        val retentionDays: Int = 180,
     )
 }

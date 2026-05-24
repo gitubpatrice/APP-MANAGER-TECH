@@ -6,7 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
+import com.filestech.appmanager.data.system.AmtActionLogger
 import com.filestech.appmanager.data.system.IntentFactory
+import com.filestech.appmanager.domain.model.AmtActionResult
+import com.filestech.appmanager.domain.model.AmtActionType
 import com.filestech.appmanager.domain.usecase.GetAccessibilityServiceAppsUseCase
 import com.filestech.appmanager.domain.usecase.GetDeviceAdminAppsUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
@@ -44,6 +47,13 @@ class SecurityAuditViewModel @Inject constructor(
     private val getAccessibility: GetAccessibilityServiceAppsUseCase,
     private val uninstallApp: UninstallAppUseCase,
     private val intents: IntentFactory,
+    /**
+     * v0.4.0 audit D2 fix — destructive actions fired from the
+     * Security Audit screen now feed the in-app journal alongside the
+     * AppDetail / AppList / Trash / Smart Cleaner paths. Closes the
+     * forensic coverage gap documented in `RecordAmtActionUseCase`.
+     */
+    private val actionLogger: AmtActionLogger,
 ) : ViewModel() {
 
     // v0.1.3 audit L-2 fix — init with isLoading=true so the very first
@@ -121,7 +131,15 @@ class SecurityAuditViewModel @Inject constructor(
 
     /** Launches the OS uninstall flow for [packageName]. */
     fun uninstall(packageName: String) {
-        uninstallApp(packageName).getOrNull()?.let { intent ->
+        val intent = uninstallApp(packageName).getOrNull()
+        // v0.4.0 audit D2 fix — record into the AMT action journal.
+        // Label is null here because this VM exposes only package names
+        // (DeviceAdmin / Accessibility lists are FQCN-based without
+        // PackageManager label resolution at this layer). The journal
+        // row falls back to the package name in the UI.
+        val result = if (intent != null) AmtActionResult.INTENT_REQUESTED else AmtActionResult.FAILED
+        actionLogger.log(packageName, labelSnapshot = null, AmtActionType.UNINSTALL, result)
+        if (intent != null) {
             _events.trySend(Event.LaunchIntent(intent))
         }
     }

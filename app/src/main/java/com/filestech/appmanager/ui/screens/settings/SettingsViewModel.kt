@@ -157,6 +157,25 @@ class SettingsViewModel @Inject constructor(
         repository.update { copy(lifecycle = lifecycle.copy(promptReason = enabled)) }
     }
 
+    // -----------------------------------------------------------------------
+    // Action Journal (v0.4.0)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Master toggle for the AMT action journal. Persists the new value AND
+     * applies the WorkManager scheduling change so the periodic retention
+     * purge starts / stops immediately (without waiting for the next
+     * process restart).
+     */
+    fun setActionJournalEnabled(enabled: Boolean) = viewModelScope.launch {
+        repository.update { copy(actionJournal = actionJournal.copy(enabled = enabled)) }
+        workScheduler.applyAmtActionJournalScheduling(enabled = enabled)
+    }
+
+    fun setActionJournalRetentionDays(days: Int) = viewModelScope.launch {
+        repository.update { copy(actionJournal = actionJournal.copy(retentionDays = days)) }
+    }
+
     // VIII C7 fix: STOP_TIMEOUT_MS factored to core.ext.STATEFLOW_STOP_TIMEOUT_MS.
 }
 

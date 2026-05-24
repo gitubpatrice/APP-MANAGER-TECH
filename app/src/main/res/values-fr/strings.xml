@@ -897,4 +897,32 @@
     <!-- ================================================================ -->
     <string name="lifecycle_row_tamper_alert">⚠ Même versionCode mais empreinte SHA-256 de l\'APK différente — possible repackage ou remplacement par sideload.</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.4.0 — Journal d'actions (trace des actions d\'AMT)            -->
+    <!-- ================================================================ -->
+    <string name="screen_action_journal_title">Journal d\'actions</string>
+    <string name="tool_subtitle_action_journal">Trace forensique des actions déclenchées par AMT</string>
+    <string name="settings_section_action_journal">Journal d\'actions</string>
+    <string name="settings_action_journal_enabled_title">Journal d\'actions</string>
+    <string name="settings_action_journal_enabled_desc">Enregistre toute action destructive ou de changement d\'état déclenchée par AMT (désinstaller, vider le cache, désactiver, mettre en quarantaine…). Local uniquement, jamais transmis.</string>
+    <string name="settings_action_journal_retention_title">Rétention de l\'historique</string>
+    <string name="settings_action_journal_retention_desc">Conserver pendant %1$d jours</string>
+    <string name="action_journal_empty_title">Aucune action enregistrée</string>
+    <string name="action_journal_empty_body">Dès que vous déclencherez une action destructive depuis AMT (désinstaller, vider le cache, mettre à la corbeille…), elle apparaîtra ici.</string>
+    <!-- Libellés des types d'action (10) -->
+    <string name="action_journal_type_uninstall">Désinstallation</string>
+    <string name="action_journal_type_force_stop">Arrêt forcé</string>
+    <string name="action_journal_type_disable">Désactivation</string>
+    <string name="action_journal_type_enable">Activation</string>
+    <string name="action_journal_type_clear_cache">Vidage du cache</string>
+    <string name="action_journal_type_clear_data">Effacement des données</string>
+    <string name="action_journal_type_move_to_trash">Mise à la corbeille</string>
+    <string name="action_journal_type_restore_from_trash">Restauration corbeille</string>
+    <string name="action_journal_type_quarantine_hard">Quarantaine (forte)</string>
+    <string name="action_journal_type_quarantine_soft">Quarantaine (douce)</string>
+    <!-- Libellés des résultats (3) -->
+    <string name="action_journal_result_intent_requested">Intent envoyé</string>
+    <string name="action_journal_result_success">Effectué</string>
+    <string name="action_journal_result_failed">Échec</string>
+
 </resources>

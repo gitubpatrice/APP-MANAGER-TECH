@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.PrivacyTip
+import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SentimentSatisfied
@@ -106,6 +107,8 @@ fun SettingsScreen(
     onOpenPermissionDrift: () -> Unit = {},
     onOpenQuarantine: () -> Unit = {},
     onOpenProtectedApps: () -> Unit = {},
+    /** v0.4.0 — Action Journal tools entry from Settings → Outils. */
+    onOpenActionJournal: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -115,6 +118,7 @@ fun SettingsScreen(
     var sortDialog by rememberSaveable { mutableStateOf(false) }
     var retentionDialog by rememberSaveable { mutableStateOf(false) }
     var lifecycleRetentionDialog by rememberSaveable { mutableStateOf(false) }
+    var actionJournalRetentionDialog by rememberSaveable { mutableStateOf(false) }
 
     // SAF folder picker for the HARD-mode APK backup destination.
     // OPEN_DOCUMENT_TREE returns a content:// tree URI; we take a persistable
@@ -171,6 +175,10 @@ fun SettingsScreen(
             onLifecyclePromptReasonChange  = viewModel::setLifecyclePromptReason,
             // v0.3.1 — Apps protégées entry
             onProtectedAppsClick           = onOpenProtectedApps,
+            // v0.4.0 — Action Journal toggles + nav entry
+            onActionJournalEnabledChange     = viewModel::setActionJournalEnabled,
+            onActionJournalRetentionClick    = { actionJournalRetentionDialog = true },
+            onActionJournalClick              = onOpenActionJournal,
             onAboutClick         = onOpenAbout,
             onCleanerClick       = onOpenCleaner,
             onIgnoreListClick    = onOpenIgnoreList,
@@ -237,6 +245,19 @@ fun SettingsScreen(
             onDismiss = { lifecycleRetentionDialog = false },
         )
     }
+
+    if (actionJournalRetentionDialog) {
+        // v0.4.0 — same envelope as the Lifecycle / Drift retention
+        // picker. One mental model across three forensic features.
+        RadioPickerDialog(
+            title    = stringResource(R.string.settings_retention_picker_title),
+            options  = RetentionOption.entries.toList(),
+            selected = RetentionOption.closestTo(settings.actionJournal.retentionDays),
+            labelOf  = { stringResource(it.labelRes) },
+            onSelect = { viewModel.setActionJournalRetentionDays(it.days) },
+            onDismiss = { actionJournalRetentionDialog = false },
+        )
+    }
 }
 
 /**
@@ -278,6 +299,9 @@ private fun SettingsBody(
     onLifecycleRetentionClick: () -> Unit,
     onLifecyclePromptReasonChange: (Boolean) -> Unit,
     onProtectedAppsClick: () -> Unit,
+    onActionJournalEnabledChange: (Boolean) -> Unit,
+    onActionJournalRetentionClick: () -> Unit,
+    onActionJournalClick: () -> Unit,
     onAboutClick: () -> Unit,
     onCleanerClick: () -> Unit,
     onIgnoreListClick: () -> Unit,
@@ -444,6 +468,25 @@ private fun SettingsBody(
             )
         }
 
+        // v0.4.0 — Action Journal (forensic timeline of AMT-initiated actions)
+        SectionHeader(stringResource(R.string.settings_section_action_journal))
+        SettingsCard {
+            ToggleRow(
+                title          = stringResource(R.string.settings_action_journal_enabled_title),
+                description    = stringResource(R.string.settings_action_journal_enabled_desc),
+                checked        = settings.actionJournal.enabled,
+                onCheckedChange = onActionJournalEnabledChange,
+            )
+            NavigationRow(
+                title          = stringResource(R.string.settings_action_journal_retention_title),
+                currentValue   = stringResource(
+                    R.string.settings_action_journal_retention_desc,
+                    settings.actionJournal.retentionDays,
+                ),
+                onClick        = onActionJournalRetentionClick,
+            )
+        }
+
         // v0.3.4 — Tag distribution stats. Hidden when no tag is assigned
         // (avoids surfacing an empty "0 / 0 / 0" card right after install);
         // appears as soon as the user tags their first app.
@@ -519,6 +562,14 @@ private fun SettingsBody(
                 title       = stringResource(R.string.screen_transparency_title),
                 leadingIcon = Icons.Outlined.VerifiedUser,
                 onClick     = onTransparencyClick,
+            )
+            // v0.4.0 — Action Journal entry (forensic timeline of AMT-
+            // initiated actions). Always reachable from Settings; user
+            // must opt-in to actually populate the journal (toggle above).
+            NavigationRow(
+                title       = stringResource(R.string.screen_action_journal_title),
+                leadingIcon = androidx.compose.material.icons.Icons.Outlined.Receipt,
+                onClick     = onActionJournalClick,
             )
             // Trash — always painted RED (destructive intent) per Patrice's brand discipline.
             NavigationRow(

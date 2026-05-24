@@ -7,7 +7,10 @@ import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.getOrNull
+import com.filestech.appmanager.data.system.AmtActionLogger
 import com.filestech.appmanager.data.system.CriticalAppDetector
+import com.filestech.appmanager.domain.model.AmtActionResult
+import com.filestech.appmanager.domain.model.AmtActionType
 import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.model.TrashItem
 import com.filestech.appmanager.domain.usecase.ObserveTrashUseCase
@@ -37,6 +40,7 @@ class TrashViewModel @Inject constructor(
     private val trashRepo: TrashRepository,
     private val uninstallApp: UninstallAppUseCase,
     private val criticalDetector: CriticalAppDetector,
+    private val actionLogger: AmtActionLogger,
 ) : ViewModel() {
 
     val items: StateFlow<List<TrashItem>> = observeTrash()
@@ -91,16 +95,24 @@ class TrashViewModel @Inject constructor(
 
     /** Restore a single entry (app stays installed, just leaves the trash). */
     fun restore(packageName: String) {
+        val label = items.value.firstOrNull { it.packageName == packageName }?.label
         viewModelScope.launch {
             restoreFromTrash(packageName)
+            actionLogger.log(packageName, label, AmtActionType.RESTORE_FROM_TRASH, AmtActionResult.SUCCESS)
             _events.trySend(Event.Restored(packageName))
         }
     }
 
     /** Restore everything (bulk wipe of the staging table). */
     fun restoreAll() {
+        val snapshot = items.value
         viewModelScope.launch {
             trashRepo.restoreAll()
+            // Each restored row is its own AMT action — log per-package so
+            // the journal reflects every effect, not just the bulk call.
+            snapshot.forEach { item ->
+                actionLogger.log(item.packageName, item.label, AmtActionType.RESTORE_FROM_TRASH, AmtActionResult.SUCCESS)
+            }
         }
     }
 
@@ -126,9 +138,15 @@ class TrashViewModel @Inject constructor(
                 return
             }
         }
-        uninstallApp(packageName).getOrNull()?.let { intent ->
+        val label = items.value.firstOrNull { it.packageName == packageName }?.label
+        val intent = uninstallApp(packageName).getOrNull()
+        if (intent != null) {
+            actionLogger.log(packageName, label, AmtActionType.UNINSTALL, AmtActionResult.INTENT_REQUESTED)
             _events.trySend(Event.LaunchIntent(intent))
-        } ?: _events.trySend(Event.ShowError("Cannot uninstall $packageName"))
+        } else {
+            actionLogger.log(packageName, label, AmtActionType.UNINSTALL, AmtActionResult.FAILED)
+            _events.trySend(Event.ShowError("Cannot uninstall $packageName"))
+        }
     }
 
     /**
@@ -164,6 +182,13 @@ class TrashViewModel @Inject constructor(
         }
         val intents = snapshot.mapNotNull { uninstallApp(it.packageName).getOrNull() }
         if (intents.isEmpty()) return
+        // One journal row per trashed app whose uninstall intent we
+        // managed to build. Apps that failed at build-time are not logged
+        // here — they were already filtered out and never reached the
+        // user's confirmation dialog (no UI side-effect to record).
+        snapshot.forEach { item ->
+            actionLogger.log(item.packageName, item.label, AmtActionType.UNINSTALL, AmtActionResult.INTENT_REQUESTED)
+        }
         _events.trySend(Event.LaunchIntents(intents, snapshot.size))
     }
 

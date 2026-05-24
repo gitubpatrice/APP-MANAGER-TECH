@@ -1,0 +1,10 @@
+v0.4.0 — Journal d'actions + polish global.
+
+• Journal opt-in : enregistre toute action destructive d'AMT
+  (désinstaller, arrêt forcé, désactiver/activer, vider cache/
+  données, corbeille, restaurer, quarantaine forte/douce).
+  Fenêtre 30/90/Tout. Toggle + rétention 30–365 jours.
+• HashUtils factorisé, @IoDispatcher partout (9 VMs + 2 classes
+  data), FilterChip uniforme, journal couvert pour Smart
+  Cleaner et Audit sécurité.
+• Room v7→v8 additive. Cert stable.

@@ -1,6 +1,72 @@
 # App Manager Tech — Security model
 
-Current release: **v0.3.4**
+Current release: **v0.4.0**
+
+## v0.4.0 — Action Journal (forensic timeline) + full-app polish
+
+- **AMT Action Journal (new opt-in feature)** — new
+  `amt_action_event` table (Room v7 → v8, strictly additive
+  `CREATE TABLE` + 3 `CREATE INDEX IF NOT EXISTS`). Records every
+  destructive / state-changing action AMT itself dispatches
+  (uninstall, force-stop, disable/enable, clear cache/data,
+  move-to-trash, restore, quarantine HARD/SOFT). Distinct boundary
+  from `app_lifecycle_event` which logs OS broadcasts from ANY
+  installer ; this surface answers "what did AMT do on my behalf"
+  for forensic post-mortems.
+- **Privacy model**: opt-in default OFF, retention 30–365 days
+  (clamped on read AND write), Room private DB excluded from cloud
+  backup. Never leaves the device, no INTERNET permission, no GMS,
+  no proprietary dependency. The `AmtActionLogger` shims every call
+  site through a single `AtomicBoolean` gate fed by a
+  `distinctUntilChanged` collector — zero DataStore IPC at hot path
+  when the journal is OFF.
+- **Defence-in-depth on the journal write path** — validation
+  `isValidPackageName()` at both the `RecordAmtActionUseCase`
+  entrance AND the `AmtActionRepositoryImpl.insert` entrance
+  (double-gate). `toDomainOrNull` mapping silently drops rows whose
+  enum values the running build does not recognise (downgrade
+  tolerance ; the row stays on disk for a future re-upgrade — never
+  silently mutated). Append-only by design : the DAO exposes only
+  `insert`, `purgeOlderThan`, `count`, `deleteAll` — no UPDATE path
+  whatsoever, audit trail stays monotonic.
+- **Defence-in-depth on the worker scheduling** —
+  `AmtActionJournalPurgeWorker` mirrors `LifecyclePurgeWorker`
+  exactly : 2-min `withTimeout` cap, `if (!enabled) Result.success()`
+  guard re-read from DataStore on every tick (so a stale
+  scheduled instance cannot leak rows after the user opts out).
+  `applyAmtActionJournalScheduling(enabled = false)` cancels the
+  unique work outright. Cold-start re-sync from
+  `MainApplication.syncBackgroundWorkers` recovers from device
+  reboot / OEM aggressive killer.
+- **Audit fixes shipped together (v0.3.4 deferred + v0.4.0 audit)** :
+    - `HashUtils.kt` extracted (`core/ext/`) — single source of
+      truth for SHA-256 digest helpers (cert fingerprint format +
+      content-hash format + APK streamed file hash). Two prior
+      private implementations now delegate ; the APK policy
+      (canonical resolve + install-root whitelist + 500 MB cap)
+      stays at the call site.
+    - `@IoDispatcher` injected across **9 ViewModels +
+      2 data-layer classes** that previously used
+      `Dispatchers.IO` hardcoded (StorageVM, ExpertVM, AppDetailVM,
+      AppListVM, RarelyUsedVM, ZombiesVM, SmartCleanerVM,
+      TrashRepositoryImpl, ApkBackupManager). **Zero
+      `Dispatchers.IO` hardcoded remain in the codebase** —
+      uniform testability + dispatcher discipline.
+    - Every `hasUsageStatsAccess()` AppOps IPC call is now off the
+      main thread (4 ViewModels migrated from synchronous
+      constructor call → `viewModelScope.launch { withContext(io)
+      { … } }`). No more jank potential on slow OEM AppOps binder.
+    - `FilterChip` parity across every filter-row surface
+      (LifecycleHistory + PermissionDrift WindowPickers switched
+      from semantically-wrong `AssistChip`).
+    - Smart Cleaner + Security Audit uninstall paths now feed the
+      Action Journal (audit D2 — coverage was incomplete).
+    - `applyLifecyclePurgeScheduling` added to
+      `syncBackgroundWorkers` cold-start path (audit D3 — symmetry
+      with the new action journal scheduling).
+- **No new permission, no new dependency, no INTERNET, no GMS.**
+- Room schema v7 → v8 (single ALTER + 3 indices, strict additive).
+- Cert SHA-256 stable (`76:E8:77...60FF1CF`) since v0.1.0.
 
 ## v0.3.4 — Multi-tags + tag filter + tag stats + APK SHA-256 forensics
 

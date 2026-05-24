@@ -7,6 +7,137 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.4.0] — 2026-05-24 — Action Journal (forensic timeline) + full-app polish
+
+### Added — AMT Action Journal (forensic timeline of AMT-initiated actions)
+- New domain `AmtActionEvent` + 2 enums (`AmtActionType` with 10 values
+  : UNINSTALL / FORCE_STOP / DISABLE / ENABLE / CLEAR_CACHE /
+  CLEAR_DATA / MOVE_TO_TRASH / RESTORE_FROM_TRASH / QUARANTINE_HARD /
+  QUARANTINE_SOFT ; `AmtActionResult` with 3 values :
+  INTENT_REQUESTED / SUCCESS / FAILED). Distinct from
+  `LifecycleEvent` which tracks OS broadcasts (any installer) — this
+  table only records actions AMT itself initiated.
+- New Room v7 → v8 migration : `MIGRATION_7_8` creates the
+  `amt_action_event` table with 3 indices
+  (`(package_name, timestamp)` / `timestamp` / `action_type`).
+  Strictly additive, no DEFAULT clause needed (one NULLable column).
+  `MigrationTest_v7_v8` instrumentation + schema `8.json` exported.
+- New `AmtActionRepository` + `AmtActionEventDao` +
+  `AmtActionRepositoryImpl` + 3 use cases
+  (`RecordAmtActionUseCase`, `ObserveAmtActionsUseCase`,
+  `PurgeAmtActionsUseCase`). `toDomainOrNull` mapping silently drops
+  rows whose enum value the running build does not recognise
+  (downgrade-tolerant ; the row stays on disk for the next upgrade).
+- New `AmtActionJournalPurgeWorker` (clone of
+  `LifecyclePurgeWorker`) + `WorkScheduler.applyAmtActionJournalScheduling`
+  + cold-start re-sync from `MainApplication.syncBackgroundWorkers`.
+  Idempotent UPDATE policy ; opts-out cancel the unique work.
+- New `AmtActionLogger` singleton : `AtomicBoolean` cache for the
+  `actionJournal.enabled` flag fed by a hot `distinctUntilChanged`
+  collector. `log(...)` is non-suspend, fire-and-forget on
+  `@ApplicationScope` — zero-cost when the journal is OFF, no
+  DataStore IPC on the hot path of a destructive action.
+- New `AppSettings.ActionJournal(enabled, retentionDays)` opt-in
+  (default OFF, retention 180 d, clamped 30–365). DataStore keys
+  `action_journal_enabled` / `action_journal_retention_days`.
+  Settings screen surfaces a dedicated section with a toggle + a
+  retention picker that reuses the existing `RetentionOption` enum
+  (parity with Lifecycle / Drift Tracker UX).
+- New `ActionJournalScreen` + `ActionJournalViewModel` : 3-segment
+  window picker (30 / 90 / Tout, FilterChip), LazyColumn timeline
+  newest first, per-row card with action-type badge + icon + app
+  icon + label + timestamp + result chip. EmptyState + ErrorState
+  reused. Read-only (no destructive action from this screen).
+- New navigation route `action_journal` wired through
+  `NavRoute.ActionJournal` + `AppRoot` + `HomeShell`
+  (`onNavigateToActionJournal`) + `ToolsScreen` card (Steel #37474F
+  Blue Grey 800 — WCAG AA verified ; Receipt icon) +
+  `SettingsScreen` NavigationRow in the Tools section.
+- Wired into **13 destructive call sites** across 6 ViewModels :
+  - `AppDetailViewModel` : uninstall, moveToTrash, clearCache,
+    clearData, forceStop, disable/enable, quarantine HARD / SOFT.
+  - `AppListViewModel` : batchUninstall, batchClearCache,
+    batchForceStop (per-package logging).
+  - `TrashViewModel` : restore, restoreAll, uninstallNow,
+    emptyTrash (per-package logging).
+  - `SmartCleanerViewModel` : uninstall, clearCache (added in
+    audit-fixes pass).
+  - `SecurityAuditViewModel` : uninstall (added in audit-fixes
+    pass).
+
+### Changed — Audit-deferred v0.3.4 fixes shipped together
+- **C2 — `HashUtils.kt` extracted** (`core/ext/`) with three
+  cohesive helpers : `sha256ToColonHexUpper(bytes)` (cert
+  fingerprint format), `sha256ToHexLower(bytes)` (DB-safe content
+  hash), `sha256FileToHexLower(file)` (streamed 64 KB APK hash). Two
+  previous private implementations in `AppInfoRepositoryImpl` +
+  `RecordLifecycleEventUseCase` now delegate ; the APK-specific
+  policy (canonical path + install-root whitelist + 500 MB cap)
+  stays at the call site.
+- **C3 — `@IoDispatcher` injected** in `StorageViewModel`,
+  `ExpertViewModel`, `AppDetailViewModel`, plus newly in
+  `AppListViewModel`, `RarelyUsedViewModel`, `ZombiesViewModel`,
+  `SmartCleanerViewModel`, `TrashRepositoryImpl`, `ApkBackupManager`
+  (4 sites of `Dispatchers.IO` hardcoded → `withContext(io)`).
+  Brings every `hasUsageStatsAccess()` AppOps IPC + every
+  `purgeOrphaned` / `backupApk` IO call off the main thread and into
+  the testable dispatcher graph. **Zero `Dispatchers.IO` hardcoded
+  remain in the codebase.**
+- **D1 — `FilterChip` parity** : the WindowPickers in
+  `LifecycleHistoryScreen` and `PermissionDriftScreen` were
+  `AssistChip` (semantically "action suggestion") ; switched to
+  `FilterChip` (semantically "single-select filter") so every
+  filter-row surface across the app speaks the same Material 3
+  vocabulary as the v0.3.4 TagFilterChipRow + the new v0.4.0
+  ActionJournal WindowPicker. **Zero `AssistChip` remain.**
+- **MEDIUM-4 — `LifecycleEvent.apkSha256 = null` default removed**.
+  The single mapper site (`AppLifecycleRepositoryImpl.toDomain`)
+  and the skeleton emitter (`PackageMonitor.emitInsertedEvent`)
+  pass the field explicitly. Domain data classes back to strict
+  constructor-exhaustive convention.
+
+### Changed — Pre-release audit fixes (objectif Patrice : 95+ /100)
+- **HIGH PERF-H1 + MEDIUM KOTLIN-M3** : `hasUsageStatsAccess()`
+  AppOps IPC moved off the main thread in `AppListViewModel`
+  (constructor + onResumed), `RarelyUsedViewModel` (same),
+  `ZombiesViewModel` (same), `SmartCleanerViewModel` (same).
+  Previous default `MutableStateFlow(appInfoRepo.hasUsageStatsAccess())`
+  was a synchronous AppOps call at Hilt injection time → jank
+  potential on slow OEMs.
+- **HIGH SECU-H1** : `Dispatchers.IO` hardcoded → `@IoDispatcher`
+  injected in `TrashRepositoryImpl.purgeOrphaned` and
+  `ApkBackupManager.backupApk`. Both critical IO surfaces are now
+  testable + uniform.
+- **MEDIUM D2** : Smart Cleaner uninstall / clear-cache AND
+  Security Audit uninstall were firing without journal recording.
+  Both ViewModels now inject `AmtActionLogger` and log each
+  dispatch so the action journal is complete across every
+  destructive surface of the app.
+- **MEDIUM D3** : `applyLifecyclePurgeScheduling` was missing from
+  `MainApplication.syncBackgroundWorkers` (only the reactive
+  observer in `observeLifecycleToggle` re-armed it). Added the
+  cold-start call so a device reboot / OEM aggressive killer no
+  longer drops the lifecycle purge schedule. Symmetry with the new
+  AMT action journal scheduling.
+- **LOW L3** : `tool_subtitle_action_journal` no longer carries a
+  trailing period (cosmetic parity with the 15 other tool
+  subtitles).
+
+### Notes
+- Cert SHA-256 unchanged (`76e8772e09951369405f58e70c4afffd41c4687553c6cfa03d08145ff60ff1cf`).
+- 0 GMS, 0 INTERNET permission, 0 proprietary dependency.
+  F-Droid-friendly.
+- 0 new runtime permission. 0 new gradle dependency.
+- Room v7 → v8 migration : `CREATE TABLE amt_action_event` + 3
+  `CREATE INDEX IF NOT EXISTS` (strictly additive). `MigrationTest_v7_v8`
+  covers INSERT + NULL label + 3 indices. Schema `8.json` exported
+  under `schemas/`.
+- 13 new i18n strings (FR + EN parity 100%).
+- `lintVitalRelease` clean. `testReleaseUnitTest` green. APK
+  splits build clean.
+
+---
+
 ## [0.3.4] — 2026-05-24 — Multi-tags + tag filter + tag stats + APK SHA-256 forensics
 
 ### Added — Multi-tags per app (foundational refactor)

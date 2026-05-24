@@ -4,8 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import com.filestech.appmanager.di.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -44,6 +45,12 @@ import javax.inject.Singleton
 @Singleton
 class ApkBackupManager @Inject constructor(
     @ApplicationContext private val context: Context,
+    /**
+     * v0.4.0 audit SECU-H1 fix — IO dispatcher injected so `backupApk`
+     * can be unit-tested with a substitute dispatcher (previously
+     * `Dispatchers.IO` hardcoded — untestable).
+     */
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) {
 
     /**
@@ -66,7 +73,7 @@ class ApkBackupManager @Inject constructor(
         treeUri: Uri,
         packageName: String,
         versionCode: Long,
-    ): Result = withContext(Dispatchers.IO) {
+    ): Result = withContext(io) {
         try {
             val pm = context.packageManager
             val appInfo = pm.getApplicationInfo(packageName, 0)

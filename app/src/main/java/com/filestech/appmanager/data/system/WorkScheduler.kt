@@ -7,6 +7,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.filestech.appmanager.domain.model.ScanInterval
+import com.filestech.appmanager.data.system.workers.AmtActionJournalPurgeWorker
 import com.filestech.appmanager.data.system.workers.BackgroundScanWorker
 import com.filestech.appmanager.data.system.workers.LifecyclePurgeWorker
 import com.filestech.appmanager.data.system.workers.PermissionSnapshotWorker
@@ -174,10 +175,46 @@ class WorkScheduler @Inject constructor(
         Timber.i("Lifecycle purge worker scheduled (24h)")
     }
 
+    /**
+     * v0.4.0 — schedules / cancels the [AmtActionJournalPurgeWorker].
+     *
+     * Same shape as [applyLifecyclePurgeScheduling] : 24-hour periodic
+     * tick, `UPDATE` policy for idempotency, cancellation on opt-out.
+     * The worker no-ops internally when the feature flag is off too,
+     * so the journal stops growing the moment the toggle is flipped
+     * even before the next 24-hour tick fires.
+     */
+    fun applyAmtActionJournalScheduling(enabled: Boolean) {
+        if (!enabled) {
+            workManager.cancelUniqueWork(UNIQUE_ACTION_JOURNAL)
+            Timber.i("Action journal purge worker cancelled")
+            return
+        }
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val request = PeriodicWorkRequestBuilder<AmtActionJournalPurgeWorker>(
+            24L,
+            TimeUnit.HOURS,
+        )
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            UNIQUE_ACTION_JOURNAL,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            request,
+        )
+        Timber.i("Action journal purge worker scheduled (24h)")
+    }
+
     private companion object {
         const val UNIQUE_NAME             = "app_manager_tech_background_scan"
         const val UNIQUE_PERMISSION_DRIFT = "app_manager_tech_permission_drift"
         const val UNIQUE_QUARANTINE       = "app_manager_tech_quarantine_restore"
         const val UNIQUE_LIFECYCLE        = "app_manager_tech_lifecycle_purge"
+        const val UNIQUE_ACTION_JOURNAL   = "app_manager_tech_action_journal_purge"
     }
 }

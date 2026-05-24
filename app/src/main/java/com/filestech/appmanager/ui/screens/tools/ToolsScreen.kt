@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.IconButton
@@ -96,6 +97,7 @@ fun ToolsScreen(
     onQuarantine: () -> Unit,
     onLifecycle: () -> Unit,
     onSignatures: () -> Unit,
+    onActionJournal: () -> Unit,
     onSettings: () -> Unit,
 ) {
     // 12 tools — recomputed each composition (cheap; lambda keys change
@@ -132,6 +134,12 @@ fun ToolsScreen(
         // Forest green (#2E7D32) — distinct from existing palette; conveys
         // "established / identity / trust" semantics that fit the feature.
         ToolEntry(R.string.screen_signatures_title,          R.string.tool_subtitle_signatures,       Icons.Outlined.Fingerprint,        ToolColors.Forest,     onSignatures),
+        // v0.4.0 — Action Journal (forensic timeline of AMT-initiated
+        // destructive / state-changing actions). Receipt icon mirrors
+        // the "audit ledger" metaphor; Steel hue (cool slate) is
+        // distinct from the existing Slate (Quarantine) so the two
+        // adjacent tools stay visually separated.
+        ToolEntry(R.string.screen_action_journal_title,      R.string.tool_subtitle_action_journal,   Icons.Outlined.Receipt,            ToolColors.Steel,      onActionJournal),
     )
 
     Scaffold(
@@ -284,5 +292,11 @@ private object ToolColors {
     // card. 5.88:1 on light surfaceContainerLow, 4.65:1 on dark — passes
     // WCAG AA. Distinct hue from existing Green (700) used by Cleaner.
     val Forest     = Color(0xFF2E7D32) // Material Green 800
+
+    // v0.4.0 addition — cool steel-grey (Blue Grey 800) for the Action
+    // Journal card. Distinct from Slate (Blue Grey 700, Quarantine) so the
+    // two adjacent forensic tools stay visually separated. 7.21:1 on light
+    // surfaceContainerLow — passes WCAG AAA on light, AA on dark.
+    val Steel      = Color(0xFF37474F) // Material Blue Grey 800
 }
 

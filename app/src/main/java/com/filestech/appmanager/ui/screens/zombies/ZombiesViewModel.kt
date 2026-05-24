@@ -7,16 +7,19 @@ import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.system.IntentFactory
+import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.ZombieApp
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.GetZombieAppsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -42,11 +45,19 @@ class ZombiesViewModel @Inject constructor(
     private val getZombies: GetZombieAppsUseCase,
     private val appInfoRepo: AppInfoRepository,
     private val intents: IntentFactory,
+    /**
+     * v0.4.0 audit L1 fix — IO dispatcher injected so the AppOps IPC
+     * probe `hasUsageStatsAccess()` runs off the main thread.
+     */
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(
-        UiState(usageStatsGranted = appInfoRepo.hasUsageStatsAccess()),
-    )
+    /**
+     * v0.4.0 audit L1 fix — default `false` so we never call
+     * `hasUsageStatsAccess()` (AppOps IPC) on the main thread at VM
+     * construction. The real value is published from `init {}` below.
+     */
+    private val _state = MutableStateFlow(UiState(usageStatsGranted = false))
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     private val _events = oneShotEvents<Event>()
@@ -57,6 +68,10 @@ class ZombiesViewModel @Inject constructor(
     private val isRefreshing = AtomicBoolean(false)
 
     init {
+        viewModelScope.launch {
+            val granted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
+            _state.update { it.copy(usageStatsGranted = granted) }
+        }
         refresh()
     }
 
@@ -87,11 +102,13 @@ class ZombiesViewModel @Inject constructor(
      * the zombie list correctly (was all `NEVER_OPENED` before the grant).
      */
     fun onResumed() {
-        val wasGranted = _state.value.usageStatsGranted
-        val nowGranted = appInfoRepo.hasUsageStatsAccess()
-        if (wasGranted != nowGranted) {
-            _state.update { it.copy(usageStatsGranted = nowGranted) }
-            if (nowGranted) refresh()
+        viewModelScope.launch {
+            val wasGranted = _state.value.usageStatsGranted
+            val nowGranted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
+            if (wasGranted != nowGranted) {
+                _state.update { it.copy(usageStatsGranted = nowGranted) }
+                if (nowGranted) refresh()
+            }
         }
     }
 

@@ -205,6 +205,51 @@ object Migrations {
     }
 
     /**
+     * v0.4.0 — adds the `amt_action_event` table.
+     *
+     * Append-only journal of every destructive / state-changing action
+     * AMT itself fired. Distinct from `app_lifecycle_event` which tracks
+     * OS broadcasts (any installer / uninstaller, not just AMT).
+     *
+     * Three indices (each `IF NOT EXISTS` for idempotency under partial
+     * rollbacks) :
+     *  - `(package_name, timestamp)` composite — per-app journal lookup,
+     *  - `timestamp` — global timeline + retention purge,
+     *  - `action_type` — type-filter (future "all UNINSTALLs" view).
+     *
+     * Strict additive : CREATE TABLE + CREATE INDEX IF NOT EXISTS — no
+     * destructive change to existing tables.
+     */
+    val MIGRATION_7_8: Migration = object : Migration(7, 8) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `amt_action_event` (
+                  `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                  `package_name` TEXT NOT NULL,
+                  `label_snapshot` TEXT,
+                  `action_type` TEXT NOT NULL,
+                  `result` TEXT NOT NULL,
+                  `timestamp` INTEGER NOT NULL
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_amt_action_event_package_name_timestamp` " +
+                    "ON `amt_action_event` (`package_name`, `timestamp`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_amt_action_event_timestamp` " +
+                    "ON `amt_action_event` (`timestamp`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_amt_action_event_action_type` " +
+                    "ON `amt_action_event` (`action_type`)",
+            )
+        }
+    }
+
+    /**
      * All migrations in version order. Spread (`*ALL_MIGRATIONS`) into
      * `Room.databaseBuilder(...).addMigrations()`.
      */
@@ -215,5 +260,6 @@ object Migrations {
         MIGRATION_4_5,
         MIGRATION_5_6,
         MIGRATION_6_7,
+        MIGRATION_7_8,
     )
 }

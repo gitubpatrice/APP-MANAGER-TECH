@@ -21,12 +21,12 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.NorthEast
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SouthWest
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -274,6 +274,12 @@ private fun MonitoringStatusCard(
     }
 }
 
+// v0.4.0 audit D1 fix — switched from AssistChip (semantically "action
+// suggestion") to FilterChip (semantically "single-select filter") so
+// the WindowPicker matches the v0.3.4 TagFilterChipRow + the
+// LifecycleHistoryScreen + ActionJournalScreen WindowPickers. One
+// mental model across every "filter row" surface.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WindowChips(
     selected: PermissionDriftViewModel.Window,
@@ -289,17 +295,14 @@ private fun WindowChips(
                 PermissionDriftViewModel.Window.DAYS_90 -> R.string.drift_window_90_days
                 PermissionDriftViewModel.Window.ALL     -> R.string.drift_window_all
             }
-            AssistChip(
-                onClick = { onSelect(w) },
-                label   = { Text(stringResource(labelRes)) },
-                colors  = if (w == selected) {
-                    AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        labelColor     = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                } else {
-                    AssistChipDefaults.assistChipColors()
-                },
+            FilterChip(
+                selected = w == selected,
+                onClick  = { onSelect(w) },
+                label    = { Text(stringResource(labelRes)) },
+                colors   = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor     = MaterialTheme.colorScheme.onPrimaryContainer,
+                ),
             )
         }
     }

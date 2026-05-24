@@ -8,10 +8,12 @@ import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.system.IntentFactory
+import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.GetRarelyUsedAppsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -39,13 +43,31 @@ class RarelyUsedViewModel @Inject constructor(
     private val getRarelyUsed: GetRarelyUsedAppsUseCase,
     private val appInfoRepo: AppInfoRepository,
     private val intents: IntentFactory,
+    /**
+     * v0.4.0 audit PERF-H1 fix — IO dispatcher injected so the
+     * `hasUsageStatsAccess()` AppOps IPC probe runs off the main
+     * thread both at init time AND in `onResumed()`.
+     */
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _thresholdDays = MutableStateFlow(DEFAULT_THRESHOLD_DAYS)
     val thresholdDays: StateFlow<Int> = _thresholdDays
 
-    private val _usageStatsGranted = MutableStateFlow(appInfoRepo.hasUsageStatsAccess())
+    /**
+     * v0.4.0 audit PERF-H1 fix — default `false` so we never call
+     * `hasUsageStatsAccess()` (AppOps IPC) on the main thread at VM
+     * construction. The real value is published from `init {}` below
+     * on the IO dispatcher.
+     */
+    private val _usageStatsGranted = MutableStateFlow(false)
     val usageStatsGranted: StateFlow<Boolean> = _usageStatsGranted.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _usageStatsGranted.value = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
+        }
+    }
 
     private val _events = oneShotEvents<Event>()
     val events: Flow<Event> = _events.asFlow()
@@ -70,9 +92,11 @@ class RarelyUsedViewModel @Inject constructor(
      * lastUsedTime on next rescan tick — handled elsewhere).
      */
     fun onResumed() {
-        val now = appInfoRepo.hasUsageStatsAccess()
-        if (_usageStatsGranted.value != now) {
-            _usageStatsGranted.update { now }
+        viewModelScope.launch {
+            val now = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
+            if (_usageStatsGranted.value != now) {
+                _usageStatsGranted.update { now }
+            }
         }
     }
 

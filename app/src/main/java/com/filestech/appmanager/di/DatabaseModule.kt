@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.filestech.appmanager.data.local.db.AppDatabase
 import com.filestech.appmanager.data.local.db.Migrations
+import com.filestech.appmanager.data.local.db.dao.AmtActionEventDao
 import com.filestech.appmanager.data.local.db.dao.AppInfoDao
 import com.filestech.appmanager.data.local.db.dao.AppLifecycleEventDao
 import com.filestech.appmanager.data.local.db.dao.PermissionSnapshotDao
@@ -57,4 +58,8 @@ object DatabaseModule {
     @Provides
     fun provideAppLifecycleEventDao(db: AppDatabase): AppLifecycleEventDao =
         db.appLifecycleEventDao()
+
+    @Provides
+    fun provideAmtActionEventDao(db: AppDatabase): AmtActionEventDao =
+        db.amtActionEventDao()
 }

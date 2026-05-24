@@ -904,4 +904,32 @@
     <!-- ================================================================ -->
     <string name="lifecycle_row_tamper_alert">⚠ Same version code, different APK digest (SHA-256) — possible repackage or sideload swap.</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.4.0 — Action Journal (AMT-initiated actions forensic trail)   -->
+    <!-- ================================================================ -->
+    <string name="screen_action_journal_title">Action journal</string>
+    <string name="tool_subtitle_action_journal">Forensic timeline of actions AMT performed</string>
+    <string name="settings_section_action_journal">Action journal</string>
+    <string name="settings_action_journal_enabled_title">Action journal</string>
+    <string name="settings_action_journal_enabled_desc">Record every destructive / state-changing action AMT performs (uninstall, clear cache, disable, quarantine, …). Local only, never leaves the device.</string>
+    <string name="settings_action_journal_retention_title">History retention</string>
+    <string name="settings_action_journal_retention_desc">Keep for %1$d days</string>
+    <string name="action_journal_empty_title">No action yet</string>
+    <string name="action_journal_empty_body">Once you trigger a destructive action from AMT (uninstall, clear cache, move to trash, …) it will appear here.</string>
+    <!-- Action type labels (10) -->
+    <string name="action_journal_type_uninstall">Uninstall</string>
+    <string name="action_journal_type_force_stop">Force stop</string>
+    <string name="action_journal_type_disable">Disable</string>
+    <string name="action_journal_type_enable">Enable</string>
+    <string name="action_journal_type_clear_cache">Clear cache</string>
+    <string name="action_journal_type_clear_data">Clear data</string>
+    <string name="action_journal_type_move_to_trash">Move to trash</string>
+    <string name="action_journal_type_restore_from_trash">Restore from trash</string>
+    <string name="action_journal_type_quarantine_hard">Quarantine (hard)</string>
+    <string name="action_journal_type_quarantine_soft">Quarantine (soft)</string>
+    <!-- Result labels (3) -->
+    <string name="action_journal_result_intent_requested">Intent dispatched</string>
+    <string name="action_journal_result_success">Done</string>
+    <string name="action_journal_result_failed">Failed</string>
+
 </resources>

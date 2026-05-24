@@ -37,11 +37,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import com.filestech.appmanager.core.ext.HashUtils
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -755,13 +754,15 @@ class AppInfoRepositoryImpl @Inject constructor(
             info.signatures?.firstOrNull()
         }
 
-    private fun hashSha256Hex(bytes: ByteArray): String = try {
-        val md = MessageDigest.getInstance("SHA-256")
-        val digest = md.digest(bytes)
-        digest.joinToString(separator = ":") { byte -> "%02X".format(byte) }
-    } catch (e: NoSuchAlgorithmException) {
-        throw IllegalStateException("SHA-256 algorithm unavailable", e)
-    }
+    /**
+     * v0.4.0 — APK signing certificate fingerprint formatter. Delegates
+     * to the shared [HashUtils.sha256ToColonHexUpper] helper so the
+     * single representation (`AA:BB:CC:…`) lives in one place. The
+     * private wrapper kept for source-compatibility with the existing
+     * 2 call sites in this class.
+     */
+    private fun hashSha256Hex(bytes: ByteArray): String =
+        HashUtils.sha256ToColonHexUpper(bytes)
 
     // -----------------------------------------------------------------------
     // StorageStats / UsageStats

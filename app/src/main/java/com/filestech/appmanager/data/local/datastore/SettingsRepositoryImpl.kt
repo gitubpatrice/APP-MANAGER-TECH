@@ -91,6 +91,10 @@ class SettingsRepositoryImpl @Inject constructor(
         // User-assigned tags (v0.3.3) — set of `pkg=ENUM_NAME` entries.
         val APP_TAGS                   = stringSetPreferencesKey("app_tags")
 
+        // AMT action journal (v0.4.0)
+        val ACTION_JOURNAL_ENABLED         = booleanPreferencesKey("action_journal_enabled")
+        val ACTION_JOURNAL_RETENTION_DAYS  = intPreferencesKey("action_journal_retention_days")
+
         // Ignore list (Phase VI)
         val IGNORED_PACKAGES           = stringSetPreferencesKey("ignored_packages")
     }
@@ -166,6 +170,13 @@ class SettingsRepositoryImpl @Inject constructor(
             safety = AppSettings.Safety(
                 userProtectedPackages = this[Keys.SAFETY_USER_PROTECTED]
                     ?: defaults.safety.userProtectedPackages,
+            ),
+            actionJournal = AppSettings.ActionJournal(
+                enabled = this[Keys.ACTION_JOURNAL_ENABLED]
+                    ?: defaults.actionJournal.enabled,
+                retentionDays = this[Keys.ACTION_JOURNAL_RETENTION_DAYS]
+                    ?.coerceIn(MIN_LIFECYCLE_RETENTION_DAYS, MAX_LIFECYCLE_RETENTION_DAYS)
+                    ?: defaults.actionJournal.retentionDays,
             ),
             ignoredPackages = this[Keys.IGNORED_PACKAGES]
                 ?: defaults.ignoredPackages,
@@ -297,6 +308,11 @@ class SettingsRepositoryImpl @Inject constructor(
 
             // Tags (v0.3.3) — encode the Map<pkg, AppTag> as Set<"pkg=ENUM">.
             prefs[Keys.APP_TAGS]                   = encodeTags(updated.appTags)
+
+            // ActionJournal (v0.4.0) — same retention envelope as Lifecycle.
+            prefs[Keys.ACTION_JOURNAL_ENABLED]         = updated.actionJournal.enabled
+            prefs[Keys.ACTION_JOURNAL_RETENTION_DAYS]  = updated.actionJournal.retentionDays
+                .coerceIn(MIN_LIFECYCLE_RETENTION_DAYS, MAX_LIFECYCLE_RETENTION_DAYS)
 
             prefs[Keys.IGNORED_PACKAGES]           = updated.ignoredPackages
         }

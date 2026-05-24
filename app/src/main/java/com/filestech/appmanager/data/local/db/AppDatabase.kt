@@ -2,11 +2,13 @@ package com.filestech.appmanager.data.local.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.filestech.appmanager.data.local.db.dao.AmtActionEventDao
 import com.filestech.appmanager.data.local.db.dao.AppInfoDao
 import com.filestech.appmanager.data.local.db.dao.AppLifecycleEventDao
 import com.filestech.appmanager.data.local.db.dao.PermissionSnapshotDao
 import com.filestech.appmanager.data.local.db.dao.QuarantineEntryDao
 import com.filestech.appmanager.data.local.db.dao.TrashItemDao
+import com.filestech.appmanager.data.local.db.entity.AmtActionEventEntity
 import com.filestech.appmanager.data.local.db.entity.AppInfoEntity
 import com.filestech.appmanager.data.local.db.entity.AppLifecycleEventEntity
 import com.filestech.appmanager.data.local.db.entity.PermissionSnapshotEntity
@@ -77,6 +79,18 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
  *     different `apkSha256` — signal of a repackage or sideload swap.
  *     Migration `MIGRATION_6_7`: 1× ALTER TABLE ADD COLUMN (NULLable).
  *
+ * - v8 (v0.4.0 — AMT action journal)
+ *     Adds `amt_action_event` append-only table — one row per
+ *     destructive / state-changing action AMT itself fires
+ *     (Uninstall, ForceStop, Disable/Enable, ClearCache/Data,
+ *     MoveToTrash, RestoreFromTrash, Quarantine HARD/SOFT). Distinct
+ *     from `app_lifecycle_event` which tracks OS broadcasts from any
+ *     installer / uninstaller (not only AMT). Powers the
+ *     ActionJournalScreen forensic timeline. Three indices
+ *     `(package_name, timestamp)` / `timestamp` / `action_type`.
+ *     Migration `MIGRATION_7_8`: 1× CREATE TABLE + 3× CREATE INDEX
+ *     IF NOT EXISTS.
+ *
  * Migration rules (STRICT — enforced by code review):
  * - Every version bump MUST ship an additive Migration in [Migrations].
  * - Only `ALTER TABLE ... ADD COLUMN`, `CREATE INDEX IF NOT EXISTS`, `CREATE TABLE` are allowed.
@@ -93,6 +107,7 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
         PermissionSnapshotEntity::class,
         QuarantineEntryEntity::class,
         AppLifecycleEventEntity::class,
+        AmtActionEventEntity::class,
     ],
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -102,9 +117,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun permissionSnapshotDao(): PermissionSnapshotDao
     abstract fun quarantineEntryDao(): QuarantineEntryDao
     abstract fun appLifecycleEventDao(): AppLifecycleEventDao
+    abstract fun amtActionEventDao(): AmtActionEventDao
 
     companion object {
         const val DATABASE_NAME = "app_manager_tech.db"
-        const val SCHEMA_VERSION = 7
+        const val SCHEMA_VERSION = 8
     }
 }

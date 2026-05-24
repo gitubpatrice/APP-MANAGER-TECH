@@ -207,6 +207,13 @@ class PackageMonitor @Inject constructor(
             totalSizeBytes              = 0L,
             grantedDangerousPermissions = emptyList(),
             userReason                  = null,
+            // v0.4.0 audit MEDIUM-4 fix — `LifecycleEvent.apkSha256` no
+            // longer has a default value, every constructor site must
+            // pass it explicitly. The skeleton intentionally carries
+            // null here ; the canonical row inserted by
+            // [RecordLifecycleEventUseCase] (already in Room by the
+            // time this emits) is the one that carries the actual hash.
+            apkSha256                   = null,
         )
         _events.emit(skeleton)
     }

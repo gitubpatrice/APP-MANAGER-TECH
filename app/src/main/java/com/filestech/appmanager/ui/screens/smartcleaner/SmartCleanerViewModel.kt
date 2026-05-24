@@ -6,8 +6,12 @@ import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
+import com.filestech.appmanager.data.system.AmtActionLogger
 import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.IntentFactory
+import com.filestech.appmanager.di.IoDispatcher
+import com.filestech.appmanager.domain.model.AmtActionResult
+import com.filestech.appmanager.domain.model.AmtActionType
 import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.model.SmartCleanerReport
 import com.filestech.appmanager.domain.repository.AppInfoRepository
@@ -16,6 +20,7 @@ import com.filestech.appmanager.domain.usecase.GetSmartSuggestionsUseCase
 import com.filestech.appmanager.domain.usecase.IgnoreAppUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
@@ -47,11 +53,27 @@ class SmartCleanerViewModel @Inject constructor(
     private val ignoreApp: IgnoreAppUseCase,
     private val intents: IntentFactory,
     private val criticalDetector: CriticalAppDetector,
+    /**
+     * v0.4.0 audit D2 fix — destructive actions fired from Smart
+     * Cleaner now feed the in-app journal alongside the AppDetail /
+     * AppList / Trash paths. Closes the forensic coverage gap.
+     */
+    private val actionLogger: AmtActionLogger,
+    /**
+     * v0.4.0 audit L1 fix — IO dispatcher injected so the AppOps IPC
+     * probe `hasUsageStatsAccess()` runs off the main thread (parity
+     * with the AppDetail / Storage / Expert VMs after audit C3).
+     */
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(
-        UiState(usageStatsGranted = appInfoRepo.hasUsageStatsAccess()),
-    )
+    /**
+     * v0.4.0 audit L1 fix — default `false` so we never call
+     * `hasUsageStatsAccess()` (AppOps IPC) on the main thread at VM
+     * construction. The real value is published from `init {}` below
+     * on the IO dispatcher.
+     */
+    private val _state = MutableStateFlow(UiState(usageStatsGranted = false))
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     private val _events = oneShotEvents<Event>()
@@ -64,6 +86,12 @@ class SmartCleanerViewModel @Inject constructor(
     private val isAnalyzing = AtomicBoolean(false)
 
     init {
+        // v0.4.0 audit L1 fix — publish the usage-stats grant off the
+        // main thread immediately after construction.
+        viewModelScope.launch {
+            val granted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
+            _state.update { it.copy(usageStatsGranted = granted) }
+        }
         // First analysis on every screen entry — reads the Room cache only,
         // so it's fast (~50 ms). MainApplication.triggerInitialScanIfNeeded
         // already keeps the cache warm at app start.
@@ -123,11 +151,13 @@ class SmartCleanerViewModel @Inject constructor(
      * when the permission just flipped from denied → granted.
      */
     fun onResumed() {
-        val wasGranted = _state.value.usageStatsGranted
-        val nowGranted = appInfoRepo.hasUsageStatsAccess()
-        if (wasGranted != nowGranted) {
-            _state.update { it.copy(usageStatsGranted = nowGranted) }
-            if (nowGranted) refresh()
+        viewModelScope.launch {
+            val wasGranted = _state.value.usageStatsGranted
+            val nowGranted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
+            if (wasGranted != nowGranted) {
+                _state.update { it.copy(usageStatsGranted = nowGranted) }
+                if (nowGranted) refresh()
+            }
         }
     }
 
@@ -163,7 +193,13 @@ class SmartCleanerViewModel @Inject constructor(
                 return
             }
         }
-        uninstallApp(packageName).getOrNull()?.let { intent ->
+        val intent = uninstallApp(packageName).getOrNull()
+        // v0.4.0 audit D2 fix — record into the AMT action journal so
+        // Smart-Cleaner-initiated uninstalls are tracked alongside the
+        // AppDetail / AppList / Trash paths.
+        val result = if (intent != null) AmtActionResult.INTENT_REQUESTED else AmtActionResult.FAILED
+        actionLogger.log(packageName, labelOf(packageName), AmtActionType.UNINSTALL, result)
+        if (intent != null) {
             _events.trySend(Event.LaunchIntent(intent))
         }
     }
@@ -171,11 +207,22 @@ class SmartCleanerViewModel @Inject constructor(
     /** Per-row action menu: open App-info so the user can clear the cache themselves. */
     fun clearCache(packageName: String) {
         viewModelScope.launch {
-            clearAppCache(packageName).getOrNull()?.let { intent ->
+            val intent = clearAppCache(packageName).getOrNull()
+            // v0.4.0 audit D2 fix — journal coverage for Smart Cleaner.
+            val result = if (intent != null) AmtActionResult.INTENT_REQUESTED else AmtActionResult.FAILED
+            actionLogger.log(packageName, labelOf(packageName), AmtActionType.CLEAR_CACHE, result)
+            if (intent != null) {
                 _events.trySend(Event.LaunchIntent(intent))
             }
         }
     }
+
+    /**
+     * v0.4.0 — resolves the cached label for [pkg] off the latest
+     * suggestion report so journal rows carry a human-readable label.
+     */
+    private fun labelOf(pkg: String): String? =
+        _state.value.report.suggestions.firstOrNull { it.appInfo.packageName == pkg }?.appInfo?.label
 
     /** Per-row action menu: add [packageName] to the ignore list so it won't
      *  be re-suggested. Uses IgnoreAppUseCase so the 500-entry cap + package

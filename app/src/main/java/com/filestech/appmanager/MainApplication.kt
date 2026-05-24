@@ -133,6 +133,21 @@ class MainApplication : Application(), Configuration.Provider {
                 workScheduler.applyQuarantineRestoreScheduling(
                     enabled = settings.quarantine.restoreReminderEnabled,
                 )
+                // v0.4.0 audit D3 fix — re-sync the lifecycle purge
+                // worker at cold-start too (previously only managed via
+                // the reactive observer in [observeLifecycleToggle],
+                // which means a device reboot / OEM aggressive killer
+                // would drop the schedule without ever re-arming it).
+                // Idempotent UPDATE policy — co-exists with the
+                // observer without duplicating scheduled instances.
+                workScheduler.applyLifecyclePurgeScheduling(
+                    enabled = settings.lifecycle.enabled,
+                )
+                // v0.4.0 — same cold-start re-sync logic for the action
+                // journal purge worker. Idempotent (UPDATE policy).
+                workScheduler.applyAmtActionJournalScheduling(
+                    enabled = settings.actionJournal.enabled,
+                )
             } catch (e: TimeoutCancellationException) {
                 Timber.w(e, "syncBackgroundWorkers: settings load timed out")
             }

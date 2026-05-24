@@ -6,8 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.pm.PackageInfoCompat
 import java.io.File
-import java.io.FileInputStream
-import java.security.MessageDigest
+import com.filestech.appmanager.core.ext.HashUtils
 import com.filestech.appmanager.core.ext.isValidPackageName
 import com.filestech.appmanager.core.result.AppError
 import com.filestech.appmanager.core.result.Outcome
@@ -199,24 +198,17 @@ class RecordLifecycleEventUseCase @Inject constructor(
             )
             return null
         }
-        return try {
-            val digest = MessageDigest.getInstance("SHA-256")
-            FileInputStream(file).use { input ->
-                val buf = ByteArray(APK_HASH_BUFFER_SIZE)
-                while (true) {
-                    val read = input.read(buf)
-                    if (read <= 0) break
-                    digest.update(buf, 0, read)
-                }
-            }
-            digest.digest().joinToString(separator = "") { "%02x".format(it) }
-        } catch (e: java.io.IOException) {
-            Timber.w(e, "computeApkSha256: IO read failed for %s", canonicalPath)
-            null
-        } catch (e: SecurityException) {
-            Timber.w(e, "computeApkSha256: security denial for %s", canonicalPath)
-            null
+        // v0.4.0 audit C2 dedup — the streaming-hash mechanic now lives
+        // in [HashUtils.sha256FileToHexLower]. The policy (cap +
+        // whitelist + symlink-resolve) stays here because it is APK-
+        // specific. HashUtils returns null on IO / Security failure and
+        // logs nothing — we log here with the canonical path for the
+        // forensic trail.
+        val hash = HashUtils.sha256FileToHexLower(file)
+        if (hash == null) {
+            Timber.w("computeApkSha256: hash returned null for %s", canonicalPath)
         }
+        return hash
     }
 
     @Suppress("DEPRECATION")
@@ -265,8 +257,6 @@ class RecordLifecycleEventUseCase @Inject constructor(
     )
 
     private companion object {
-        /** 64 KB streaming buffer for the APK SHA-256 digest. */
-        const val APK_HASH_BUFFER_SIZE = 64 * 1024
         /**
          * Hard cap on the APK size we hash. 500 MB easily covers every Play
          * Store app a user is likely to install (Chrome ~250 MB, big

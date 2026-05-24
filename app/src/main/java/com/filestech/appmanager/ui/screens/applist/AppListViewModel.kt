@@ -10,6 +10,10 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
 import com.filestech.appmanager.core.result.map
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.data.system.AmtActionLogger
+import com.filestech.appmanager.di.IoDispatcher
+import com.filestech.appmanager.domain.model.AmtActionResult
+import com.filestech.appmanager.domain.model.AmtActionType
 import com.filestech.appmanager.domain.model.AppSortOrder
 import com.filestech.appmanager.data.system.IntentFactory
 import com.filestech.appmanager.domain.model.AppAction
@@ -24,6 +28,7 @@ import com.filestech.appmanager.domain.usecase.GetInstalledAppsUseCase
 import com.filestech.appmanager.domain.usecase.RescanAppsUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +42,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -76,6 +82,21 @@ class AppListViewModel @Inject constructor(
      */
     private val settings: SettingsRepository,
     private val intents: IntentFactory,
+    /**
+     * v0.4.0 — records the AMT-side dispatch of every batch action
+     * into the new in-app journal. Non-suspend, fire-and-forget,
+     * gated by the journal-enabled flag inside the logger so we pay
+     * nothing when the feature is off.
+     */
+    private val actionLogger: AmtActionLogger,
+    /**
+     * v0.4.0 audit PERF-H1 + KOTLIN-M3 fix — IO dispatcher injected so
+     * the `hasUsageStatsAccess()` AppOps IPC probe runs off the main
+     * thread both at init time AND in `onResumed()` (was previously
+     * called synchronously in both spots — same defect already fixed
+     * in AppDetailViewModel by audit C3).
+     */
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
 
     // -----------------------------------------------------------------------
@@ -87,7 +108,14 @@ class AppListViewModel @Inject constructor(
     private val _filterOptions = MutableStateFlow(FilterOptions.DEFAULT)
     private val _selectedPackages = MutableStateFlow<Set<String>>(emptySet())
     private val _isRefreshing = MutableStateFlow(false)
-    private val _usageStatsGranted = MutableStateFlow(appInfoRepo.hasUsageStatsAccess())
+    /**
+     * v0.4.0 audit PERF-H1 fix — default `false` so we never call
+     * `hasUsageStatsAccess()` (AppOps IPC) on the main thread at VM
+     * construction. The real value is published from `init {}` below
+     * on the IO dispatcher ; the UI flashes the access banner for
+     * ~few ms at most before the actual flag arrives.
+     */
+    private val _usageStatsGranted = MutableStateFlow(false)
 
     /**
      * v0.3.4 — Currently active tag filter. Empty set = show every app
@@ -264,7 +292,12 @@ class AppListViewModel @Inject constructor(
     fun batchUninstall() = viewModelScope.launch {
         val selection = _selectedPackages.value
         if (selection.isEmpty()) return@launch
-        val list = selection.mapNotNull { pkg -> uninstallApp(pkg).getOrNull() }
+        val list = selection.mapNotNull { pkg ->
+            val intent = uninstallApp(pkg).getOrNull()
+            val result = if (intent != null) AmtActionResult.INTENT_REQUESTED else AmtActionResult.FAILED
+            actionLogger.log(pkg, labelOf(pkg), AmtActionType.UNINSTALL, result)
+            intent
+        }
         if (list.isNotEmpty()) {
             _events.trySend(Event.LaunchIntentsSequentially(list))
         }
@@ -278,7 +311,12 @@ class AppListViewModel @Inject constructor(
     fun batchClearCache() = viewModelScope.launch {
         val selection = _selectedPackages.value
         if (selection.isEmpty()) return@launch
-        val list = selection.mapNotNull { pkg -> clearAppCache(pkg).getOrNull() }
+        val list = selection.mapNotNull { pkg ->
+            val intent = clearAppCache(pkg).getOrNull()
+            val result = if (intent != null) AmtActionResult.INTENT_REQUESTED else AmtActionResult.FAILED
+            actionLogger.log(pkg, labelOf(pkg), AmtActionType.CLEAR_CACHE, result)
+            intent
+        }
         if (list.isNotEmpty()) {
             _events.trySend(Event.LaunchIntentsSequentially(list))
         }
@@ -290,12 +328,40 @@ class AppListViewModel @Inject constructor(
         val selection = _selectedPackages.value
         if (selection.isEmpty()) return@launch
         when (val outcome = batchAction(selection.toList(), AppAction.ForceStop)) {
-            is Outcome.Success -> _events.trySend(Event.BatchDone(outcome.value))
-            is Outcome.Failure -> _events.trySend(Event.ShowError(outcome.error.toString()))
+            is Outcome.Success -> {
+                // batchAction returns a per-package success/failure
+                // breakdown ; we log each pkg with its actual outcome
+                // so the journal stays granular. Failures (rare —
+                // system app protected, package vanished) appear as
+                // FAILED rows, successes as SUCCESS rows.
+                selection.forEach { pkg ->
+                    val ok = pkg in outcome.value.succeeded
+                    val res = if (ok) AmtActionResult.SUCCESS else AmtActionResult.FAILED
+                    actionLogger.log(pkg, labelOf(pkg), AmtActionType.FORCE_STOP, res)
+                }
+                _events.trySend(Event.BatchDone(outcome.value))
+            }
+            is Outcome.Failure -> {
+                selection.forEach { pkg ->
+                    actionLogger.log(pkg, labelOf(pkg), AmtActionType.FORCE_STOP, AmtActionResult.FAILED)
+                }
+                _events.trySend(Event.ShowError(outcome.error.toString()))
+            }
             Outcome.Loading    -> Unit
         }
         clearSelection()
     }
+
+    /**
+     * v0.4.0 — resolves the cached label for [pkg] off the latest list
+     * snapshot. Used by the journal logger so journal rows carry a
+     * human-readable label even if the app is uninstalled between the
+     * batch dispatch and the moment the user opens the journal screen.
+     */
+    private fun labelOf(pkg: String): String? =
+        (state.value.listOutcome as? Outcome.Success)?.value
+            ?.firstOrNull { it.packageName == pkg }
+            ?.label
 
     // -----------------------------------------------------------------------
     // Direct intents
@@ -334,15 +400,20 @@ class AppListViewModel @Inject constructor(
      * and triggers an automatic rescan when the permission has just flipped
      * from denied → granted. This guarantees that sizes / last-used dates
      * appear without the user having to tap Refresh themselves.
+     *
+     * v0.4.0 audit KOTLIN-M3 fix — the AppOps IPC now runs on the IO
+     * dispatcher (previously synchronous on the main thread).
      */
     fun onResumed() {
-        val wasGranted = _usageStatsGranted.value
-        val nowGranted = appInfoRepo.hasUsageStatsAccess()
-        if (wasGranted != nowGranted) {
-            _usageStatsGranted.value = nowGranted
-            if (nowGranted) {
-                Timber.i("PACKAGE_USAGE_STATS just granted — auto-rescan")
-                refresh()
+        viewModelScope.launch {
+            val wasGranted = _usageStatsGranted.value
+            val nowGranted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
+            if (wasGranted != nowGranted) {
+                _usageStatsGranted.value = nowGranted
+                if (nowGranted) {
+                    Timber.i("PACKAGE_USAGE_STATS just granted — auto-rescan")
+                    refresh()
+                }
             }
         }
     }
@@ -422,5 +493,12 @@ class AppListViewModel @Inject constructor(
 
     init {
         Timber.d("AppListViewModel initialised")
+        // v0.4.0 audit PERF-H1 fix — publish the real usage-stats grant
+        // off the main thread immediately after construction so the
+        // banner reflects the actual permission state without ever
+        // touching AppOps IPC on the UI thread.
+        viewModelScope.launch {
+            _usageStatsGranted.value = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
+        }
     }
 }

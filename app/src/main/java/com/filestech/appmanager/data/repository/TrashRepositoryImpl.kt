@@ -4,10 +4,11 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.filestech.appmanager.data.local.db.dao.TrashItemDao
 import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
+import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.TrashItem
 import com.filestech.appmanager.domain.repository.TrashRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -23,6 +24,12 @@ import javax.inject.Singleton
 class TrashRepositoryImpl @Inject constructor(
     private val dao: TrashItemDao,
     @ApplicationContext private val context: Context,
+    /**
+     * v0.4.0 audit SECU-H1 fix — IO dispatcher injected so
+     * `purgeOrphaned()` can be unit-tested with a substitute
+     * dispatcher (previously `Dispatchers.IO` hardcoded — untestable).
+     */
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) : TrashRepository {
 
     override fun observe(): Flow<List<TrashItem>> =
@@ -59,7 +66,7 @@ class TrashRepositoryImpl @Inject constructor(
      * Runs on [Dispatchers.IO] because PM lookups are IPC + the per-row
      * `deleteByPackage` writes hit Room IO.
      */
-    override suspend fun purgeOrphaned(): Int = withContext(Dispatchers.IO) {
+    override suspend fun purgeOrphaned(): Int = withContext(io) {
         val pm = context.packageManager
         val snapshot = dao.getAll()
         // v0.2.1 audit H-1 fix — batch the deletes. Previous implementation

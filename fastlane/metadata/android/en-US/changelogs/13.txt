@@ -1,0 +1,10 @@
+v0.4.0 — Action Journal + full-app polish.
+
+• Opt-in journal records every destructive AMT action (uninstall,
+  force-stop, disable/enable, clear cache/data, move-to-trash,
+  restore, quarantine HARD/SOFT). 30/90/All window. Settings
+  toggle + retention 30–365 days.
+• HashUtils factored, @IoDispatcher injected app-wide (9 VMs +
+  2 data classes), FilterChip parity, SmartCleaner+SecurityAudit
+  feeding the journal.
+• Room v7→v8 additive. Cert SHA-256 stable.

@@ -7,11 +7,12 @@ import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.system.IntentFactory
+import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.StorageReport
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.AnalyzeStorageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +49,13 @@ class StorageViewModel @Inject constructor(
     private val analyzeStorage: AnalyzeStorageUseCase,
     private val appInfoRepo: AppInfoRepository,
     private val intents: IntentFactory,
+    /**
+     * v0.4.0 audit C3 fix — was `Dispatchers.IO` hardcoded in two
+     * call sites. Injected as `@IoDispatcher` so tests can substitute
+     * a test dispatcher and the dispatcher choice stays uniform with
+     * the rest of the codebase.
+     */
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
 
     // v0.2.1 audit M-1 fix — initial UiState no longer calls
@@ -62,7 +70,7 @@ class StorageViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val granted = withContext(Dispatchers.IO) { appInfoRepo.hasUsageStatsAccess() }
+            val granted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
             _state.update { it.copy(usageStatsGranted = granted) }
         }
         analyzeAllApps()
@@ -137,7 +145,7 @@ class StorageViewModel @Inject constructor(
         // v0.2.1 audit M-1 fix — re-probe on Dispatchers.IO (AppOps IPC).
         viewModelScope.launch {
             val wasGranted = _state.value.usageStatsGranted
-            val nowGranted = withContext(Dispatchers.IO) { appInfoRepo.hasUsageStatsAccess() }
+            val nowGranted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
             if (wasGranted != nowGranted) {
                 _state.update { it.copy(usageStatsGranted = nowGranted) }
                 if (nowGranted) rescanAndAnalyze()

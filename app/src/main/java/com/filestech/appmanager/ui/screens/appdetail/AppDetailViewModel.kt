@@ -8,9 +8,12 @@ import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
+import com.filestech.appmanager.data.system.AmtActionLogger
 import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.IntentFactory
 import com.filestech.appmanager.ui.screens.settings.setAppTags
+import com.filestech.appmanager.domain.model.AmtActionResult
+import com.filestech.appmanager.domain.model.AmtActionType
 import com.filestech.appmanager.domain.model.AppDetail
 import com.filestech.appmanager.domain.model.AppTag
 import com.filestech.appmanager.domain.model.CriticalClassification
@@ -31,10 +34,11 @@ import com.filestech.appmanager.domain.usecase.QuarantineAppUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
 import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.di.IoDispatcher
 import android.net.Uri
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -84,6 +88,13 @@ class AppDetailViewModel @Inject constructor(
     private val appInfoRepo: AppInfoRepository,
     private val lifecycleRepository: AppLifecycleRepository,
     private val intents: IntentFactory,
+    private val actionLogger: AmtActionLogger,
+    /**
+     * v0.4.0 audit C3 fix — inject @IoDispatcher for the usage-stats
+     * AppOps IPC probe so tests can substitute a test dispatcher
+     * (previously `Dispatchers.IO` hardcoded, untestable).
+     */
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(UiState())
@@ -169,7 +180,7 @@ class AppDetailViewModel @Inject constructor(
             // not on the main thread (AppOps IPC). Probe runs in parallel with
             // the awaitAll fan-out below.
             launch {
-                val granted = withContext(Dispatchers.IO) { appInfoRepo.hasUsageStatsAccess() }
+                val granted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
                 _state.update { it.copy(usageStatsGranted = granted) }
             }
             // v0.2.1 audit M4 fix — wrap the parallel fan-out in withTimeout
@@ -234,9 +245,14 @@ class AppDetailViewModel @Inject constructor(
                 return@withPackage
             }
         }
-        uninstallApp(pkg).getOrNull()?.let { intent ->
+        val intent = uninstallApp(pkg).getOrNull()
+        if (intent != null) {
+            logAction(AmtActionType.UNINSTALL, AmtActionResult.INTENT_REQUESTED)
             _events.trySend(Event.LaunchIntent(intent))
-        } ?: _events.trySend(Event.ShowError("Cannot uninstall $pkg"))
+        } else {
+            logAction(AmtActionType.UNINSTALL, AmtActionResult.FAILED)
+            _events.trySend(Event.ShowError("Cannot uninstall $pkg"))
+        }
     }
 
     /**
@@ -257,22 +273,31 @@ class AppDetailViewModel @Inject constructor(
         viewModelScope.launch {
             when (val r = moveAppToTrash(detail.info)) {
                 is Outcome.Success -> {
+                    logAction(AmtActionType.MOVE_TO_TRASH, AmtActionResult.SUCCESS)
                     _state.update { it.copy(recentlyMovedToTrash = true) }
                     _events.trySend(Event.MovedToTrash(detail.info.label))
                 }
-                is Outcome.Failure -> _events.trySend(Event.ShowError(r.error.toString()))
+                is Outcome.Failure -> {
+                    logAction(AmtActionType.MOVE_TO_TRASH, AmtActionResult.FAILED)
+                    _events.trySend(Event.ShowError(r.error.toString()))
+                }
                 Outcome.Loading    -> Unit
             }
         }
     }
 
     fun clearCache() = withPackage { pkg ->
-        clearCache(pkg).getOrNull()?.let { intent ->
+        val intent = clearCache(pkg).getOrNull()
+        if (intent != null) {
+            logAction(AmtActionType.CLEAR_CACHE, AmtActionResult.INTENT_REQUESTED)
             _events.trySend(Event.LaunchIntent(intent))
+        } else {
+            logAction(AmtActionType.CLEAR_CACHE, AmtActionResult.FAILED)
         }
     }
 
     fun clearData() = withPackage { pkg ->
+        logAction(AmtActionType.CLEAR_DATA, AmtActionResult.INTENT_REQUESTED)
         _events.trySend(Event.LaunchIntent(intents.appDetailsSettingsIntent(pkg)))
     }
 
@@ -280,8 +305,14 @@ class AppDetailViewModel @Inject constructor(
         val pkg = currentPackage() ?: return
         viewModelScope.launch {
             when (val outcome = forceStopApp(pkg)) {
-                is Outcome.Success -> _events.trySend(Event.ActionDone("Force stop requested"))
-                is Outcome.Failure -> _events.trySend(Event.ShowError(outcome.error.toString()))
+                is Outcome.Success -> {
+                    logAction(AmtActionType.FORCE_STOP, AmtActionResult.SUCCESS)
+                    _events.trySend(Event.ActionDone("Force stop requested"))
+                }
+                is Outcome.Failure -> {
+                    logAction(AmtActionType.FORCE_STOP, AmtActionResult.FAILED)
+                    _events.trySend(Event.ShowError(outcome.error.toString()))
+                }
                 Outcome.Loading    -> Unit
             }
         }
@@ -311,15 +342,23 @@ class AppDetailViewModel @Inject constructor(
 
     private fun setEnabled(enabled: Boolean) {
         val pkg = currentPackage() ?: return
+        val journalType = if (enabled) AmtActionType.ENABLE else AmtActionType.DISABLE
         viewModelScope.launch {
             when (val outcome = disableEnable(pkg, enabled)) {
                 is Outcome.Success -> when (val r = outcome.value) {
-                    DisableEnableAppUseCase.Result.Done ->
+                    DisableEnableAppUseCase.Result.Done -> {
+                        logAction(journalType, AmtActionResult.SUCCESS)
                         _events.trySend(Event.ActionDone("Application ${if (enabled) "enabled" else "disabled"}"))
-                    is DisableEnableAppUseCase.Result.NeedsUserAction ->
+                    }
+                    is DisableEnableAppUseCase.Result.NeedsUserAction -> {
+                        logAction(journalType, AmtActionResult.INTENT_REQUESTED)
                         _events.trySend(Event.LaunchIntent(r.intent))
+                    }
                 }
-                is Outcome.Failure -> _events.trySend(Event.ShowError(outcome.error.toString()))
+                is Outcome.Failure -> {
+                    logAction(journalType, AmtActionResult.FAILED)
+                    _events.trySend(Event.ShowError(outcome.error.toString()))
+                }
                 Outcome.Loading    -> Unit
             }
         }
@@ -353,7 +392,7 @@ class AppDetailViewModel @Inject constructor(
         // v0.2.1 audit M-1 fix — IO probe (AppOps IPC).
         viewModelScope.launch {
             val wasGranted = _state.value.usageStatsGranted
-            val nowGranted = withContext(Dispatchers.IO) { appInfoRepo.hasUsageStatsAccess() }
+            val nowGranted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
             if (wasGranted != nowGranted) {
                 _state.update { it.copy(usageStatsGranted = nowGranted) }
                 if (nowGranted) {
@@ -414,10 +453,22 @@ class AppDetailViewModel @Inject constructor(
                 durationDays  = durationDays,
                 backupTreeUri = backupTreeUri,
             )
+            val journalType = if (mode == QuarantineMode.HARD_UNINSTALL)
+                AmtActionType.QUARANTINE_HARD
+            else
+                AmtActionType.QUARANTINE_SOFT
             when (result) {
-                is QuarantineAppUseCase.Result.HardReady ->
+                is QuarantineAppUseCase.Result.HardReady -> {
+                    logAction(journalType, AmtActionResult.INTENT_REQUESTED)
                     _events.trySend(Event.LaunchIntent(result.uninstallIntent))
-                is QuarantineAppUseCase.Result.SoftReady ->
+                }
+                is QuarantineAppUseCase.Result.SoftReady -> {
+                    // SOFT-mode entry is already persisted in the
+                    // quarantine_entry table at this point — that is a real
+                    // AMT-side completion. The deep-link to OS App-info
+                    // follows for the user to flip the OS toggle, but that
+                    // is opaque from AMT's POV.
+                    logAction(journalType, AmtActionResult.SUCCESS)
                     // v0.2.0 UX fix — SOFT mode no longer auto-opens Settings.
                     // We surface an explanation dialog first so the user knows
                     // they must tap DESACTIVER (or ARCHIVER) themselves in the
@@ -430,8 +481,11 @@ class AppDetailViewModel @Inject constructor(
                             durationDays = durationDays,
                         ),
                     )
-                is QuarantineAppUseCase.Result.Failure ->
+                }
+                is QuarantineAppUseCase.Result.Failure -> {
+                    logAction(journalType, AmtActionResult.FAILED)
                     _events.trySend(Event.ShowError(result.message))
+                }
             }
         }
     }
@@ -456,6 +510,20 @@ class AppDetailViewModel @Inject constructor(
     // -----------------------------------------------------------------------
 
     private fun currentPackage(): String? = _state.value.packageName.takeIf { it.isNotEmpty() }
+
+    private fun currentLabel(): String? =
+        (_state.value.detailOutcome as? Outcome.Success)?.value?.info?.label
+
+    /**
+     * v0.4.0 — shorthand that records one AMT action against the
+     * currently loaded package + cached label. Cheap when the journal
+     * is disabled (see [AmtActionLogger] doc). Safe to call from any
+     * thread.
+     */
+    private fun logAction(type: AmtActionType, result: AmtActionResult) {
+        val pkg = currentPackage() ?: return
+        actionLogger.log(pkg, currentLabel(), type, result)
+    }
 
     private inline fun withPackage(block: (String) -> Unit) {
         currentPackage()?.let(block)

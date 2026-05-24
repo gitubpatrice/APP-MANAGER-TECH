@@ -22,11 +22,11 @@ import androidx.compose.material.icons.outlined.Cached
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -313,18 +313,27 @@ private fun WindowPicker(
     }
 }
 
+// v0.4.0 audit D1 fix — switched from AssistChip (semantically "action
+// suggestion") to FilterChip (semantically "single-select filter")
+// so the WindowPicker matches the v0.3.4 TagFilterChipRow paradigm
+// and the v0.4.0 ActionJournalScreen WindowPicker. One mental model
+// across every "filter row" surface.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WindowChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    AssistChip(
-        onClick = onClick,
-        label   = { Text(label) },
-        colors  = AssistChipDefaults.assistChipColors(
-            containerColor      = if (selected) BrandBlue.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface,
-            labelColor          = if (selected) BrandBlue else MaterialTheme.colorScheme.onSurface,
+    FilterChip(
+        selected = selected,
+        onClick  = onClick,
+        label    = { Text(label) },
+        colors   = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = BrandBlue.copy(alpha = 0.18f),
+            selectedLabelColor     = BrandBlue,
         ),
-        border = AssistChipDefaults.assistChipBorder(
-            enabled      = true,
-            borderColor  = if (selected) BrandBlue else MaterialTheme.colorScheme.outline,
+        border = FilterChipDefaults.filterChipBorder(
+            enabled             = true,
+            selected            = selected,
+            borderColor         = MaterialTheme.colorScheme.outline,
+            selectedBorderColor = BrandBlue,
         ),
     )
 }

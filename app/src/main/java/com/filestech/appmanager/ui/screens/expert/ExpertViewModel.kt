@@ -5,10 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
+import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.ExpertReport
 import com.filestech.appmanager.domain.usecase.GetExpertReportUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,11 @@ import javax.inject.Inject
 @HiltViewModel
 class ExpertViewModel @Inject constructor(
     private val getExpertReport: GetExpertReportUseCase,
+    /**
+     * v0.4.0 audit C3 fix — was `Dispatchers.IO` hardcoded ; injected
+     * as `@IoDispatcher` for testability + cross-codebase consistency.
+     */
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(UiState())
@@ -48,7 +54,7 @@ class ExpertViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val outcome = withTimeout(LOAD_TIMEOUT_MS) {
-                    withContext(Dispatchers.IO) { getExpertReport(packageName) }
+                    withContext(io) { getExpertReport(packageName) }
                 }
                 _state.update { it.copy(report = outcome) }
                 if (outcome is Outcome.Failure) {

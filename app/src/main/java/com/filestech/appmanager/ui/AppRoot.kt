@@ -100,6 +100,7 @@ fun AppRoot() {
                 onNavigateToQuarantine       = { navController.navigate(NavRoute.Quarantine.route) { launchSingleTop = true } },
                 onNavigateToLifecycle        = { navController.navigate(NavRoute.Lifecycle.route) { launchSingleTop = true } },
                 onNavigateToSignatureClusters = { navController.navigate(NavRoute.SignatureClusters.route) { launchSingleTop = true } },
+                onNavigateToActionJournal    = { navController.navigate(NavRoute.ActionJournal.route) { launchSingleTop = true } },
             )
         }
 
@@ -151,6 +152,7 @@ fun AppRoot() {
                 onOpenPermissionDrift = { navController.navigate(NavRoute.PermissionDrift.route) { launchSingleTop = true } },
                 onOpenQuarantine     = { navController.navigate(NavRoute.Quarantine.route) { launchSingleTop = true } },
                 onOpenProtectedApps  = { navController.navigate(NavRoute.ProtectedApps.route) { launchSingleTop = true } },
+                onOpenActionJournal  = { navController.navigate(NavRoute.ActionJournal.route) { launchSingleTop = true } },
             )
         }
 
@@ -311,6 +313,13 @@ fun AppRoot() {
                 onBack      = { navController.popBackStack() },
             )
         }
+
+        // v0.4.0 — Action Journal (forensic timeline of AMT-initiated actions)
+        composable(NavRoute.ActionJournal.route) {
+            com.filestech.appmanager.ui.screens.journal.ActionJournalScreen(
+                onBack = { navController.popBackStack() },
+            )
+        }
     }
 }
 
@@ -379,4 +388,7 @@ sealed class NavRoute(val route: String) {
 
     // v0.3.3 — Signature clusters (apps grouped by signing cert SHA-256)
     data object SignatureClusters : NavRoute("signature_clusters")
+
+    // v0.4.0 — AMT action journal (forensic timeline of AMT-initiated actions)
+    data object ActionJournal : NavRoute("action_journal")
 }

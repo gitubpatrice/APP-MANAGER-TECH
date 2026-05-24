@@ -34,8 +34,11 @@ import org.junit.runner.RunWith
  *   `app_lifecycle_event` reads NULL for pre-existing rows (no DEFAULT
  *   clause needed — the column is NULLable) and accepts INSERT both with
  *   and without the field.
+ * - `MIGRATION_7_8` (v0.4.0 AMT action journal): existing data
+ *   survives; the new `amt_action_event` table accepts inserts with the
+ *   expected schema; the three new indices are present.
  *
- * Requires the v1..v7 schemas to be exported under `schemas/` (Room plugin
+ * Requires the v1..v8 schemas to be exported under `schemas/` (Room plugin
  * handles this — checked into git).
  */
 @RunWith(AndroidJUnit4::class)
@@ -512,6 +515,93 @@ class AppDatabaseMigrationTest {
         ).use {
             assertThat(it.moveToFirst()).isTrue()
             assertThat(it.getString(0)).isEqualTo(sampleHex)
+        }
+
+        migrated.close()
+    }
+
+    @Test
+    fun migrate_v7_to_v8_creates_amt_action_event_table_and_preserves_data() {
+        // 1. Seed v7 with one lifecycle event row (must survive untouched).
+        helper.createDatabase(TEST_DB_NAME, 7).apply {
+            execSQL(
+                """
+                INSERT INTO app_lifecycle_event
+                  (package_name, label, type, captured_at, version_name, version_code,
+                   installer_package, total_size_bytes, granted_dangerous_perms, user_reason, apk_sha256)
+                VALUES ('com.example', 'Example', 'INSTALLED', 1700000000000,
+                        '1.0', 1, NULL, 0, '', NULL, NULL)
+                """.trimIndent(),
+            )
+            close()
+        }
+
+        // 2. Migrate to v8.
+        val migrated = helper.runMigrationsAndValidate(
+            TEST_DB_NAME,
+            8,
+            true,
+            Migrations.MIGRATION_7_8,
+        )
+
+        // 3. Pre-existing lifecycle row preserved.
+        migrated.query(
+            "SELECT package_name, type FROM app_lifecycle_event",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("com.example")
+            assertThat(it.getString(1)).isEqualTo("INSTALLED")
+        }
+
+        // 4. The new amt_action_event table accepts an insert + round-trips.
+        migrated.execSQL(
+            """
+            INSERT INTO amt_action_event
+              (package_name, label_snapshot, action_type, result, timestamp)
+            VALUES ('com.example', 'Example', 'UNINSTALL', 'INTENT_REQUESTED', 1700000001000)
+            """.trimIndent(),
+        )
+        migrated.query(
+            """
+            SELECT package_name, label_snapshot, action_type, result, timestamp
+            FROM amt_action_event
+            """.trimIndent(),
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("com.example")
+            assertThat(it.getString(1)).isEqualTo("Example")
+            assertThat(it.getString(2)).isEqualTo("UNINSTALL")
+            assertThat(it.getString(3)).isEqualTo("INTENT_REQUESTED")
+            assertThat(it.getLong(4)).isEqualTo(1700000001000L)
+        }
+
+        // 5. NULL label_snapshot is allowed.
+        migrated.execSQL(
+            """
+            INSERT INTO amt_action_event
+              (package_name, label_snapshot, action_type, result, timestamp)
+            VALUES ('com.test', NULL, 'MOVE_TO_TRASH', 'SUCCESS', 1700000002000)
+            """.trimIndent(),
+        )
+        migrated.query(
+            "SELECT label_snapshot FROM amt_action_event WHERE package_name = 'com.test'",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.isNull(0)).isTrue()
+        }
+
+        // 6. The three new indices exist.
+        val expectedIndices = listOf(
+            "index_amt_action_event_package_name_timestamp",
+            "index_amt_action_event_timestamp",
+            "index_amt_action_event_action_type",
+        )
+        for (idx in expectedIndices) {
+            migrated.query(
+                "SELECT name FROM sqlite_master WHERE type='index' AND name='$idx'",
+            ).use {
+                assertThat(it.moveToFirst()).isTrue()
+            }
         }
 
         migrated.close()
