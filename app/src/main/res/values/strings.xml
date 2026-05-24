@@ -724,7 +724,7 @@
     <!-- ================================================================ -->
     <string name="export_format_pdf">PDF (diagnostic report)</string>
     <string name="export_action_pdf">Export PDF diagnostic</string>
-    <string name="export_pdf_description">A printable diagnostic report with device profile, inventory, dangerous permissions, trackers and detected issues — suitable for family / professional tech support.</string>
+    <string name="export_pdf_description">Printable A4 PDF summarising the phone\'s current state as AMT sees it. Sections included: device + Android + internal storage profile, AMT version + signature, inventory of your user-installed apps (system excluded), sensitive permissions granted per app, sideloaded apps (outside Play / F-Droid / Aurora), Device Admin and Accessibility access, issues summary (zombies, inactive ≥ 60 d, oversized ≥ 200 MB, sideloaded), and the last 200 lifecycle events. No external analysis, no automatic judgement, no network call, no recommendation — it is a local compilation of the data AMT already has on hand, laid out on 5 to 10 A4 pages. Useful to share with a support technician or to archive the state before a factory reset.</string>
     <string name="export_pdf_section_export">Diagnostic report</string>
 
     <string name="pdf_title">App Manager Tech — Diagnostic report</string>
