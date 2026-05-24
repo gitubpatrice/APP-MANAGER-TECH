@@ -864,4 +864,26 @@
     <!-- ================================================================ -->
     <string name="pdf_section_lifecycle">Lifecycle journal (last 200 events)</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.3.3 — Signature clusters                                      -->
+    <!-- ================================================================ -->
+    <string name="screen_signatures_title">Signature clusters</string>
+    <string name="tool_subtitle_signatures">Apps grouped by signing certificate</string>
+    <string name="signatures_empty_title">No cluster yet</string>
+    <string name="signatures_empty_body">The catalogue is empty or no signature could be resolved. Try a full rescan from the Storage screen.</string>
+    <string name="signatures_shared_badge">Shared by %1$d apps</string>
+    <string name="signatures_solo_badge">Single app</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.3 — Custom tags                                             -->
+    <!-- ================================================================ -->
+    <string name="tag_picker_title">Tag for %1$s</string>
+    <string name="tag_picker_none">No tag</string>
+    <string name="tag_chip_add">Add a tag</string>
+    <string name="tag_label_work">Work</string>
+    <string name="tag_label_family">Family</string>
+    <string name="tag_label_game">Game</string>
+    <string name="tag_label_tools">Tools</string>
+    <string name="tag_label_media">Media</string>
+
 </resources>

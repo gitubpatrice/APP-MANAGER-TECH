@@ -86,6 +86,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // Safety Guardrails user-customisation (v0.3.1)
         val SAFETY_USER_PROTECTED      = stringSetPreferencesKey("safety_user_protected_packages")
 
+        // User-assigned tags (v0.3.3) — set of `pkg=ENUM_NAME` entries.
+        val APP_TAGS                   = stringSetPreferencesKey("app_tags")
+
         // Ignore list (Phase VI)
         val IGNORED_PACKAGES           = stringSetPreferencesKey("ignored_packages")
     }
@@ -164,8 +167,38 @@ class SettingsRepositoryImpl @Inject constructor(
             ),
             ignoredPackages = this[Keys.IGNORED_PACKAGES]
                 ?: defaults.ignoredPackages,
+            appTags = decodeTags(this[Keys.APP_TAGS]).ifEmpty { defaults.appTags },
         )
     }
+
+    /**
+     * v0.3.3 — Decodes the `Set<String>` of `pkg=ENUM_NAME` entries into a
+     * `Map<String, AppTag>`. Tolerant : malformed entries (missing `=`,
+     * empty pkg / tag, unknown enum value) are silently dropped — the
+     * write path always produces well-formed entries, so a tolerant read
+     * only matters under downgrade / external tampering.
+     */
+    private fun decodeTags(raw: Set<String>?): Map<String, com.filestech.appmanager.domain.model.AppTag> {
+        if (raw.isNullOrEmpty()) return emptyMap()
+        val out = HashMap<String, com.filestech.appmanager.domain.model.AppTag>(raw.size)
+        for (entry in raw) {
+            val sep = entry.indexOf('=')
+            if (sep <= 0 || sep == entry.lastIndex) continue
+            val pkg = entry.substring(0, sep).trim()
+            val tag = entry.substring(sep + 1).trim()
+            if (pkg.isEmpty() || tag.isEmpty()) continue
+            val parsed = runCatching {
+                com.filestech.appmanager.domain.model.AppTag.valueOf(tag)
+            }.getOrNull() ?: continue
+            out[pkg] = parsed
+        }
+        return out
+    }
+
+    private fun encodeTags(map: Map<String, com.filestech.appmanager.domain.model.AppTag>): Set<String> =
+        map.entries.asSequence()
+            .map { (pkg, tag) -> "$pkg=${tag.name}" }
+            .toSet()
 
     // ---------------------------------------------------------------------------
     // Flow
@@ -221,6 +254,9 @@ class SettingsRepositoryImpl @Inject constructor(
             // Safety (v0.3.1) — cap defensively to avoid pathologically large sets.
             prefs[Keys.SAFETY_USER_PROTECTED]      = updated.safety.userProtectedPackages
                 .take(MAX_USER_PROTECTED_PACKAGES).toSet()
+
+            // Tags (v0.3.3) — encode the Map<pkg, AppTag> as Set<"pkg=ENUM">.
+            prefs[Keys.APP_TAGS]                   = encodeTags(updated.appTags)
 
             prefs[Keys.IGNORED_PACKAGES]           = updated.ignoredPackages
         }

@@ -857,4 +857,26 @@
     <!-- ================================================================ -->
     <string name="pdf_section_lifecycle">Journal du cycle de vie (200 derniers événements)</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.3.3 — Clusters de signatures                                  -->
+    <!-- ================================================================ -->
+    <string name="screen_signatures_title">Clusters de signatures</string>
+    <string name="tool_subtitle_signatures">Apps regroupées par certificat de signature</string>
+    <string name="signatures_empty_title">Aucun cluster</string>
+    <string name="signatures_empty_body">Le catalogue est vide ou aucune signature n\'a pu être résolue. Lancez un rescan complet depuis l\'écran Stockage.</string>
+    <string name="signatures_shared_badge">Partagé par %1$d apps</string>
+    <string name="signatures_solo_badge">Une seule app</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.3 — Tags personnalisés                                      -->
+    <!-- ================================================================ -->
+    <string name="tag_picker_title">Tag pour %1$s</string>
+    <string name="tag_picker_none">Aucun tag</string>
+    <string name="tag_chip_add">Ajouter un tag</string>
+    <string name="tag_label_work">Travail</string>
+    <string name="tag_label_family">Famille</string>
+    <string name="tag_label_game">Jeu</string>
+    <string name="tag_label_tools">Outils</string>
+    <string name="tag_label_media">Média</string>
+
 </resources>

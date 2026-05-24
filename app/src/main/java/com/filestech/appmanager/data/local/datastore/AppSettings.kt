@@ -40,6 +40,17 @@ data class AppSettings(
      * Stored as a [Set] of package names in DataStore via [androidx.datastore.preferences.core.stringSetPreferencesKey].
      */
     val ignoredPackages: Set<String> = emptySet(),
+    /**
+     * v0.3.3 — user-assigned tags. Map of `packageName → AppTag`. One tag per
+     * app for simplicity (multi-tags + free-text custom tags can land in a
+     * future release without breaking the wire format — we'd extend the set
+     * encoding from `pkg=TAG` to `pkg=TAG1,TAG2`).
+     *
+     * Stored in DataStore as a `Set<String>` of `packageName=ENUM_NAME`
+     * entries. Decoding is tolerant : malformed entries are silently
+     * dropped, unknown enum names collapse to null (effectively "no tag").
+     */
+    val appTags: Map<String, com.filestech.appmanager.domain.model.AppTag> = emptyMap(),
 ) {
 
     /**

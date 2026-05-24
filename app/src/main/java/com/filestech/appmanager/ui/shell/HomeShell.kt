@@ -62,6 +62,7 @@ fun HomeShell(
     onNavigateToPermissionDrift: () -> Unit,
     onNavigateToQuarantine: () -> Unit,
     onNavigateToLifecycle: () -> Unit,
+    onNavigateToSignatureClusters: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableStateOf(HomeTab.HOME) }
 
@@ -121,6 +122,7 @@ fun HomeShell(
                     onPermissionDrift = onNavigateToPermissionDrift,
                     onQuarantine      = onNavigateToQuarantine,
                     onLifecycle       = onNavigateToLifecycle,
+                    onSignatures      = onNavigateToSignatureClusters,
                     onSettings        = onNavigateToSettings,
                 )
                 // v0.1.3 — About is a 3rd tab on the right of Outils. Reuses

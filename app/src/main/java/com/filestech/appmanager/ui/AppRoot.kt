@@ -19,6 +19,7 @@ import com.filestech.appmanager.ui.screens.lifecycle.LifecycleReasonHost
 import com.filestech.appmanager.ui.screens.permissiondrift.PermissionDriftScreen
 import com.filestech.appmanager.ui.screens.safety.ProtectedAppsPickerScreen
 import com.filestech.appmanager.ui.screens.safety.ProtectedAppsScreen
+import com.filestech.appmanager.ui.screens.signatures.SignatureClustersScreen
 import com.filestech.appmanager.ui.screens.permissionfilter.PermissionFilterScreen
 import com.filestech.appmanager.ui.screens.quarantine.QuarantinePickerScreen
 import com.filestech.appmanager.ui.screens.quarantine.QuarantineScreen
@@ -98,6 +99,7 @@ fun AppRoot() {
                 onNavigateToPermissionDrift  = { navController.navigate(NavRoute.PermissionDrift.route) { launchSingleTop = true } },
                 onNavigateToQuarantine       = { navController.navigate(NavRoute.Quarantine.route) { launchSingleTop = true } },
                 onNavigateToLifecycle        = { navController.navigate(NavRoute.Lifecycle.route) { launchSingleTop = true } },
+                onNavigateToSignatureClusters = { navController.navigate(NavRoute.SignatureClusters.route) { launchSingleTop = true } },
             )
         }
 
@@ -248,6 +250,14 @@ fun AppRoot() {
             )
         }
 
+        // v0.3.3 — Signature clusters (groups apps by signing cert SHA-256)
+        composable(NavRoute.SignatureClusters.route) {
+            SignatureClustersScreen(
+                onBack     = { navController.popBackStack() },
+                onAppClick = { pkg -> navController.navigate(NavRoute.AppDetail.buildRoute(pkg)) },
+            )
+        }
+
         // v0.3.1 — Apps protégées (Safety Guardrails user-customisation)
         composable(NavRoute.ProtectedApps.route) {
             ProtectedAppsScreen(
@@ -366,4 +376,7 @@ sealed class NavRoute(val route: String) {
     // v0.3.1 — Safety Guardrails user-customisation
     data object ProtectedApps : NavRoute("protected_apps")
     data object ProtectedAppsPicker : NavRoute("protected_apps_picker")
+
+    // v0.3.3 — Signature clusters (apps grouped by signing cert SHA-256)
+    data object SignatureClusters : NavRoute("signature_clusters")
 }

@@ -7,6 +7,61 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.3.3] — 2026-05-24 — Hibernation parity + Signature clusters + Custom tags
+
+### Added — Hibernation parity on RarelyUsed
+- The OS-reported hibernation chip surfaced on `ZombiesRow` in v0.3.2 now
+  also shows on `RarelyUsedRow` (same shape, same string). Cross-screen
+  consistency — both lists agree on what "the OS considers this app
+  inactive" looks like.
+
+### Added — Signature clusters
+- New domain `SignatureCluster(signatureSha256, apps)` + use case
+  `GroupAppsBySignatureUseCase` — pulls the user-installed catalogue,
+  fetches each app's SHA-256 via `AppInfoRepository.getSignatureSha256`
+  (per-package PM IPC), groups into clusters. Apps that fail signature
+  resolution are silently dropped.
+- New `SignatureClustersScreen` + `SignatureClustersViewModel` — pull-to-
+  refresh, header badge "Shared by N apps" for cluster size > 1 (the
+  actionable signal — "two apps from the same editor"), singletons sorted
+  after shared ones. Tap any app row → drill down to AppDetail.
+- New Tools card `Clusters de signatures` (Forest green `#2E7D32`,
+  WCAG AA verified on light + dark) with Fingerprint icon. Nav route
+  `signature_clusters` wired through AppRoot + HomeShell + ToolsScreen.
+
+### Added — Custom user tags
+- New domain `AppTag` enum (5 presets : `WORK` / `FAMILY` / `GAME` /
+  `TOOLS` / `MEDIA`). Fixed set keeps the DataStore encoding simple and
+  avoids the free-text tag-system anti-pattern.
+- New `AppSettings.appTags: Map<String, AppTag>` persisted as a
+  `Set<String>` of `pkg=ENUM_NAME` entries via `stringSetPreferencesKey`.
+  Decoding is tolerant : malformed entries / unknown enum names are
+  silently dropped.
+- New `SettingsRepository.setAppTag` top-level extension : validates the
+  package name + atomic `update {}` of the Map.
+- New `TagPickerDialog` (5 radio options + a "None" entry at the top —
+  selecting None and confirming clears the tag).
+- AppDetail HeaderCard surfaces a tappable tag chip (`Add a tag` CTA
+  when none assigned, BrandBlue chip with the tag label otherwise).
+  Tap → opens the TagPickerDialog. `AppDetailViewModel.currentTag`
+  StateFlow is driven by the same DataStore flow that backs the rest of
+  Settings.
+
+### Fixed
+- AppDetailScreen icon `Icons.Outlined.Label` migrated to
+  `Icons.AutoMirrored.Outlined.Label` to clear the only Compose
+  deprecation warning of this release.
+
+### Notes
+- Room schema unchanged (still v6 — no migration).
+- Cert SHA-256 stable:
+  `76:E8:77:2E:09:95:13:69:40:5F:58:E7:0C:4A:FF:FD:41:C4:68:75:53:C6:CF:A0:3D:08:14:5F:F6:0F:F1:CF`
+- 0 GMS, 0 INTERNET, 0 new runtime permission.
+- APK size ~2.26 MB (+2 KB vs v0.3.2 — code is tiny, mostly strings).
+- Strings FR ↔ EN parity 100% (~15 new keys).
+
+---
+
 ## [0.3.2] — 2026-05-24 — RarelyUsed search + Hibernation + Perm delta + Lifecycle PDF
 
 ### Added — RarelyUsed search

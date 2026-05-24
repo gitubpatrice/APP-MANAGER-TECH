@@ -22,6 +22,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.DataObject
 import androidx.compose.material.icons.outlined.Delete
@@ -123,9 +125,14 @@ fun AppDetailScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val lifecycleEvents by viewModel.lifecycleEvents.collectAsStateWithLifecycle()
+    val currentTag by viewModel.currentTag.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    // v0.3.3 — tag picker open state. Not Saveable because AppTag enum is
+    // safely Saveable via its `name`, but the simplest boolean toggle is
+    // sufficient — config change re-derives from currentTag.
+    var tagDialogOpen by rememberSaveable { mutableStateOf(false) }
 
     var confirmDialog by rememberSaveable { mutableStateOf<ConfirmIntent?>(null) }
     var quarantineDialogOpen by rememberSaveable { mutableStateOf(false) }
@@ -220,6 +227,8 @@ fun AppDetailScreen(
         AppDetailBody(
             state             = state,
             lifecycleEvents   = lifecycleEvents,
+            currentTag        = currentTag,
+            onTagClick        = { tagDialogOpen = true },
             innerPadding      = innerPadding,
             onRetry       = { viewModel.load(packageName) },
             onUninstall   = {
@@ -326,6 +335,24 @@ fun AppDetailScreen(
         )
     }
 
+    // v0.3.3 — tag picker dialog. Derives the label from the loaded
+    // AppDetail when available, falls back to the package name (the dialog
+    // shouldn't open before the detail loads, but the fallback keeps the
+    // string non-empty under any race).
+    if (tagDialogOpen) {
+        val label = (state.detailOutcome as? Outcome.Success)?.value?.info?.label
+            ?: state.packageName
+        com.filestech.appmanager.ui.components.dialogs.TagPickerDialog(
+            appLabel  = label,
+            current   = currentTag,
+            onConfirm = { picked ->
+                viewModel.setTag(picked)
+                tagDialogOpen = false
+            },
+            onDismiss = { tagDialogOpen = false },
+        )
+    }
+
     criticalConfirm?.let { state ->
         val actionLabel = stringResource(
             when (state.action) {
@@ -389,6 +416,8 @@ private data class SoftQuarantinePrompt(
 private fun AppDetailBody(
     state: AppDetailViewModel.UiState,
     lifecycleEvents: List<com.filestech.appmanager.domain.model.LifecycleEvent>,
+    currentTag: com.filestech.appmanager.domain.model.AppTag?,
+    onTagClick: () -> Unit,
     innerPadding: PaddingValues,
     onRetry: () -> Unit,
     onUninstall: () -> Unit,
@@ -433,6 +462,8 @@ private fun AppDetailBody(
                     isIgnored                 = state.isIgnored,
                     recentlyMovedToTrash      = state.recentlyMovedToTrash,
                     lifecycleEvents           = lifecycleEvents,
+                    currentTag                = currentTag,
+                    onTagClick                = onTagClick,
                     onUninstall               = onUninstall,
                     onClearCache              = onClearCache,
                     onForceStop               = onForceStop,
@@ -456,6 +487,8 @@ private fun AppDetailContent(
     isIgnored: Boolean,
     recentlyMovedToTrash: Boolean,
     lifecycleEvents: List<com.filestech.appmanager.domain.model.LifecycleEvent>,
+    currentTag: com.filestech.appmanager.domain.model.AppTag?,
+    onTagClick: () -> Unit,
     onUninstall: () -> Unit,
     onClearCache: () -> Unit,
     onForceStop: () -> Unit,
@@ -472,7 +505,7 @@ private fun AppDetailContent(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 24.dp),
     ) {
-        HeaderCard(detail.info)
+        HeaderCard(info = detail.info, currentTag = currentTag, onTagClick = onTagClick)
         // Phase X — PrivacyDataPanel right after the header so privacy info
         // is the FIRST thing users see (more important than storage breakdown).
         SectionHeader(stringResource(R.string.appdetail_privacy_panel_title))
@@ -608,7 +641,11 @@ private fun LifecycleInlineRow(
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun HeaderCard(info: AppInfo) {
+private fun HeaderCard(
+    info: AppInfo,
+    currentTag: com.filestech.appmanager.domain.model.AppTag?,
+    onTagClick: () -> Unit,
+) {
     SectionCard {
         Row(
             modifier          = Modifier.padding(16.dp),
@@ -635,6 +672,46 @@ private fun HeaderCard(info: AppInfo) {
                     style    = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 4.dp),
                 )
+                // v0.3.3 — tap row showing the current user tag chip + an
+                // edit affordance. When no tag is assigned we still render
+                // the "Add a tag" call-to-action so the feature is
+                // discoverable from AppDetail without burying it in Outils.
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier              = Modifier
+                        .clickable(onClick = onTagClick)
+                        .padding(vertical = 2.dp),
+                ) {
+                    Icon(
+                        imageVector        = Icons.AutoMirrored.Outlined.Label,
+                        contentDescription = null,
+                        tint               = BrandBlue,
+                        modifier           = Modifier.size(16.dp),
+                    )
+                    if (currentTag != null) {
+                        Surface(
+                            color = BrandBlue.copy(alpha = 0.14f),
+                            shape = RoundedCornerShape(4.dp),
+                        ) {
+                            Text(
+                                text     = stringResource(
+                                    com.filestech.appmanager.ui.components.dialogs.appTagLabelRes(currentTag),
+                                ),
+                                style    = MaterialTheme.typography.labelSmall,
+                                color    = BrandBlue,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            )
+                        }
+                    } else {
+                        Text(
+                            text  = stringResource(R.string.tag_chip_add),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = BrandBlue,
+                        )
+                    }
+                }
             }
         }
     }

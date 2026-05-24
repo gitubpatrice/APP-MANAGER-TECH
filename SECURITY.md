@@ -1,6 +1,20 @@
 # App Manager Tech — Security model
 
-Current release: **v0.3.2**
+Current release: **v0.3.3**
+
+## v0.3.3 — Hibernation parity + Signature clusters + Custom tags
+
+- **Signature clusters** : reuses the existing `getSignatureSha256(pkg)`
+  PM call already shipped since v0.1.0 — no new permission, no new IPC
+  surface. Renders read-only — tapping an app drills down to AppDetail
+  (no destructive action accessible from the new screen).
+- **Custom user tags** : new `AppSettings.appTags Map<pkg, AppTag>`
+  persisted in DataStore as a `Set<String>` of `pkg=ENUM_NAME` entries.
+  Decoding is tolerant — malformed / unknown entries silently dropped.
+  Tags are device-local only ; no network, no GMS.
+- **No new permission, no new dependency, no INTERNET, no GMS.**
+- Room schema unchanged (still v6).
+- Cert SHA-256 stable (`76:E8:77...60FF1CF`) since v0.1.0.
 
 ## v0.3.2 — Hibernation + Perm delta + Lifecycle PDF
 

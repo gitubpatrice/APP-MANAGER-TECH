@@ -1,0 +1,11 @@
+v0.3.3 — Signature clusters + Tags + polish
+
+- "Signature clusters" tool : groups apps by signing
+  cert SHA-256. Spot "two apps from the same editor"
+  + transparency on common signers.
+- Custom tags : assign one of 5 presets (Work, Family,
+  Game, Tools, Media) to any app via the chip on
+  AppDetail. Device-local.
+- Hibernation chip parity : also on RarelyUsed (was
+  Zombies-only in v0.3.2).
+- No new permission, Room schema unchanged.

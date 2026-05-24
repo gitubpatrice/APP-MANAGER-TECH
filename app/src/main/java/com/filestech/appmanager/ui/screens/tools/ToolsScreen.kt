@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Security
@@ -94,6 +95,7 @@ fun ToolsScreen(
     onPermissionDrift: () -> Unit,
     onQuarantine: () -> Unit,
     onLifecycle: () -> Unit,
+    onSignatures: () -> Unit,
     onSettings: () -> Unit,
 ) {
     // 12 tools — recomputed each composition (cheap; lambda keys change
@@ -126,6 +128,10 @@ fun ToolsScreen(
         // the existing IndigoDeep / Slate to avoid visual confusion with the
         // sibling privacy / quarantine tools.
         ToolEntry(R.string.screen_lifecycle_title,           R.string.tool_subtitle_lifecycle,        Icons.Outlined.Timeline,           ToolColors.Burgundy,   onLifecycle),
+        // v0.3.3 — Signature clusters (apps grouped by signing cert SHA-256).
+        // Forest green (#2E7D32) — distinct from existing palette; conveys
+        // "established / identity / trust" semantics that fit the feature.
+        ToolEntry(R.string.screen_signatures_title,          R.string.tool_subtitle_signatures,       Icons.Outlined.Fingerprint,        ToolColors.Forest,     onSignatures),
     )
 
     Scaffold(
@@ -273,5 +279,10 @@ private object ToolColors {
     // for bodyMedium/SemiBold (4.5:1 floor). Distinct hue from IndigoDeep
     // (privacy drift) + Slate (quarantine) + Coral (security audit).
     val Burgundy   = Color(0xFF880E4F) // Material Pink 900
+
+    // v0.3.3 addition — forest green (Green 800) for the Signature Clusters
+    // card. 5.88:1 on light surfaceContainerLow, 4.65:1 on dark — passes
+    // WCAG AA. Distinct hue from existing Green (700) used by Cleaner.
+    val Forest     = Color(0xFF2E7D32) // Material Green 800
 }
 

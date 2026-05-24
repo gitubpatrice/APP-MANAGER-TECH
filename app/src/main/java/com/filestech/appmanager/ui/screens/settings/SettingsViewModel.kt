@@ -3,10 +3,12 @@ package com.filestech.appmanager.ui.screens.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
+import com.filestech.appmanager.core.ext.isValidPackageName
 import com.filestech.appmanager.data.local.datastore.AppSettings
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.data.system.WorkScheduler
 import com.filestech.appmanager.domain.model.AppSortOrder
+import com.filestech.appmanager.domain.model.AppTag
 import com.filestech.appmanager.domain.model.ThemeMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -156,4 +158,22 @@ class SettingsViewModel @Inject constructor(
     }
 
     // VIII C7 fix: STOP_TIMEOUT_MS factored to core.ext.STATEFLOW_STOP_TIMEOUT_MS.
+}
+
+/**
+ * v0.3.3 — Tag write helper as a top-level extension so any ViewModel can
+ * call it without going through [SettingsViewModel]. Keeps the encoding
+ * logic centralised on the repository.
+ *
+ * @param packageName must satisfy [isValidPackageName]; invalid input is
+ *   silently ignored (no exception thrown across the coroutine boundary).
+ * @param tag null to clear the tag for [packageName].
+ */
+suspend fun SettingsRepository.setAppTag(packageName: String, tag: AppTag?) {
+    if (!packageName.isValidPackageName()) return
+    update {
+        val next = appTags.toMutableMap()
+        if (tag == null) next.remove(packageName) else next[packageName] = tag
+        copy(appTags = next.toMap())
+    }
 }

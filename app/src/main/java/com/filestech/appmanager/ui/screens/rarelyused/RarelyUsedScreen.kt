@@ -248,13 +248,35 @@ private fun RarelyUsedRow(app: AppInfo, now: Long, onClick: () -> Unit) {
         AppIcon(packageName = app.packageName, size = 40.dp)
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text       = app.label,
-                style      = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines   = 1,
-                overflow   = TextOverflow.Ellipsis,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text       = app.label,
+                    style      = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis,
+                    modifier   = Modifier.weight(1f, fill = false),
+                )
+                // v0.3.3 — parity with ZombiesScreen v0.3.2 : surface the OS
+                // hibernation chip when the system reports the app as inactive.
+                // The chip sits next to the label rather than below to keep
+                // the row compact (label + chip + size all on the same
+                // visual line whenever there's room).
+                if (app.isHibernated) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    androidx.compose.material3.Surface(
+                        shape        = androidx.compose.foundation.shape.RoundedCornerShape(50),
+                        color        = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ) {
+                        Text(
+                            text     = stringResource(R.string.zombie_chip_hibernated),
+                            style    = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        )
+                    }
+                }
+            }
             Text(
                 text     = "${app.packageName} · $sizeLabel",
                 style    = MaterialTheme.typography.bodySmall,

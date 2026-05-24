@@ -1,0 +1,11 @@
+v0.3.3 — Clusters signatures + Tags + polish
+
+- Outil « Clusters de signatures » : groupe les apps
+  par SHA-256 du cert de signature. Repère « 2 apps
+  du même éditeur » + transparence signers communs.
+- Tags personnalisés : 5 presets (Travail, Famille,
+  Jeu, Outils, Média) assignables via chip Fiche app.
+  Local appareil.
+- Parité chip hibernation : aussi sur RarelyUsed
+  (était Zombies-only en v0.3.2).
+- Aucune nouvelle permission, schema Room inchangé.
