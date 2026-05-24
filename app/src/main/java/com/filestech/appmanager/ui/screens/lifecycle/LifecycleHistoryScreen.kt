@@ -87,6 +87,7 @@ fun LifecycleHistoryScreen(
 ) {
     val events by viewModel.events.collectAsStateWithLifecycle()
     val window by viewModel.window.collectAsStateWithLifecycle()
+    val deltas by viewModel.permissionDeltas.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -107,6 +108,7 @@ fun LifecycleHistoryScreen(
             innerPadding = innerPadding,
             window       = window,
             events       = events,
+            deltas       = deltas,
             onWindow     = viewModel::setWindow,
             onItemClick  = onItemClick,
         )
@@ -118,6 +120,7 @@ private fun LifecycleBody(
     innerPadding: PaddingValues,
     window: ObserveLifecycleEventsUseCase.Window,
     events: Outcome<List<LifecycleEvent>>,
+    deltas: Map<Long, com.filestech.appmanager.domain.model.PermissionDelta>,
     onWindow: (ObserveLifecycleEventsUseCase.Window) -> Unit,
     onItemClick: (String) -> Unit,
 ) {
@@ -142,7 +145,7 @@ private fun LifecycleBody(
                     // + uninstall reason for the current window. Stays at the
                     // top of the LazyColumn so it scrolls with the timeline.
                     StatsCard(events = events.value)
-                    EventTimeline(events = events.value, onItemClick = onItemClick)
+                    EventTimeline(events = events.value, deltas = deltas, onItemClick = onItemClick)
                 }
             }
         }
@@ -278,6 +281,7 @@ private fun WindowChip(label: String, selected: Boolean, onClick: () -> Unit) {
 @Composable
 private fun EventTimeline(
     events: List<LifecycleEvent>,
+    deltas: Map<Long, com.filestech.appmanager.domain.model.PermissionDelta>,
     onItemClick: (String) -> Unit,
 ) {
     val dateFormat = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
@@ -287,7 +291,12 @@ private fun EventTimeline(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(events, key = { it.id }) { event ->
-            EventCard(event = event, dateFormat = dateFormat, onClick = { onItemClick(event.packageName) })
+            EventCard(
+                event      = event,
+                dateFormat = dateFormat,
+                delta      = deltas[event.id],
+                onClick    = { onItemClick(event.packageName) },
+            )
         }
     }
 }
@@ -296,6 +305,7 @@ private fun EventTimeline(
 private fun EventCard(
     event: LifecycleEvent,
     dateFormat: DateFormat,
+    delta: com.filestech.appmanager.domain.model.PermissionDelta?,
     onClick: () -> Unit,
 ) {
     Card(
@@ -343,6 +353,27 @@ private fun EventCard(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // v0.3.2 — REPLACED rows surface their permission-gain delta when
+            // the update added at least one dangerous permission. Helps users
+            // spot supply-chain creep ("this update added Microphone").
+            if (delta != null && delta.hasChanges) {
+                Spacer(Modifier.height(6.dp))
+                Surface(
+                    color = BrandDanger.copy(alpha = 0.10f),
+                    shape = RoundedCornerShape(4.dp),
+                ) {
+                    Text(
+                        text     = stringResource(
+                            R.string.lifecycle_row_perms_gained,
+                            delta.gained.size,
+                            delta.gained.joinToString(", ") { it.substringAfterLast('.') },
+                        ),
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = BrandDanger,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
+            }
             if (event.userReason != null) {
                 Spacer(Modifier.height(6.dp))
                 Surface(

@@ -944,6 +944,15 @@ private fun InstallInfoCard(info: AppInfo) {
                 value = if (info.lastUsedTime > 0L) dateFormat.format(Date(info.lastUsedTime))
                         else stringResource(R.string.app_detail_never_used),
             )
+            // v0.3.2 — surface the OS-reported hibernation state when true.
+            // Skipping the row when false avoids cluttering the card for the
+            // common case of an actively-used app.
+            if (info.isHibernated) {
+                InfoRow(
+                    label = stringResource(R.string.app_detail_hibernated),
+                    value = stringResource(R.string.app_detail_hibernated_yes),
+                )
+            }
         }
     }
 }

@@ -60,6 +60,12 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
  *     Indices: `(package_name, captured_at)`, `captured_at`, `type`.
  *     Migration `MIGRATION_4_5`: 1× CREATE TABLE + 3× CREATE INDEX IF NOT EXISTS.
  *
+ * - v6 (v0.3.2 — OS hibernation surface)
+ *     Adds `is_hibernated` boolean column to `app_info`. Populated by the
+ *     next rescan via `UsageStatsManager.isAppInactive(pkg)` (API 23+);
+ *     pre-existing rows read 0 (false) via DEFAULT until that scan runs.
+ *     Migration `MIGRATION_5_6`: 1× ALTER TABLE ADD COLUMN.
+ *
  * Migration rules (STRICT — enforced by code review):
  * - Every version bump MUST ship an additive Migration in [Migrations].
  * - Only `ALTER TABLE ... ADD COLUMN`, `CREATE INDEX IF NOT EXISTS`, `CREATE TABLE` are allowed.
@@ -88,6 +94,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         const val DATABASE_NAME = "app_manager_tech.db"
-        const val SCHEMA_VERSION = 5
+        const val SCHEMA_VERSION = 6
     }
 }

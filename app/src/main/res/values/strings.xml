@@ -840,4 +840,28 @@
     <string name="zombies_search_no_match_title">No match</string>
     <string name="zombies_search_no_match_body">No zombie app matches “%1$s”.</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.3.2 — RarelyUsed search (mirror Zombies pattern)              -->
+    <!-- ================================================================ -->
+    <string name="rarely_used_search_placeholder">Search by label or package…</string>
+    <string name="rarely_used_search_no_match_title">No match</string>
+    <string name="rarely_used_search_no_match_body">No rarely-used app matches “%1$s”.</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.2 — OS hibernation surface                                  -->
+    <!-- ================================================================ -->
+    <string name="app_detail_hibernated">OS hibernation</string>
+    <string name="app_detail_hibernated_yes">Active (the system stopped this app\'s alarms / jobs)</string>
+    <string name="zombie_chip_hibernated">Hibernated</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.2 — Permission delta on REPLACED events                     -->
+    <!-- ================================================================ -->
+    <string name="lifecycle_row_perms_gained">+%1$d dangerous permission(s) gained: %2$s</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.2 — PDF Diagnostic: Lifecycle journal section               -->
+    <!-- ================================================================ -->
+    <string name="pdf_section_lifecycle">Lifecycle journal (last 200 events)</string>
+
 </resources>

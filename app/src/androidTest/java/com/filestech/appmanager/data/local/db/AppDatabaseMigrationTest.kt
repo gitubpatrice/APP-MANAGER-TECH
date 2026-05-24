@@ -25,8 +25,12 @@ import org.junit.runner.RunWith
  * - `MIGRATION_4_5` (v0.3.0 App Lifecycle History): existing data survives;
  *   the new `app_lifecycle_event` table accepts inserts (with the autoincrement
  *   PK + default `total_size_bytes`); the three new indices are present.
+ * - `MIGRATION_5_6` (v0.3.2 OS hibernation surface): existing data survives;
+ *   the new `is_hibernated` column on `app_info` reads `0` (false) for
+ *   pre-existing rows via the column DEFAULT and accepts INSERT with the
+ *   field omitted (DEFAULT applies).
  *
- * Requires the v1..v5 schemas to be exported under `schemas/` (Room plugin
+ * Requires the v1..v6 schemas to be exported under `schemas/` (Room plugin
  * handles this — checked into git).
  */
 @RunWith(AndroidJUnit4::class)
@@ -368,6 +372,69 @@ class AppDatabaseMigrationTest {
             ).use {
                 assertThat(it.moveToFirst()).isTrue()
             }
+        }
+
+        migrated.close()
+    }
+
+    @Test
+    fun migrate_v5_to_v6_adds_is_hibernated_column_with_default_zero() {
+        // 1. Seed v5 with one app_info row (no is_hibernated column yet).
+        helper.createDatabase(TEST_DB_NAME, 5).apply {
+            execSQL(
+                """
+                INSERT INTO app_info (
+                  package_name, label, version_name, version_code,
+                  install_size_bytes, cache_size_bytes, data_size_bytes,
+                  first_install_time, last_update_time, last_used_time,
+                  is_system_app, is_uninstallable, is_enabled, category, cached_at,
+                  installer_package, apk_source_dir
+                ) VALUES (
+                  'com.example', 'Example', '1.0', 1,
+                  1000, 100, 500, 0, 0, 0,
+                  0, 1, 1, 'UNDEFINED', 0,
+                  NULL, NULL
+                )
+                """.trimIndent(),
+            )
+            close()
+        }
+
+        // 2. Migrate to v6.
+        val migrated = helper.runMigrationsAndValidate(
+            TEST_DB_NAME,
+            6,
+            true,
+            Migrations.MIGRATION_5_6,
+        )
+
+        // 3. Pre-existing row reads is_hibernated = 0 via the column DEFAULT.
+        migrated.query("SELECT package_name, is_hibernated FROM app_info").use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("com.example")
+            assertThat(it.getInt(1)).isEqualTo(0)
+        }
+
+        // 4. A fresh INSERT without the new column applies the DEFAULT.
+        migrated.execSQL(
+            """
+            INSERT INTO app_info (
+              package_name, label, version_name, version_code,
+              install_size_bytes, cache_size_bytes, data_size_bytes,
+              first_install_time, last_update_time, last_used_time,
+              is_system_app, is_uninstallable, is_enabled, category, cached_at,
+              installer_package, apk_source_dir
+            ) VALUES (
+              'com.fresh', 'Fresh', '1.0', 1,
+              0, 0, 0, 0, 0, 0,
+              0, 1, 1, 'UNDEFINED', 0,
+              NULL, NULL
+            )
+            """.trimIndent(),
+        )
+        migrated.query("SELECT is_hibernated FROM app_info WHERE package_name = 'com.fresh'").use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getInt(0)).isEqualTo(0)
         }
 
         migrated.close()

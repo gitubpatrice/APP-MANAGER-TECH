@@ -1,0 +1,10 @@
+v0.3.2 — Hibernation + Perm delta + PDF polish
+
+- RarelyUsed: search bar by label or package.
+- OS hibernation status surfaced on AppDetail +
+  Zombies chip (UsageStatsManager.isAppInactive,
+  Room schema v6 additive migration).
+- Lifecycle REPLACED rows show dangerous permissions
+  gained by the update (supply-chain creep signal).
+- Lifecycle journal section in the diagnostic PDF
+  (last 200 events, hidden when empty).

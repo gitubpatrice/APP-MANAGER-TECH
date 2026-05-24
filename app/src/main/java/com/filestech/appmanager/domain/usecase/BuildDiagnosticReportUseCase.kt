@@ -16,7 +16,11 @@ import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.DiagnosticReport
 import com.filestech.appmanager.domain.model.FilterOptions
+import com.filestech.appmanager.domain.model.LifecycleEvent
+import com.filestech.appmanager.domain.model.LifecycleEventType
+import com.filestech.appmanager.domain.model.UninstallReason
 import com.filestech.appmanager.domain.repository.AppInfoRepository
+import com.filestech.appmanager.domain.repository.AppLifecycleRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
@@ -48,6 +52,7 @@ class BuildDiagnosticReportUseCase @Inject constructor(
     private val dangerousInspector: DangerousPermissionInspector,
     private val getDeviceAdminApps: GetDeviceAdminAppsUseCase,
     private val getAccessibilityServiceApps: GetAccessibilityServiceAppsUseCase,
+    private val lifecycleRepository: AppLifecycleRepository,
 ) {
 
     suspend operator fun invoke(): Outcome<DiagnosticReport> =
@@ -59,6 +64,7 @@ class BuildDiagnosticReportUseCase @Inject constructor(
                 val ourSignature = appInfoRepository
                     .getSignatureSha256(context.packageName)
                     .getOrNull()
+                val lifecycle = collectLifecycleJournal(apps)
 
                 DiagnosticReport(
                     generatedAtMs       = System.currentTimeMillis(),
@@ -69,6 +75,7 @@ class BuildDiagnosticReportUseCase @Inject constructor(
                     sideloadedApps      = buildSideloadedRows(apps),
                     sensitiveAccessApps = buildSensitiveAccessRows(apps, deviceAdmins, accessibility),
                     issues              = buildIssuesSummary(apps),
+                    lifecycleJournal    = lifecycle,
                 )
             }
         }
@@ -202,6 +209,57 @@ class BuildDiagnosticReportUseCase @Inject constructor(
         return rows.sortedBy { it.label.lowercase() }
     }
 
+    /**
+     * v0.3.2 — Pulls a flat snapshot of the lifecycle log (newest first) +
+     * formats it into [DiagnosticReport.LifecycleJournalRow] rows with
+     * pre-localised type / reason labels so the PDF renderer doesn't have
+     * to reach for resources.
+     *
+     * Capped to [LIFECYCLE_JOURNAL_CAP] to keep the PDF size bounded — the
+     * full history stays accessible in-app via LifecycleHistoryScreen.
+     */
+    private suspend fun collectLifecycleJournal(
+        apps: List<AppInfo>,
+    ): List<DiagnosticReport.LifecycleJournalRow> {
+        val labels = apps.associateBy({ it.packageName }, { it.label })
+        val events = lifecycleRepository.observeSince(sinceMs = 0L).first()
+            .getOrNull()
+            .orEmpty()
+            .take(LIFECYCLE_JOURNAL_CAP)
+        return events.map { ev ->
+            DiagnosticReport.LifecycleJournalRow(
+                capturedAtMs = ev.capturedAt,
+                packageName  = ev.packageName,
+                label        = ev.label ?: labels[ev.packageName],
+                typeLabel    = formatType(ev.type),
+                versionLabel = formatVersion(ev),
+                reasonLabel  = ev.userReason?.let { formatReason(it) },
+            )
+        }
+    }
+
+    private fun formatType(type: LifecycleEventType): String = context.getString(
+        when (type) {
+            LifecycleEventType.BASELINE    -> R.string.lifecycle_type_baseline
+            LifecycleEventType.INSTALLED   -> R.string.lifecycle_type_installed
+            LifecycleEventType.UNINSTALLED -> R.string.lifecycle_type_uninstalled
+            LifecycleEventType.REPLACED    -> R.string.lifecycle_type_replaced
+        },
+    )
+
+    private fun formatReason(reason: UninstallReason): String = context.getString(
+        when (reason) {
+            UninstallReason.UNUSED              -> R.string.lifecycle_reason_unused
+            UninstallReason.REPLACED_BY_ANOTHER -> R.string.lifecycle_reason_replaced_by_another
+            UninstallReason.TOO_HEAVY           -> R.string.lifecycle_reason_too_heavy
+            UninstallReason.PRIVACY_TRACKER     -> R.string.lifecycle_reason_privacy_tracker
+            UninstallReason.OTHER               -> R.string.lifecycle_reason_other
+        },
+    )
+
+    private fun formatVersion(ev: LifecycleEvent): String =
+        ev.versionName?.let { "v$it (${ev.versionCode})" } ?: "—"
+
     private fun buildIssuesSummary(apps: List<AppInfo>): DiagnosticReport.IssuesSummary {
         val now = System.currentTimeMillis()
         val rarelyUsedThresholdMs = RARELY_USED_THRESHOLD_DAYS * MS_PER_DAY
@@ -243,6 +301,13 @@ class BuildDiagnosticReportUseCase @Inject constructor(
         // MS_PER_DAY imported from core.ext.TimeConstants (VII C1 single source).
         const val RARELY_USED_THRESHOLD_DAYS = 60L
         const val OVERSIZED_THRESHOLD_BYTES: Long = 200L * 1024 * 1024 // 200 MB
+
+        /**
+         * Cap on the lifecycle journal section to keep PDF size bounded.
+         * 200 entries fits comfortably (~5-10 pages). Full history stays
+         * available in-app via LifecycleHistoryScreen.
+         */
+        const val LIFECYCLE_JOURNAL_CAP: Int = 200
 
         /**
          * Known well-behaved installers — anything else is treated as

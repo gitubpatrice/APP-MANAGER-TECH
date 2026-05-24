@@ -233,6 +233,23 @@ private fun ZombieRow(zombie: ZombieApp, onClick: () -> Unit) {
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ReasonBadge(zombie = zombie)
+                // v0.3.2 — OS hibernation chip. Only rendered when the OS
+                // actually reports the app as inactive — keeps the row clean
+                // for the common case (an enabled-but-unused app).
+                if (zombie.info.isHibernated) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Surface(
+                        shape        = RoundedCornerShape(50),
+                        color        = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ) {
+                        Text(
+                            text     = stringResource(R.string.zombie_chip_hibernated),
+                            style    = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text  = sizeLabel,

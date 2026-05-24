@@ -89,6 +89,10 @@ class PdfDocumentBuilder @Inject constructor(
             drawDangerousPermsSection(pageMaker, report.dangerousPermsApps)
             drawSideloadedSection(pageMaker, report.sideloadedApps)
             drawSensitiveAccessSection(pageMaker, report.sensitiveAccessApps)
+            // v0.3.2 — Lifecycle journal section (last). Hidden when empty so
+            // users who never enabled the Lifecycle feature don't see a
+            // confusing "Aucune entrée" line in their diagnostic.
+            drawLifecycleJournalSection(pageMaker, report.lifecycleJournal)
             pageMaker.finalizeLastPage()
 
             val counting = CountingOutputStream(output)
@@ -230,6 +234,37 @@ class PdfDocumentBuilder @Inject constructor(
             }
             p.drawBody(row.label + "  —  " + kind)
             p.drawMono(row.packageName)
+        }
+    }
+
+    /**
+     * v0.3.2 — Lifecycle journal section. Hidden when the journal is empty
+     * (no events recorded yet — usually means the user hasn't enabled the
+     * feature). Pre-formatted strings come from
+     * [BuildDiagnosticReportUseCase] so the renderer doesn't reach for
+     * Android resources.
+     */
+    private fun drawLifecycleJournalSection(
+        p: PageMaker,
+        rows: List<DiagnosticReport.LifecycleJournalRow>,
+    ) {
+        if (rows.isEmpty()) return
+        p.drawSection(context.getString(R.string.pdf_section_lifecycle))
+        val dateFormat = java.text.DateFormat.getDateTimeInstance(
+            java.text.DateFormat.MEDIUM,
+            java.text.DateFormat.SHORT,
+        )
+        rows.forEach { row ->
+            val label = row.label ?: row.packageName
+            p.drawBody(
+                dateFormat.format(java.util.Date(row.capturedAtMs)) +
+                    "  ·  " + row.typeLabel +
+                    "  ·  " + label,
+            )
+            p.drawMono(row.packageName + "  ·  " + row.versionLabel)
+            if (row.reasonLabel != null) {
+                p.drawMuted("→ " + row.reasonLabel)
+            }
         }
     }
 

@@ -1,6 +1,29 @@
 # App Manager Tech — Security model
 
-Current release: **v0.3.1**
+Current release: **v0.3.2**
+
+## v0.3.2 — Hibernation + Perm delta + Lifecycle PDF
+
+- **OS hibernation read** — `UsageStatsManager.isAppInactive(pkg)`
+  (API 23+). Requires PACKAGE_USAGE_STATS (already declared since v0.1.0
+  for the storage / usage features). Defensive against SecurityException
+  and IllegalArgumentException — both fall back to `false` rather than
+  poisoning the scan.
+- **Permission delta on REPLACED events** — `DetectPermissionDeltaUseCase`
+  compares the granted-dangerous-perms snapshot of a `REPLACED` lifecycle
+  event against the closest preceding baseline (BASELINE/INSTALLED/
+  earlier REPLACED). Surfaces supply-chain creep signal in the
+  LifecycleHistoryScreen row. Pure domain — no Android dep, no new I/O.
+- **Lifecycle journal in PDF** — capped to 200 entries (defensive PDF
+  size cap). The full history stays in-app via LifecycleHistoryScreen.
+  Same SAF destination as the v0.2.2 PDF export — no
+  `MANAGE_EXTERNAL_STORAGE`.
+- **Room schema v6** — strict-additive `ALTER TABLE ADD COLUMN
+  is_hibernated INTEGER NOT NULL DEFAULT 0`. Pre-existing rows read
+  `0` (false) via DEFAULT; the next scan repopulates the real OS state.
+  `MigrationTest_v5_v6` ships.
+- No new permission, no new dependency, no INTERNET, no GMS.
+- Cert SHA-256 stable (`76:E8:77...60FF1CF`) since v0.1.0.
 
 ## v0.3.1 — Safety Guardrails Phase B + Lifecycle polish
 

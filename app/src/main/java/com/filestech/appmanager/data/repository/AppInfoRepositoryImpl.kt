@@ -660,6 +660,7 @@ class AppInfoRepositoryImpl @Inject constructor(
                 cachedAt          = now,
                 installerPackage  = queryInstallerPackage(pkg.packageName),
                 apkSourceDir      = ai.sourceDir,
+                isHibernated      = queryIsHibernated(pkg.packageName),
             )
         }
     }
@@ -686,10 +687,31 @@ class AppInfoRepositoryImpl @Inject constructor(
             category          = mapCategory(ai.category),
             installerPackage  = queryInstallerPackage(packageName),
             apkSourceDir      = ai.sourceDir,
+            isHibernated      = queryIsHibernated(packageName),
         )
     } catch (e: PackageManager.NameNotFoundException) {
         Timber.d(e, "Package %s not found during single-package scan", packageName)
         null
+    }
+
+    /**
+     * v0.3.2 — probe the OS for an "inactive / hibernated" classification.
+     *
+     * `UsageStatsManager.isAppInactive(pkg)` (API 23+) returns true when
+     * Android's adaptive battery decided the app should stop receiving
+     * alarms / jobs / network. Requires PACKAGE_USAGE_STATS — without it,
+     * the call returns false silently (which matches our "unknown → false"
+     * default).
+     *
+     * Defensive against SecurityException + IllegalArgumentException — both
+     * fall back to false rather than poisoning the scan.
+     */
+    private fun queryIsHibernated(packageName: String): Boolean = try {
+        usageStats?.isAppInactive(packageName) ?: false
+    } catch (e: SecurityException) {
+        false
+    } catch (e: IllegalArgumentException) {
+        false
     }
 
     private fun isUninstallable(ai: ApplicationInfo): Boolean =

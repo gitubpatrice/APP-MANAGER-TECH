@@ -16,10 +16,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -71,6 +73,10 @@ fun RarelyUsedScreen(
     val usageStatsGranted by viewModel.usageStatsGranted.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var pickerOpen by rememberSaveable { mutableStateOf(false) }
+    // v0.3.2 — local search filter (label OR package, case-insensitive).
+    // Same pattern as ZombiesScreen v0.3.1 — keeps the upstream Outcome the
+    // single source of truth for loading / error / refresh semantics.
+    var searchQuery by rememberSaveable { mutableStateOf("") }
 
     // v0.2.1 audit C8a fix — re-probe PACKAGE_USAGE_STATS on ON_RESUME
     // so the banner disappears once the user grants the permission and
@@ -126,7 +132,30 @@ fun RarelyUsedScreen(
                 onClick     = { pickerOpen = true },
                 currentValue = stringResource(R.string.cleaner_rarely_used_value, threshold),
             )
-            RarelyUsedBody(outcome = outcome, onItemClick = onItemClick)
+            // v0.3.2 — SearchBar (only when there's at least one item to filter).
+            val current = outcome
+            if (current is Outcome.Success && current.value.isNotEmpty()) {
+                OutlinedTextField(
+                    value         = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    leadingIcon   = {
+                        Icon(
+                            imageVector        = Icons.Outlined.Search,
+                            contentDescription = null,
+                        )
+                    },
+                    placeholder   = { Text(stringResource(R.string.rarely_used_search_placeholder)) },
+                    singleLine    = true,
+                    modifier      = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
+            RarelyUsedBody(
+                outcome     = outcome,
+                searchQuery = searchQuery,
+                onItemClick = onItemClick,
+            )
         }
     }
 
@@ -145,6 +174,7 @@ fun RarelyUsedScreen(
 @Composable
 private fun RarelyUsedBody(
     outcome: Outcome<List<AppInfo>>,
+    searchQuery: String,
     onItemClick: (String) -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -159,16 +189,37 @@ private fun RarelyUsedBody(
                         body  = stringResource(R.string.rarely_used_empty_body),
                     )
                 } else {
-                    // Hoist `now` so every row reads the same reference point and we
-                    // do not recompute System.currentTimeMillis() per recomposition.
-                    val now = remember { System.currentTimeMillis() }
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(items = o.value, key = { it.packageName }) { app ->
-                            RarelyUsedRow(
-                                app     = app,
-                                now     = now,
-                                onClick = { onItemClick(app.packageName) },
-                            )
+                    // v0.3.2 — apply the search filter when non-blank. Memoised
+                    // on (list, query) so typing is responsive even on a
+                    // large catalogue.
+                    val filtered = remember(o.value, searchQuery) {
+                        if (searchQuery.isBlank()) o.value
+                        else {
+                            val q = searchQuery.trim().lowercase()
+                            o.value.filter { app ->
+                                app.label.lowercase().contains(q) ||
+                                    app.packageName.lowercase().contains(q)
+                            }
+                        }
+                    }
+                    if (filtered.isEmpty()) {
+                        EmptyState(
+                            icon  = Icons.Outlined.AccessTime,
+                            title = stringResource(R.string.rarely_used_search_no_match_title),
+                            body  = stringResource(R.string.rarely_used_search_no_match_body, searchQuery.trim()),
+                        )
+                    } else {
+                        // Hoist `now` so every row reads the same reference point and we
+                        // do not recompute System.currentTimeMillis() per recomposition.
+                        val now = remember { System.currentTimeMillis() }
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(items = filtered, key = { it.packageName }) { app ->
+                                RarelyUsedRow(
+                                    app     = app,
+                                    now     = now,
+                                    onClick = { onItemClick(app.packageName) },
+                                )
+                            }
                         }
                     }
                 }

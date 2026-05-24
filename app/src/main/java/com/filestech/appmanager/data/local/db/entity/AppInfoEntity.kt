@@ -92,4 +92,15 @@ data class AppInfoEntity(
      */
     @ColumnInfo(name = "apk_source_dir")
     val apkSourceDir: String? = null,
+
+    // ----- v6 (v0.3.2 — OS hibernation status surface) -----
+
+    /**
+     * v0.3.2 — true when the OS reports the app as inactive / hibernated
+     * (`UsageStatsManager.isAppInactive(pkg)`, API 23+). `defaultValue = "0"`
+     * for backward-compat on migrated rows: the next scan repopulates the
+     * real state.
+     */
+    @ColumnInfo(name = "is_hibernated", defaultValue = "0")
+    val isHibernated: Boolean = false,
 )

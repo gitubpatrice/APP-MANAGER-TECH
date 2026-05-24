@@ -49,6 +49,19 @@ data class AppInfo(
      * `null` for apps with shared UIDs that report no own sourceDir.
      */
     val apkSourceDir: String? = null,
+    /**
+     * v0.3.2 — true when the OS reports the app as inactive / hibernated.
+     * Backed by `UsageStatsManager.isAppInactive(pkg)` (API 23+) — fires after
+     * Android's adaptive battery decides the app stops receiving alarms /
+     * jobs / network. Useful signal for the Zombies / RarelyUsed UX: a
+     * hibernated app is the OS's own version of "this is dead weight".
+     *
+     * Defaults to `false` so existing tests and code paths that build [AppInfo]
+     * manually don't need to pass the field. Populated by the repository
+     * scan when PACKAGE_USAGE_STATS is granted; otherwise stays `false` (the
+     * UsageStatsAccessBanner already nudges the user to grant it).
+     */
+    val isHibernated: Boolean = false,
 ) {
     /**
      * Total footprint = install + data + cache.

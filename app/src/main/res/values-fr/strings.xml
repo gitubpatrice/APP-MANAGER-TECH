@@ -833,4 +833,28 @@
     <string name="zombies_search_no_match_title">Aucun résultat</string>
     <string name="zombies_search_no_match_body">Aucune app zombie ne correspond à « %1$s ».</string>
 
+    <!-- ================================================================ -->
+    <!-- v0.3.2 — Recherche RarelyUsed (même pattern que Zombies)    -->
+    <!-- ================================================================ -->
+    <string name="rarely_used_search_placeholder">Rechercher par libellé ou package…</string>
+    <string name="rarely_used_search_no_match_title">Aucun résultat</string>
+    <string name="rarely_used_search_no_match_body">Aucune app rarement utilisée ne correspond à « %1$s ».</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.2 — Surface hibernation OS                                  -->
+    <!-- ================================================================ -->
+    <string name="app_detail_hibernated">Hibernation OS</string>
+    <string name="app_detail_hibernated_yes">Active (le système a stoppé les alarmes / jobs de cette app)</string>
+    <string name="zombie_chip_hibernated">Hibernée</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.2 — Delta permissions sur événements REPLACED               -->
+    <!-- ================================================================ -->
+    <string name="lifecycle_row_perms_gained">+%1$d permission(s) dangereuse(s) gagnée(s) : %2$s</string>
+
+    <!-- ================================================================ -->
+    <!-- v0.3.2 — PDF Diagnostic : section Journal cycle de vie           -->
+    <!-- ================================================================ -->
+    <string name="pdf_section_lifecycle">Journal du cycle de vie (200 derniers événements)</string>
+
 </resources>

@@ -167,6 +167,21 @@ object Migrations {
     }
 
     /**
+     * v0.3.2 — adds `is_hibernated` boolean column to `app_info`.
+     *
+     * Strict additive: `ALTER TABLE ADD COLUMN ... DEFAULT 0` — every
+     * pre-existing row reads `0` (`false`) until the next full rescan
+     * repopulates the real OS hibernation state.
+     */
+    val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE `app_info` ADD COLUMN `is_hibernated` INTEGER NOT NULL DEFAULT 0",
+            )
+        }
+    }
+
+    /**
      * All migrations in version order. Spread (`*ALL_MIGRATIONS`) into
      * `Room.databaseBuilder(...).addMigrations()`.
      */
@@ -175,5 +190,6 @@ object Migrations {
         MIGRATION_2_3,
         MIGRATION_3_4,
         MIGRATION_4_5,
+        MIGRATION_5_6,
     )
 }

@@ -1,0 +1,10 @@
+v0.3.2 — Hibernation + Delta perms + PDF polish
+
+- RarelyUsed : barre de recherche par libellé ou package.
+- État hibernation OS surfacé sur Fiche app + chip
+  Zombies (UsageStatsManager.isAppInactive, migration
+  Room v6 additive).
+- Events REPLACED affichent les permissions dangereuses
+  gagnées par la mise à jour (signal supply-chain).
+- Section journal cycle de vie dans le PDF diagnostic
+  (200 derniers events, masquée si vide).

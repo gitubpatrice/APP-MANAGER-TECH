@@ -20,6 +20,12 @@ data class DiagnosticReport(
     val sideloadedApps: List<InventoryRow>,
     val sensitiveAccessApps: List<SensitiveAccessRow>,
     val issues: IssuesSummary,
+    /**
+     * v0.3.2 — Lifecycle journal section (newest first). Empty when the
+     * Lifecycle History feature is disabled or no events have been recorded
+     * yet — the PDF renderer hides the section header in that case.
+     */
+    val lifecycleJournal: List<LifecycleJournalRow> = emptyList(),
 ) {
     data class DeviceProfile(
         val manufacturer: String,
@@ -77,4 +83,18 @@ data class DiagnosticReport(
     ) {
         val hasAny: Boolean get() = zombiesCount + rarelyUsedCount + oversizedCount + sideloadedCount > 0
     }
+
+    /**
+     * v0.3.2 — One row per lifecycle event (BASELINE / INSTALLED /
+     * UNINSTALLED / REPLACED). Pre-formatted strings keep the renderer
+     * free of locale concerns.
+     */
+    data class LifecycleJournalRow(
+        val capturedAtMs: Long,
+        val packageName: String,
+        val label: String?,
+        val typeLabel: String,
+        val versionLabel: String,
+        val reasonLabel: String?,
+    )
 }

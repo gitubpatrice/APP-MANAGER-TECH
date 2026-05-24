@@ -7,6 +7,61 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.3.2] — 2026-05-24 — RarelyUsed search + Hibernation + Perm delta + Lifecycle PDF
+
+### Added — RarelyUsed search
+- `OutlinedTextField` SearchBar above the list — case-insensitive filter on
+  label OR package, conditional rendering, dedicated empty state for no
+  match. Same pattern as `ZombiesScreen` v0.3.1 for cross-screen
+  consistency.
+
+### Added — OS hibernation surface
+- New `AppInfo.isHibernated: Boolean = false` (default avoids breaking
+  existing callers).
+- New `AppInfoEntity.is_hibernated INTEGER NOT NULL DEFAULT 0` column,
+  Room schema v5 → v6 via strict-additive `MIGRATION_5_6` + matching
+  `MigrationTest_v5_v6`.
+- Repository scan populates the field via
+  `UsageStatsManager.isAppInactive(pkg)` (API 23+) inside
+  `queryIsHibernated()` — defensive against SecurityException +
+  IllegalArgumentException. Requires PACKAGE_USAGE_STATS — without it the
+  field stays `false`.
+- Surfaced in AppDetail (extra row in InstallInfoCard, conditional on
+  `true`) + chip on `ZombieRow` (conditional, distinct from the existing
+  reason badge).
+
+### Added — Permission delta on REPLACED events
+- New domain `PermissionDelta(packageName, eventId, gained)` + use case
+  `DetectPermissionDeltaUseCase`. For a REPLACED lifecycle event, finds
+  the closest preceding `BASELINE`/`INSTALLED`/`REPLACED` ancestor and
+  diffs the `grantedDangerousPermissions` snapshots — surfaces what
+  permissions the update GAINED (supply-chain creep signal).
+- `LifecycleHistoryViewModel.permissionDeltas: StateFlow<Map<Long, PermissionDelta>>`
+  recomputed via `mapLatest` whenever the event list emits.
+- `EventCard` renders a `+N dangerous permission(s) gained: CAMERA, …`
+  chip in BrandDanger when `delta.hasChanges`.
+
+### Added — Lifecycle journal in PDF diagnostic
+- New `DiagnosticReport.LifecycleJournalRow(capturedAtMs, packageName, label,
+  typeLabel, versionLabel, reasonLabel)`. Pre-localised labels — the PDF
+  renderer never reaches for resources.
+- `BuildDiagnosticReportUseCase` collects up to 200 latest events from
+  `AppLifecycleRepository.observeSince(0L).first()` and formats type +
+  reason via the same string keys as the History UI.
+- `PdfDocumentBuilder.drawLifecycleJournalSection` renders the section
+  (hidden when empty so users who haven't enabled the feature don't see a
+  confusing empty header).
+
+### Notes
+- Room schema bumped v5 → v6 (additive only).
+- Cert SHA-256 stable:
+  `76:E8:77:2E:09:95:13:69:40:5F:58:E7:0C:4A:FF:FD:41:C4:68:75:53:C6:CF:A0:3D:08:14:5F:F6:0F:F1:CF`
+- 0 GMS, 0 INTERNET, 0 new runtime permission.
+- APK size ~2.26 MB (+18 KB vs v0.3.1).
+- Strings FR ↔ EN parity 100% (~15 new keys).
+
+---
+
 ## [0.3.1] — 2026-05-24 — Safety Phase B + Lifecycle polish + Zombies search
 
 ### Added — Safety Guardrails Phase B

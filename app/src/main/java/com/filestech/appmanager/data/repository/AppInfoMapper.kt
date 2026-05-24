@@ -33,6 +33,7 @@ internal object AppInfoMapper {
         category          = parseCategory(entity.category),
         installerPackage  = entity.installerPackage,
         apkSourceDir      = entity.apkSourceDir,
+        isHibernated      = entity.isHibernated,
     )
 
     fun toEntity(domain: AppInfo, cachedAt: Long): AppInfoEntity = AppInfoEntity(
@@ -53,6 +54,7 @@ internal object AppInfoMapper {
         cachedAt          = cachedAt,
         installerPackage  = domain.installerPackage,
         apkSourceDir      = domain.apkSourceDir,
+        isHibernated      = domain.isHibernated,
     )
 
     private fun parseCategory(raw: String): AppCategory =
