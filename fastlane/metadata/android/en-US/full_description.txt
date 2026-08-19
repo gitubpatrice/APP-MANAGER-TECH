@@ -1,7 +1,6 @@
 App Manager Tech is a fully local Android app manager and cleaner inspired by SD Maid. Inspect every installed app, batch-act on selections, clean caches, audit elevated privileges — without sending a single byte off your device.
 
-Features
-========
+<b>Features</b>
 
 • Installed-apps inventory — label, version, install size, data, cache, last-used date, install source (Play / F-Droid / Aurora / sideload), enabled state, category
 • Multi-select batch actions — uninstall, clear cache, force stop. The OS shows its own confirmation per app; we never bypass it
@@ -20,16 +19,14 @@ Features
 • French and English UI
 • FLAG_SECURE opt-in to block screenshots and recents previews
 
-Privacy
-=======
+<b>Privacy</b>
 
 • No analytics, no crash reporters, no third-party tracking SDK
 • No INTERNET permission — the app never opens a network socket
 • Apache License 2.0 — source code at https://github.com/gitubpatrice/APP-MANAGER-TECH
 • Security model documented at https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/SECURITY.md
 
-Permissions explained
-=====================
+<b>Permissions explained</b>
 
 QUERY_ALL_PACKAGES — enumerate installed apps via PackageManager
 PACKAGE_USAGE_STATS — last-used timestamps and accurate cache / data sizes via StorageStatsManager (requires user grant in OS Settings; the app degrades gracefully if denied)
