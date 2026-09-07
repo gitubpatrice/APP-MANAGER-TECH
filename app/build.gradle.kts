@@ -43,6 +43,17 @@ android {
         versionCode   = 13
         versionName   = "0.4.0"
 
+        // Etiquette du lanceur, par type de build. Le suffixe `.debug` ci-dessous laisse les deux
+        // variantes coexister sur un meme telephone ; sans etiquette distincte, elles y portaient
+        // le meme nom et la meme icone, et rien ne permettait de savoir laquelle on testait.
+        //
+        // Un `manifestPlaceholders` et NON un `resValue` : `app_name` est localise (values/ et
+        // values-fr/), or une chaine generee dans `values/` perd contre `values-fr/` sur un
+        // appareil en francais — le renommage ne ferait alors rien, en silence. Piege mesure sur
+        // SMS Tech le 2026-09-07, ou une session de test entiere est passee sur la mauvaise
+        // variante. Meme patron que `agenda_tech`.
+        manifestPlaceholders["appLabel"] = "App Manager Tech"
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Strip locales other than en/fr from the resource bundle.
@@ -79,6 +90,7 @@ android {
             applicationIdSuffix = ".debug"
             isDebuggable        = true
             isMinifyEnabled     = false
+            manifestPlaceholders["appLabel"] = "App Manager Tech (debug)"
         }
         release {
             isMinifyEnabled = true
