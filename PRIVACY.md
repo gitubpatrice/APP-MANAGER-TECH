@@ -46,6 +46,11 @@ same rule.
 | `KILL_BACKGROUND_PROCESSES` | Best-effort force-stop | No — install-time normal |
 | `POST_NOTIFICATIONS` (Android 13+) | Cache-threshold notification | Yes — runtime grant, only requested on first opt-in |
 
+The AndroidX WorkManager library, which runs the periodic scan, adds four more install-time
+permissions to the built APK: `WAKE_LOCK`, `FOREGROUND_SERVICE`, `RECEIVE_BOOT_COMPLETED` (to keep
+the schedule after a reboot) and `ACCESS_NETWORK_STATE` (it can read whether a network is present;
+without `INTERNET` it cannot use one). None of them gives access to your data.
+
 **Never requested:** `INTERNET`, location, contacts, SMS, calendar, microphone,
 camera, `MANAGE_EXTERNAL_STORAGE`.
 

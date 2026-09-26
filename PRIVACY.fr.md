@@ -47,6 +47,12 @@ par la même règle.
 | `KILL_BACKGROUND_PROCESSES` | Arrêt forcé en mode meilleur effort | Non — install-time normal |
 | `POST_NOTIFICATIONS` (Android 13+) | Notification de seuil de cache | Oui — accord runtime, demandé seulement au premier opt-in |
 
+La bibliothèque AndroidX WorkManager, qui exécute l'analyse périodique, ajoute quatre permissions
+accordées à l'installation dans l'APK construit : `WAKE_LOCK`, `FOREGROUND_SERVICE`,
+`RECEIVE_BOOT_COMPLETED` (pour garder la planification après un redémarrage) et
+`ACCESS_NETWORK_STATE` (elle peut savoir si un réseau est présent ; sans `INTERNET`, elle ne peut
+pas s'en servir). Aucune ne donne accès à vos données.
+
 **Jamais demandées :** `INTERNET`, localisation, contacts, SMS, agenda,
 microphone, caméra, `MANAGE_EXTERNAL_STORAGE`.
 
