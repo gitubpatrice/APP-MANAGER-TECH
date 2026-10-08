@@ -123,10 +123,10 @@
 
     <!-- Per-category titles + bodies. %1$s in a title = app label; bodies take no argument (the action is on the button). -->
     <string name="critical_title_auth">%1$s è un\'app di autenticazione a due fattori</string>
-    <string name="critical_body_auth">Questa app conserva i codici 2FA dei suoi account. Senza di essi — e senza un\'esportazione delle chiavi segrete — il recupero di un account può richiedere giorni.</string>
+    <string name="critical_body_auth">Questa app conserva i codici 2FA dei Suoi account. Senza di essi — e senza un\'esportazione delle chiavi segrete — il recupero di un account può richiedere giorni.</string>
 
     <string name="critical_title_pwd">%1$s è un gestore di password</string>
-    <string name="critical_body_pwd">Questa app contiene la sua cassaforte delle password e il relativo sblocco biometrico. Esporti prima la cassaforte, altrimenti potrebbe perdere l\'accesso a tutte le password salvate.</string>
+    <string name="critical_body_pwd">Questa app contiene la Sua cassaforte delle password e il relativo sblocco biometrico. Esporti prima la cassaforte, altrimenti potrebbe perdere l\'accesso a tutte le password salvate.</string>
 
     <string name="critical_title_bank">%1$s è un\'app bancaria</string>
     <string name="critical_body_bank">Le app bancarie conservano le carte registrate, la convalida biometrica e i pagamenti ricorrenti, legati a questo dispositivo. Potrebbe dover registrare di nuovo il dispositivo presso la sua banca.</string>
@@ -635,7 +635,7 @@
     <string name="quarantine_dialog_restore_body_hard">Il PackageInstaller di sistema reinstallerà l\'app dall\'APK di backup. I dati dell\'app ripartiranno da zero.</string>
     <string name="quarantine_dialog_restore_body_soft">Apra le Impostazioni Android per riattivare l\'app. La voce di quarantena verrà rimossa.</string>
     <string name="quarantine_dialog_drop_title">Rimuovere %1$s dall\'elenco?</string>
-    <string name="quarantine_dialog_drop_body">Rimuove la voce dall\'elenco. Se l\'app è attualmente disinstallata (quarantena effettiva), l\'APK di backup resta in memoria — se necessario, ripristini l\'app dal suo gestore di file.</string>
+    <string name="quarantine_dialog_drop_body">Rimuove la voce dall\'elenco. Se l\'app è attualmente disinstallata (quarantena effettiva), l\'APK di backup resta nella cartella di backup — se necessario, ripristini l\'app dal Suo gestore di file.</string>
     <string name="quarantine_dialog_drop_confirm">Rimuovi la voce</string>
     <string name="quarantine_dialog_backup_missing_title">APK di backup mancante</string>
     <string name="quarantine_dialog_backup_missing_body">Il file APK registrato per questa voce non è più nella sua cartella di backup — potrebbe essere stato eliminato, oppure l\'accesso alla cartella è stato revocato. Può rimuovere la voce per riordinare l\'elenco.</string>
@@ -697,7 +697,7 @@
     <string name="expert_section_native">Codice nativo</string>
     <string name="expert_section_apk_paths">Percorsi APK</string>
     <string name="expert_section_signature">Firma</string>
-    <string name="expert_section_components_count">Componenti (%1$d dichiarati / %2$d exported)</string>
+    <string name="expert_section_components_count">Componenti (%1$d dichiarati / %2$d esportati)</string>
     <string name="expert_section_permissions_count">Autorizzazioni (%1$d dichiarate / %2$d concesse)</string>
     <string name="expert_section_app_ops">App ops</string>
 
@@ -737,7 +737,7 @@
     <string name="expert_components_receivers">Receivers (%1$d)</string>
     <string name="expert_components_providers">Providers (%1$d)</string>
     <string name="expert_components_none">Nessuno dichiarato.</string>
-    <string name="expert_chip_exported">Exported</string>
+    <string name="expert_chip_exported">Esportato</string>
     <string name="expert_chip_internal">Interno</string>
     <string name="expert_chip_disabled">Disattivato</string>
     <string name="expert_chip_gated">Protetto da autorizzazione</string>
@@ -1046,6 +1046,7 @@
     <string name="notif_channel_quarantine_desc">Quando la data di revisione di un\'app in quarantena è passata.</string>
 
     <string name="expert_appop_mode_allowed">Consentito</string>
+    <string name="expert_appop_mode_foreground">Solo in primo piano</string>
     <string name="expert_appop_mode_ignored">Ignorato</string>
     <string name="expert_appop_mode_denied">Negato</string>
     <string name="expert_appop_mode_default">Predefinito</string>

@@ -2,6 +2,7 @@ package com.filestech.appmanager.data.system
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.filestech.appmanager.di.IoDispatcher
@@ -101,7 +102,8 @@ class ApkBackupManager @Inject constructor(
                 return@withContext Result.Failure(Reason.APK_UNREADABLE, "APK file unreadable: $source")
             }
 
-            val tree = DocumentFile.fromTreeUri(context, treeUri)
+            // fromTreeUri throws IllegalArgumentException for a document URI that is not a tree.
+            val tree = runCatching { DocumentFile.fromTreeUri(context, treeUri) }.getOrNull()
                 ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "SAF tree URI invalid")
             if (!tree.exists() || !tree.canWrite()) {
                 return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "SAF tree not writable")
@@ -122,6 +124,10 @@ class ApkBackupManager @Inject constructor(
 
             Timber.i("ApkBackupManager: backed up %s (%d bytes) to %s", packageName, bytes, backupDoc.uri)
             Result.Success(backupDoc.uri.toString())
+        } catch (e: PackageManager.NameNotFoundException) {
+            // Uninstalled between the catalogue read and the backup: there is no APK to copy.
+            Timber.w(e, "ApkBackupManager: %s is no longer installed", packageName)
+            Result.Failure(Reason.APK_UNREADABLE, "Package not found: $packageName", e)
         } catch (e: SecurityException) {
             Timber.w(e, "ApkBackupManager: SAF permission revoked")
             Result.Failure(Reason.FOLDER_ACCESS_REVOKED, "SAF permission revoked", e)

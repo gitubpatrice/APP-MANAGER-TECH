@@ -503,6 +503,9 @@ class AppInfoRepositoryImpl @Inject constructor(
 
     private fun appOpState(mode: Int): ExpertReport.AppOpState = when (mode) {
         AppOpsManager.MODE_ALLOWED  -> ExpertReport.AppOpState.ALLOWED
+        // Android 10+: allowed only while the app is in the foreground. A compile-time constant,
+        // so reading it on older versions is safe (the OS simply never returns it there).
+        AppOpsManager.MODE_FOREGROUND -> ExpertReport.AppOpState.FOREGROUND
         AppOpsManager.MODE_IGNORED  -> ExpertReport.AppOpState.IGNORED
         AppOpsManager.MODE_ERRORED  -> ExpertReport.AppOpState.DENIED
         AppOpsManager.MODE_DEFAULT  -> ExpertReport.AppOpState.DEFAULT

@@ -238,7 +238,7 @@
     <!-- ================================================================ -->
     <string name="usage_stats_warning_title">Zugriff auf Nutzungsdaten erforderlich</string>
     <string name="usage_stats_warning_body">Ohne diesen Zugriff bleiben App-Größen und Zeitpunkte der letzten Nutzung bei 0. Tippen Sie auf die Schaltfläche, um ihn in den Systemeinstellungen zu gewähren.</string>
-    <string name="usage_stats_grant_button">Zugriff auf Nutzungsdaten gewähren</string>
+    <string name="usage_stats_grant_button">Zugriff gewähren</string>
 
     <!-- ================================================================ -->
     <!-- Background scan + notifications (Phase VI)                        -->
@@ -353,8 +353,8 @@
     <!-- Smart Cleaner -->
     <string name="screen_smart_cleaner_title">Intelligente Bereinigung</string>
     <plurals name="smart_cleaner_subtitle">
-        <item quantity="one">%1$s freigebbar in %2$d Vorschlag</item>
-        <item quantity="other">%1$s freigebbar in %2$d Vorschlägen</item>
+        <item quantity="one">%1$s können freigegeben werden (%2$d Vorschlag)</item>
+        <item quantity="other">%1$s können freigegeben werden (%2$d Vorschläge)</item>
     </plurals>
     <string name="smart_cleaner_empty_title">Nichts zu bereinigen</string>
     <string name="smart_cleaner_empty_body">Ihre installierten Apps sind alle in gutem Zustand. Starten Sie die Analyse erneut, nachdem Sie neue Apps installiert oder verwendet haben.</string>
@@ -602,7 +602,7 @@
     </plurals>
     <string name="quarantine_config_confirm">Quarantäne</string>
     <string name="quarantine_mode_soft">Nur Erinnerung</string>
-    <string name="quarantine_mode_soft_desc">Sie deaktivieren die App selbst in den Android-Einstellungen; wir merken uns nur, Sie zu erinnern.</string>
+    <string name="quarantine_mode_soft_desc">Sie deaktivieren die App selbst in den Android-Einstellungen; wir erinnern Sie nur zum Prüftermin daran.</string>
     <string name="quarantine_mode_hard">Echte Quarantäne (Deinstallation)</string>
     <string name="quarantine_mode_hard_desc">Das APK sichern, dann die Deinstallation durch das System starten.</string>
     <string name="quarantine_hard_data_loss_warning">App-Daten (Einstellungen, Konten, Dateien) gehen bei der Deinstallation endgültig verloren. Android bietet keine Schnittstelle, um eine Nutzer-App ohne Root zu deaktivieren. Nur das APK kann später wiederhergestellt werden.</string>
@@ -614,7 +614,7 @@
     <string name="quarantine_row_restore_on">Prüfung am %1$s</string>
     <string name="quarantine_row_expired_on">Prüfung war fällig am %1$s</string>
     <string name="quarantine_dialog_restore_title">%1$s wiederherstellen?</string>
-    <string name="quarantine_dialog_restore_body_hard">Der PackageInstaller des Systems installiert die App aus dem gesicherten APK neu. Die App-Daten beginnen von vorn.</string>
+    <string name="quarantine_dialog_restore_body_hard">Der PackageInstaller des Systems installiert die App aus dem gesicherten APK neu. Die App startet ohne ihre bisherigen Daten.</string>
     <string name="quarantine_dialog_restore_body_soft">Öffnen Sie die Android-Einstellungen, um die App wieder zu aktivieren. Der Quarantäne-Eintrag wird entfernt.</string>
     <string name="quarantine_dialog_drop_title">%1$s aus der Liste entfernen?</string>
     <string name="quarantine_dialog_drop_body">Entfernt den Eintrag aus der Liste. Ist die App gerade deinstalliert (Modus „Echte Quarantäne“), bleibt das gesicherte APK im Speicher — stellen Sie es bei Bedarf über Ihren Dateimanager wieder her.</string>
@@ -1018,6 +1018,7 @@
     <string name="notif_channel_quarantine_desc">Wenn der Prüftermin einer App in Quarantäne verstrichen ist.</string>
 
     <string name="expert_appop_mode_allowed">Erlaubt</string>
+    <string name="expert_appop_mode_foreground">Nur im Vordergrund</string>
     <string name="expert_appop_mode_ignored">Ignoriert</string>
     <string name="expert_appop_mode_denied">Verweigert</string>
     <string name="expert_appop_mode_default">Standard</string>

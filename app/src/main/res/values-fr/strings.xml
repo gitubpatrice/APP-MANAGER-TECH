@@ -1039,6 +1039,7 @@
     <string name="notif_channel_quarantine_desc">Lorsque la date de réexamen d\'une application en quarantaine est passée.</string>
 
     <string name="expert_appop_mode_allowed">Autorisé</string>
+    <string name="expert_appop_mode_foreground">Premier plan uniquement</string>
     <string name="expert_appop_mode_ignored">Ignoré</string>
     <string name="expert_appop_mode_denied">Refusé</string>
     <string name="expert_appop_mode_default">Par défaut</string>

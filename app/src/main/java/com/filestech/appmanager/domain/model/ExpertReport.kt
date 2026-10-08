@@ -151,5 +151,5 @@ data class ExpertReport(
         val state: AppOpState,
     )
 
-    enum class AppOpState { ALLOWED, IGNORED, DENIED, DEFAULT, UNKNOWN }
+    enum class AppOpState { ALLOWED, FOREGROUND, IGNORED, DENIED, DEFAULT, UNKNOWN }
 }

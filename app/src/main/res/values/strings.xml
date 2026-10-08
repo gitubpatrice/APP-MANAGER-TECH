@@ -1023,6 +1023,7 @@
     <string name="notif_channel_quarantine_desc">When the review date of a quarantined app has passed.</string>
 
     <string name="expert_appop_mode_allowed">Allowed</string>
+    <string name="expert_appop_mode_foreground">Foreground only</string>
     <string name="expert_appop_mode_ignored">Ignored</string>
     <string name="expert_appop_mode_denied">Denied</string>
     <string name="expert_appop_mode_default">Default</string>

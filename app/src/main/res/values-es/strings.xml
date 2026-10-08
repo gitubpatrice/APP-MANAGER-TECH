@@ -119,7 +119,7 @@
     <string name="critical_action_uninstall">Desinstalar</string>
     <string name="critical_action_quarantine_hard">Cuarentena + desinstalación</string>
     <string name="critical_warning_hold_hint">Por su protección, el botón de confirmación debe mantenerse pulsado 3 segundos. Suéltelo para cancelar.</string>
-    <string name="critical_warning_hold_action">%1$s (mantener pulsado 3 s)</string>
+    <string name="critical_warning_hold_action">%1$s (mantener 3 s)</string>
 
     <!-- Per-category titles + bodies. %1$s in a title = app label; bodies take no argument (the action is on the button). -->
     <string name="critical_title_auth">%1$s es un autenticador de dos factores</string>
@@ -242,7 +242,7 @@
     <!-- UsageStats permission warning                                     -->
     <!-- ================================================================ -->
     <string name="usage_stats_warning_title">Se necesita el permiso de acceso a datos de uso</string>
-    <string name="usage_stats_warning_body">Sin él, el tamaño de las apps y la fecha de su último uso se quedan a 0. Toque el botón para concederlo en los Ajustes del sistema.</string>
+    <string name="usage_stats_warning_body">Sin él, el tamaño de las apps y la fecha de su último uso se quedan en 0. Toque el botón para concederlo en los Ajustes del sistema.</string>
     <string name="usage_stats_grant_button">Conceder acceso a datos de uso</string>
 
     <!-- ================================================================ -->
@@ -467,7 +467,7 @@
     <string name="home_section_apps">Apps instaladas</string>
 
     <!-- v0.1.1 — Manual refresh + pull-to-refresh -->
-    <string name="action_refresh_apps">Recargar la lista</string>
+    <string name="action_refresh_apps">Actualizar la lista</string>
 
     <!-- ================================================================ -->
     <!-- Phase X.B — Rarely-used screen                                    -->
@@ -575,7 +575,7 @@
     <string name="drift_badge_gained">Concedido</string>
     <string name="drift_badge_lost">Revocado</string>
     <string name="drift_empty_title">Todavía no hay cambios de permisos</string>
-    <string name="drift_empty_body">Toque el botón azul de la tarjeta de arriba para registrar una primera instantánea. Después cambie un permiso en Ajustes de Android (p. ej., retire Cámara a una app) y vuelva a tocar «Capturar ahora» — el cambio aparecerá aquí.\n\nO active Ajustes → Supervisión de privacidad → Seguir los cambios de permisos para obtener una instantánea automática diaria.</string>
+    <string name="drift_empty_body">Toque el botón azul de la tarjeta de arriba para registrar una primera instantánea. Después cambie un permiso en Ajustes de Android (p. ej., retire el permiso de Cámara a una app) y vuelva a tocar «Capturar ahora» — el cambio aparecerá aquí.\n\nO active Ajustes → Supervisión de privacidad → Seguir los cambios de permisos para obtener una instantánea automática diaria.</string>
     <string name="drift_empty_title_after_capture">Ningún cambio desde la última captura</string>
     <string name="drift_empty_body_after_capture">La supervisión está activa. Para ver aparecer un cambio aquí:\n\n1. Abra los Ajustes de Android\n2. Aplicaciones → elija una app instalada por usted (Firefox, Telegram… NO una app del sistema)\n3. Permisos → active o desactive un permiso (Cámara, Micrófono, etc.)\n4. Vuelva a App Manager Tech y toque el botón azul «Capturar ahora» de arriba</string>
     <string name="drift_status_active">Supervisión activa</string>
@@ -630,7 +630,7 @@
     <string name="quarantine_badge_soft">Recordatorio</string>
     <string name="quarantine_badge_expired">Revisión pendiente</string>
     <string name="quarantine_row_restore_on">Revisión el %1$s</string>
-    <string name="quarantine_row_expired_on">La revisión era el %1$s</string>
+    <string name="quarantine_row_expired_on">La revisión estaba prevista para el %1$s</string>
     <string name="quarantine_dialog_restore_title">¿Restaurar %1$s?</string>
     <string name="quarantine_dialog_restore_body_hard">El PackageInstaller del sistema reinstalará la app desde el APK de la copia de seguridad. Los datos de la app empezarán de cero.</string>
     <string name="quarantine_dialog_restore_body_soft">Abra los Ajustes de Android para volver a activar la app. La entrada de cuarentena se eliminará.</string>
@@ -643,7 +643,7 @@
     <string name="quarantine_error_needs_backup_folder">Elija una carpeta de copias de seguridad en Ajustes antes de usar la cuarentena real.</string>
 
     <!-- SOFT-mode post-confirm explanation dialog (v0.2.0 UX fix) -->
-    <string name="quarantine_soft_action_title">%1$s está ahora en cuarentena</string>
+    <string name="quarantine_soft_action_title">%1$s se ha añadido a la cuarentena</string>
     <plurals name="quarantine_soft_action_body_summary">
         <item quantity="one">Se lo recordaremos dentro de %1$d día. Para que la cuarentena sea efectiva, debe desactivar usted la app en Ajustes de Android — App Manager Tech no puede hacerlo por usted (restricción de seguridad de Android).</item>
         <item quantity="many">Se lo recordaremos dentro de %1$d días. Para que la cuarentena sea efectiva, debe desactivar usted la app en Ajustes de Android — App Manager Tech no puede hacerlo por usted (restricción de seguridad de Android).</item>
@@ -697,7 +697,7 @@
     <string name="expert_section_native">Código nativo</string>
     <string name="expert_section_apk_paths">Rutas del APK</string>
     <string name="expert_section_signature">Firma</string>
-    <string name="expert_section_components_count">Componentes (%1$d declarados / %2$d exported)</string>
+    <string name="expert_section_components_count">Componentes (%1$d declarados / %2$d exportados)</string>
     <string name="expert_section_permissions_count">Permisos (%1$d declarados / %2$d concedidos)</string>
     <string name="expert_section_app_ops">App ops</string>
 
@@ -737,7 +737,7 @@
     <string name="expert_components_receivers">Receivers (%1$d)</string>
     <string name="expert_components_providers">Providers (%1$d)</string>
     <string name="expert_components_none">Ninguno declarado.</string>
-    <string name="expert_chip_exported">Exported</string>
+    <string name="expert_chip_exported">Exportado</string>
     <string name="expert_chip_internal">Interno</string>
     <string name="expert_chip_disabled">Desactivado</string>
     <string name="expert_chip_gated">Protegido por permiso</string>
@@ -1046,6 +1046,7 @@
     <string name="notif_channel_quarantine_desc">Cuando ha pasado la fecha de revisión de una app en cuarentena.</string>
 
     <string name="expert_appop_mode_allowed">Permitido</string>
+    <string name="expert_appop_mode_foreground">Solo en primer plano</string>
     <string name="expert_appop_mode_ignored">Ignorado</string>
     <string name="expert_appop_mode_denied">Denegado</string>
     <string name="expert_appop_mode_default">Predeterminado</string>
