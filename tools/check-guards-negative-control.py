@@ -100,6 +100,23 @@ def report(name: str, tests: int, skipped: int = 0) -> str:
     )
 
 
+def report_skips_marked_in_cases_only(name: str, tests: int) -> str:
+    """Every test skipped, marked by a <skipped/> element while the suite attribute says 0.
+
+    The shape an instrumented report may take for failed assumptions: a guard that trusted the suite
+    attribute alone would count these tests as executed.
+    """
+    cases = "".join(
+        f'  <testcase name="t{i}" classname="{name}" time="0.001"><skipped/></testcase>\n'
+        for i in range(tests)
+    )
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        f'<testsuite name="{name}" tests="{tests}" skipped="0" failures="0" errors="0">\n'
+        f"{cases}</testsuite>\n"
+    )
+
+
 REPORTS_OK = {
     "TEST-com.example.ATest.xml": report("com.example.ATest", 3),
     "TEST-com.example.BTest.xml": report("com.example.BTest", 2, skipped=1),
@@ -199,13 +216,16 @@ def main(argv: list[str]) -> int:
          lambda: manifest_case(work, MANIFEST_OK.replace("</manifest>", "")), 1, "merged manifest unreadable"),
 
         ("tests: POSITIVE WITNESS (4 executed, 1 skipped)", TESTS_CHECK,
-         lambda: results_case(work, REPORTS_OK), 0, "Unit tests executed: 4 (1 skipped, 2 reports)"),
+         lambda: results_case(work, REPORTS_OK), 0, "Tests executed: 4 (1 skipped, 2 reports)"),
         ("tests: no report at all (the JUnit 6 symptom)", TESTS_CHECK,
          lambda: results_case(work, {}), 1, "no TEST-*.xml report"),
         ("tests: directory missing", TESTS_CHECK,
          lambda: results_case(work, None), 1, "test results directory not found"),
         ("tests: suites that count zero tests", TESTS_CHECK,
          lambda: results_case(work, {"TEST-com.example.ATest.xml": report("com.example.ATest", 0)}),
+         1, "0 tests executed in"),
+        ("tests: every test skipped, marked in the cases only", TESTS_CHECK,
+         lambda: results_case(work, {"TEST-device-_app-.xml": report_skips_marked_in_cases_only("com.example.ATest", 3)}),
          1, "0 tests executed in"),
         ("tests: every test skipped", TESTS_CHECK,
          lambda: results_case(work, {"TEST-com.example.ATest.xml": report("com.example.ATest", 3, skipped=3)}),

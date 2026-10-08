@@ -162,6 +162,17 @@ room {
     schemaDirectory("$projectDir/../schemas")
 }
 
+// MigrationTestHelper reads the exported schemas from the androidTest ASSETS, and the Room plugin
+// does not package them there: the seven migration tests failed on "Cannot find the schema file in
+// the assets folder" (measured 2026-10-08 on a Galaxy S9 — never seen before, because the
+// androidTest APK did not build either).
+//
+// The test APK is meant to package the COMMITTED schemas, so no dependency on copyRoomSchemas is
+// declared: a new database version's schema must be committed before its migration test can pass.
+// Forgetting it fails either way - the asset merge ran before KSP in the builds measured, so the test
+// misses the file; in the other order, Gradle rejects the undeclared dependency on the copy's output.
+android.sourceSets.getByName("androidTest").assets.srcDir("$projectDir/../schemas")
+
 dependencies {
     // --- Core ---
     implementation(libs.androidx.core.ktx)
@@ -241,6 +252,5 @@ dependencies {
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.room.testing)
     androidTestImplementation(libs.coroutines.test)
-    androidTestImplementation(libs.junit.jupiter.api)
     androidTestImplementation(libs.truth)
 }

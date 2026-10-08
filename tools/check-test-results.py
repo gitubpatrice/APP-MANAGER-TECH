@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail when the unit-test run executed ZERO tests.
+"""Fail when a test run executed ZERO tests.
 
 Why this exists
 ---------------
@@ -8,8 +8,11 @@ discovers the tests, Gradle reports success on an empty run. This was measured o
 the portfolio (Notes Tech): after a JUnit 6 bump, no test was discovered any more and the CI stayed
 green. Dependabot proposes that very bump here (JUnit 5.11.3 -> 6.x).
 
-The JUnit XML reports are the evidence: one `TEST-*.xml` per executed class, each carrying `tests`
-and `skipped` counts. This script sums them and fails when nothing was executed.
+The JUnit XML reports are the evidence: `TEST-*.xml` files, whose suites carry `tests` and `skipped`
+counts and whose test cases carry a <skipped/> element when skipped. This script counts both and fails
+when nothing was executed. The instrumented run writes the same format, and needs the same guard even
+more: its runner reports a skipped test (an `assume` that does not hold on the device) as passed, and
+only the skip markers of the report tell them apart.
 
 It prints the total, and under GitHub Actions writes it to the job summary, so the number of tests
 executed by two runs (for instance before and after a dependency bump) can be compared at a glance.
@@ -18,8 +21,9 @@ Usage
 -----
     python3 tools/check-test-results.py [results-directory]
 
-Run it right after `testDebugUnitTest`: on a developer machine, a directory left over from an earlier
-run would be read as this run's.
+The default directory is the one of `testDebugUnitTest`; the instrumented run passes its own. Run it
+right after the test task: on a developer machine, a directory left over from an earlier run would be
+read as this run's.
 
 Exit code 0 when at least one test was executed, 1 otherwise.
 """
@@ -55,7 +59,7 @@ def main(argv: list[str]) -> int:
     if not os.path.isdir(results_dir):
         fail([
             f"test results directory not found: {results_dir}",
-            "run first: ./gradlew testDebugUnitTest",
+            "run the test task first (./gradlew testDebugUnitTest, or connectedDebugAndroidTest).",
         ])
         return 1
 
@@ -81,14 +85,20 @@ def main(argv: list[str]) -> int:
             fail([f"no <testsuite> element in {report}: not a JUnit XML report."])
             return 1
         for suite in suites:
-            tests = count(suite.get("tests"))
-            ignored = count(suite.get("skipped"))
+            # A skipped test is marked twice in Gradle's reports, by the suite's `skipped` attribute and
+            # by a <skipped/> element in its <testcase>. Other writers are not known to keep both in
+            # step (the instrumented XML may count only IGNORED tests in the attribute, not failed
+            # assumptions), so the larger of the two counts wins, and so does the larger test count.
+            cases = suite.findall("testcase")
+            skipped_cases = sum(1 for case in cases if case.find("skipped") is not None)
+            tests = max(count(suite.get("tests")), len(cases))
+            ignored = max(count(suite.get("skipped")), skipped_cases)
             total += tests
             skipped += ignored
             print(f"  {tests - ignored:4d} executed  {ignored:3d} skipped  {suite.get('name')}")
 
     executed = total - skipped
-    summary = f"Unit tests executed: {executed} ({skipped} skipped, {len(reports)} reports)"
+    summary = f"Tests executed: {executed} ({skipped} skipped, {len(reports)} reports) in {results_dir}"
     print(summary)
 
     if IN_CI and os.environ.get("GITHUB_STEP_SUMMARY"):
