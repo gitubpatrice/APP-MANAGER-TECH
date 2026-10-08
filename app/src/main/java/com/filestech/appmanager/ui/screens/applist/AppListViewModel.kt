@@ -27,6 +27,8 @@ import com.filestech.appmanager.domain.usecase.ClearAppCacheUseCase
 import com.filestech.appmanager.domain.usecase.GetInstalledAppsUseCase
 import com.filestech.appmanager.domain.usecase.RescanAppsUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -347,7 +349,7 @@ class AppListViewModel @Inject constructor(
                 selection.forEach { pkg ->
                     actionLogger.log(pkg, labelOf(pkg), AmtActionType.FORCE_STOP, AmtActionResult.FAILED)
                 }
-                _events.trySend(Event.ShowError(outcome.error.toString()))
+                _events.trySend(Event.ShowError(outcome.error.toUiText()))
             }
             Outcome.Loading    -> Unit
         }
@@ -387,7 +389,7 @@ class AppListViewModel @Inject constructor(
             try {
                 when (val r = rescanApps()) {
                     is Outcome.Success -> Timber.d("Manual rescan complete")
-                    is Outcome.Failure -> _events.trySend(Event.ShowError(r.error.toString()))
+                    is Outcome.Failure -> _events.trySend(Event.ShowError(r.error.toUiText()))
                     Outcome.Loading    -> Unit
                 }
             } finally {
@@ -483,7 +485,7 @@ class AppListViewModel @Inject constructor(
     }
 
     sealed interface Event {
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
         data class NavigateToDetail(val packageName: String) : Event
         data class LaunchIntent(val intent: Intent) : Event
         data class LaunchIntentsSequentially(val intents: List<Intent>) : Event

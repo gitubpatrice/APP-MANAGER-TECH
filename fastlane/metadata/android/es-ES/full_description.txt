@@ -1,0 +1,41 @@
+App Manager Tech es un gestor y limpiador de apps de Android totalmente local. Inspeccione cada app instalada, actúe sobre varias a la vez, borre cachés y vea a qué tiene acceso cada app — sin que un solo byte salga de su dispositivo.
+
+<b>Funciones</b>
+
+• Apps instaladas — tamaños, último uso, origen de la instalación (Play / F-Droid / Aurora / instalación manual), categoría; búsqueda, orden, filtros, sus propias etiquetas
+• Acciones por lotes — desinstalar, borrar caché, forzar detención. Es Android quien pide confirmar cada app; App Manager Tech nunca se salta ese paso
+• Detalles de la app — almacenamiento, permisos, un resumen en lenguaje claro, puntuación de privacidad, rastreadores, certificado de firma, modo experto con los componentes
+• Rastreadores — detecta sin conexión los SDK conocidos de publicidad, analítica e informes de fallos
+• Puntuación de privacidad — una estimación de 0 a 100 a partir de permisos peligrosos, superposición sobre otras apps, administrador de dispositivos, accesibilidad y origen de la instalación
+• Limpiador inteligente — una única lista ordenada: apps sin uso, cachés voluminosas, apps grandes y poco usadas, varias apps del mismo tipo
+• Analizador de almacenamiento, apps poco usadas, apps zombi, filtro por permiso
+• Auditoría de seguridad — administradores de dispositivos y servicios de accesibilidad activados
+• Cambios de permisos — lo que cada app ha obtenido o perdido entre dos instantáneas (si lo activa)
+• Historial de instalaciones — instalaciones, actualizaciones y desinstalaciones (si lo activa)
+• Grupos de firmas — apps agrupadas por certificado de firma
+• Cuarentena — apartar una app con una fecha de revisión: un simple recordatorio o una desinstalación tras guardar una copia de seguridad del APK en la carpeta que usted elija
+• Papelera — dejar desinstalaciones pendientes y revisarlas antes
+• Apps protegidas — mantener pulsado 3 segundos antes de las acciones destructivas, en sus apps y en listas integradas: autenticadores, gestores de contraseñas, mensajería cifrada, salud, bancos y transporte franceses
+• Registro de acciones — un historial local de lo que ha hecho App Manager Tech (si lo activa)
+• Exportación — JSON, CSV y un informe de diagnóstico en PDF imprimible
+• Análisis en segundo plano — una sola notificación local cuando la caché total supera su umbral
+• Bloqueo de capturas de pantalla (si lo activa), Material You, tema claro / oscuro
+• Inglés, francés, alemán, italiano, español
+
+<b>Privacidad</b>
+
+• Sin permiso INTERNET — la app no puede abrir ninguna conexión de red
+• Sin analítica, sin informes de fallos, sin SDK de rastreo
+• Licencia Apache 2.0 — https://github.com/gitubpatrice/APP-MANAGER-TECH
+
+<b>Permisos</b>
+
+QUERY_ALL_PACKAGES — listar las apps instaladas
+PACKAGE_USAGE_STATS — último uso y tamaños exactos (se concede en los Ajustes de Android; sin él, estos valores se quedan en 0)
+GET_PACKAGE_SIZE — tamaños de las apps
+REQUEST_DELETE_PACKAGES — abrir el cuadro de desinstalación de Android (usted confirma)
+KILL_BACKGROUND_PROCESSES — detener los procesos en segundo plano
+POST_NOTIFICATIONS (Android 13+) — notificaciones locales
+WAKE_LOCK, FOREGROUND_SERVICE, RECEIVE_BOOT_COMPLETED, ACCESS_NETWORK_STATE — añadidos por WorkManager para las tareas en segundo plano. ACCESS_NETWORK_STATE indica si hay una red; sin INTERNET, la app no puede usarla
+
+https://files-tech.com/app-manager-tech.php

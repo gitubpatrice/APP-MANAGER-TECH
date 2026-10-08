@@ -28,6 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -114,7 +115,7 @@ fun QuarantineConfigDialog(
                     style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
-                    text  = stringResource(R.string.quarantine_config_duration_value, durationDays),
+                    text  = pluralStringResource(R.plurals.quarantine_config_duration_value, durationDays, durationDays),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Slider(

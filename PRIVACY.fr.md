@@ -53,6 +53,10 @@ accordées à l'installation dans l'APK construit : `WAKE_LOCK`, `FOREGROUND_SER
 `ACCESS_NETWORK_STATE` (elle peut savoir si un réseau est présent ; sans `INTERNET`, elle ne peut
 pas s'en servir). Aucune ne donne accès à vos données.
 
+AndroidX ajoute aussi `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, une
+permission de signature que seule cette application détient : elle ferme à toutes les autres
+applications les récepteurs que l'app enregistre en cours d'exécution. Elle ne donne accès à rien.
+
 **Jamais demandées :** `INTERNET`, localisation, contacts, SMS, agenda,
 microphone, caméra, `MANAGE_EXTERNAL_STORAGE`.
 

@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.filestech.appmanager.R
@@ -46,7 +47,7 @@ fun SoftQuarantineActionDialog(
         text  = {
             Column {
                 Text(
-                    text  = stringResource(R.string.quarantine_soft_action_body_summary, durationDays),
+                    text  = pluralStringResource(R.plurals.quarantine_soft_action_body_summary, durationDays, durationDays),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(modifier = Modifier.size(12.dp))

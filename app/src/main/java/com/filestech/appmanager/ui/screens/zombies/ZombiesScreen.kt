@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +59,8 @@ import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.toUiText
 import com.filestech.appmanager.ui.theme.BrandDanger
 import timber.log.Timber
 
@@ -97,7 +100,7 @@ fun ZombiesScreen(
             when (event) {
                 is ZombiesViewModel.Event.RefreshDone ->
                     snackbarHostState.showSnackbar(
-                        resources.getString(R.string.zombies_refresh_done, event.count),
+                        resources.getQuantityString(R.plurals.zombies_refresh_done, event.count, event.count),
                     )
                 is ZombiesViewModel.Event.LaunchIntent -> {
                     runCatching {
@@ -166,7 +169,7 @@ fun ZombiesScreen(
             Box(modifier = Modifier.fillMaxSize()) {
                 when (val o = state.outcome) {
                     Outcome.Loading      -> LoadingState()
-                    is Outcome.Failure   -> ErrorState(message = o.error.toString(), onRetry = viewModel::refresh)
+                    is Outcome.Failure   -> ErrorState(message = o.error.toUiText().asString(), onRetry = viewModel::refresh)
                     is Outcome.Success   -> {
                         if (o.value.isEmpty()) {
                             EmptyState(
@@ -278,7 +281,8 @@ private fun ReasonBadge(zombie: ZombieApp) {
         ZombieApp.Reason.NEVER_OPENED ->
             BrandDanger to stringResource(R.string.zombie_reason_never_opened)
         ZombieApp.Reason.UNUSED_SINCE ->
-            MaterialTheme.colorScheme.tertiary to stringResource(R.string.zombie_reason_unused_since, zombie.unusedDays)
+            MaterialTheme.colorScheme.tertiary to
+                pluralStringResource(R.plurals.zombie_reason_unused_since, zombie.unusedDays, zombie.unusedDays)
     }
     Surface(
         shape        = RoundedCornerShape(50),

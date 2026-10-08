@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,6 +61,7 @@ import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.state.EmptyState
+import com.filestech.appmanager.ui.text.resolve
 import com.filestech.appmanager.ui.theme.BrandDanger
 import timber.log.Timber
 import java.text.DateFormat
@@ -107,7 +109,7 @@ fun TrashScreen(
                 is TrashViewModel.Event.LaunchIntents -> {
                     event.intents.forEach { launchIntent(context, it) }
                     snackbarHostState.showSnackbar(
-                        resources.getString(R.string.trash_emptied_snackbar, event.total),
+                        resources.getQuantityString(R.plurals.trash_emptied_snackbar, event.total, event.total),
                     )
                 }
                 is TrashViewModel.Event.Restored -> {
@@ -115,7 +117,7 @@ fun TrashScreen(
                         resources.getString(R.string.trash_restored_snackbar, event.packageName),
                     )
                 }
-                is TrashViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.message)
+                is TrashViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is TrashViewModel.Event.RequiresCriticalConfirmation ->
                     criticalConfirm = CriticalConfirmState(
                         classification = event.classification,
@@ -256,7 +258,7 @@ private fun TrashBody(
         } else {
             Column(modifier = Modifier.fillMaxSize()) {
                 Text(
-                    text     = stringResource(R.string.trash_subtitle, items.size, totalLabel),
+                    text     = pluralStringResource(R.plurals.trash_subtitle, items.size, items.size, totalLabel),
                     style    = MaterialTheme.typography.bodyMedium,
                     color    = BrandDanger,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

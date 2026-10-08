@@ -1,0 +1,1 @@
+Gestione locale delle app: ispezione, pulizia, audit. Nessun tracciamento.

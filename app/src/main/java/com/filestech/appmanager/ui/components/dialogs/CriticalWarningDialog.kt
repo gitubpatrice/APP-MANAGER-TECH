@@ -88,7 +88,7 @@ fun CriticalWarningDialog(
         text  = {
             Column {
                 Text(
-                    text  = stringResource(bodyRes, actionLabel),
+                    text  = stringResource(bodyRes),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(modifier = Modifier.height(12.dp))

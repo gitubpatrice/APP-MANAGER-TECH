@@ -64,6 +64,7 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.state.EmptyState
+import com.filestech.appmanager.ui.text.resolve
 import com.filestech.appmanager.ui.theme.BrandDanger
 import timber.log.Timber
 import java.text.DateFormat
@@ -98,7 +99,7 @@ fun QuarantineScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is QuarantineViewModel.Event.LaunchIntent -> launchIntent(context, event.intent)
-                is QuarantineViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.message)
+                is QuarantineViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is QuarantineViewModel.Event.BackupMissing -> dialog = QuarantineDialog.BackupMissing(event.packageName)
                 QuarantineViewModel.Event.NeedsBackupFolder ->
                     snackbarHostState.showSnackbar(

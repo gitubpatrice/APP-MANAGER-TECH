@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,6 +32,7 @@ import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.PrivacyScore
 import com.filestech.appmanager.domain.model.PrivacyTier
 import com.filestech.appmanager.domain.model.TrackerReport
+import com.filestech.appmanager.ui.text.trackerCategoryLabel
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 
@@ -154,8 +156,8 @@ fun PrivacyDataPanel(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text       = stringResource(
-                            R.string.appdetail_privacy_panel_trackers_count,
+                        text       = pluralStringResource(
+                            R.plurals.appdetail_privacy_panel_trackers_count, trackerReport.detectedTrackers.size,
                             trackerReport.detectedTrackers.size,
                         ),
                         style      = MaterialTheme.typography.bodyMedium,
@@ -165,7 +167,7 @@ fun PrivacyDataPanel(
                 Spacer(modifier = Modifier.size(4.dp))
                 trackerReport.detectedTrackers.forEach { tracker ->
                     Text(
-                        text     = "• ${tracker.name} (${tracker.category})",
+                        text     = "• ${tracker.name} (${trackerCategoryLabel(tracker.category)})",
                         style    = MaterialTheme.typography.bodySmall,
                         color    = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 22.dp, top = 2.dp, bottom = 2.dp),

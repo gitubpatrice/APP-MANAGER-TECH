@@ -2,10 +2,14 @@ package com.filestech.appmanager.ui.screens.trackers
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.usecase.ScanAllTrackersUseCase
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
+import com.filestech.appmanager.ui.text.uiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
@@ -84,7 +88,7 @@ class TrackersViewModel @Inject constructor(
                         }
                         is Outcome.Failure -> {
                             _state.update { it.copy(isScanning = false) }
-                            _events.trySend(Event.ShowError(outcome.error.toString()))
+                            _events.trySend(Event.ShowError(outcome.error.toUiText()))
                         }
                         Outcome.Loading -> Unit
                     }
@@ -92,7 +96,7 @@ class TrackersViewModel @Inject constructor(
             } catch (e: TimeoutCancellationException) {
                 Timber.w(e, "Trackers scan timed out after %d ms", SCAN_TIMEOUT_MS)
                 _state.update { it.copy(isScanning = false) }
-                _events.trySend(Event.ShowError("Analyse trop longue — réessayez"))
+                _events.trySend(Event.ShowError(uiText(R.string.error_timeout)))
             } finally {
                 isScanning.set(false)
             }
@@ -106,7 +110,7 @@ class TrackersViewModel @Inject constructor(
     )
 
     sealed interface Event {
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
         /** v0.2.1 audit C3a — scan completion snackbar. */
         data class ScanDone(val appsScanned: Int, val trackersFound: Int) : Event
     }

@@ -43,8 +43,8 @@ android {
         applicationId = "com.filestech.appmanager"
         minSdk        = 26
         targetSdk     = 35
-        versionCode   = 13
-        versionName   = "0.4.0"
+        versionCode   = 14
+        versionName   = "0.5.0"
 
         // Etiquette du lanceur, par type de build. Le suffixe `.debug` ci-dessous laisse les deux
         // variantes coexister sur un meme telephone ; sans etiquette distincte, elles y portaient
@@ -111,11 +111,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Strip locales other than en/fr from the resource bundle. `localeFilters` replaces
-    // `resourceConfigurations`, which AGP 9 no longer offers. The list must keep matching the
-    // translated `values-*` folders: a language missing here is removed from the APK without error.
+    // Keep only the shipped languages in the resource bundle. `localeFilters` replaces
+    // `resourceConfigurations`, which AGP 9 no longer offers. The list must match the translated
+    // `values-*` folders and res/xml/locales_config.xml: a language missing here is removed from the
+    // APK without error. tools/check-translations.py fails the build when they disagree.
     androidResources {
-        localeFilters += listOf("en", "fr")
+        localeFilters += listOf("en", "fr", "de", "it", "es")
     }
 
     // ---------------------------------------------------------------------------

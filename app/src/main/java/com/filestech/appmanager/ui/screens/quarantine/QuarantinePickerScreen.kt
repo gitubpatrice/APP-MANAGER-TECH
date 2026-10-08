@@ -55,6 +55,7 @@ import com.filestech.appmanager.ui.components.dialogs.QuarantineConfigDialog
 import com.filestech.appmanager.ui.components.dialogs.SoftQuarantineActionDialog
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.domain.model.CriticalClassification
+import com.filestech.appmanager.ui.text.resolve
 import timber.log.Timber
 
 /**
@@ -98,7 +99,7 @@ fun QuarantinePickerScreen(
                     onBack()
                 }
                 is QuarantinePickerViewModel.Event.ShowError ->
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
                 QuarantinePickerViewModel.Event.NeedsBackupFolder ->
                     snackbarHostState.showSnackbar(
                         resources.getString(R.string.quarantine_error_needs_backup_folder),

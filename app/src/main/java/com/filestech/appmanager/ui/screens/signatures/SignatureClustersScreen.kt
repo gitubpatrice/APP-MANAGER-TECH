@@ -52,6 +52,8 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.toUiText
 import com.filestech.appmanager.ui.theme.BrandBlue
 
 /**
@@ -121,7 +123,7 @@ private fun SignatureBody(
     Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
         when (outcome) {
             Outcome.Loading    -> LoadingState()
-            is Outcome.Failure -> ErrorState(message = outcome.error.toString(), onRetry = onRetry)
+            is Outcome.Failure -> ErrorState(message = outcome.error.toUiText().asString(), onRetry = onRetry)
             is Outcome.Success -> {
                 if (outcome.value.isEmpty()) {
                     EmptyState(

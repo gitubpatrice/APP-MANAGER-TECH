@@ -1,0 +1,8 @@
+v0.5.0
+• Deutsch, Italienisch und Spanisch; App-Sprache ab Android 13 wählbar
+• Alle Meldungen folgen Ihrer Sprache, mit echten Pluralformen
+• Expertenansicht: Fehlt einem App-Op die Berechtigung, steht das dort statt „Erlaubt“
+• Die Cache-Benachrichtigung klingelt nicht mehr bei jedem Scan
+• Irreführende Texte korrigiert (Schwellenwert, Warnungen); toter F-Droid-Link entfernt
+• Bildschirm während einer Aktion verlassen: kein Fehler mehr
+• Neuere Android-Bibliotheken (Compose 1.12)

@@ -1,0 +1,1 @@
+Gestor de apps local: inspeccionar, limpiar y auditar. Sin rastreo.

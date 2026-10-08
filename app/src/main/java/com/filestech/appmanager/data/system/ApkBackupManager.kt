@@ -2,6 +2,7 @@ package com.filestech.appmanager.data.system
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.filestech.appmanager.di.IoDispatcher
@@ -54,12 +55,26 @@ class ApkBackupManager @Inject constructor(
 ) {
 
     /**
-     * Result of [backupApk]: either a persisted URI string or a failure reason
-     * the caller can surface to the UI.
+     * Result of [backupApk]: either a persisted URI string or a failure. The caller turns [Reason]
+     * into the message the user sees; [Failure.message] is the technical detail, for the logs.
      */
     sealed interface Result {
         data class Success(val documentUri: String) : Result
-        data class Failure(val message: String, val cause: Throwable? = null) : Result
+        data class Failure(val reason: Reason, val message: String, val cause: Throwable? = null) : Result
+    }
+
+    enum class Reason {
+        /** The installed APK cannot be located or read. */
+        APK_UNREADABLE,
+
+        /** The backup folder is invalid, read-only, or refuses the new file. */
+        FOLDER_UNAVAILABLE,
+
+        /** The persisted SAF permission on the backup folder was revoked. */
+        FOLDER_ACCESS_REVOKED,
+
+        /** Anything else; the cause is in the logs. */
+        FAILED,
     }
 
     /**
@@ -81,16 +96,17 @@ class ApkBackupManager @Inject constructor(
             val pm = context.packageManager
             val appInfo = pm.getApplicationInfo(packageName, 0)
             val source = appInfo.sourceDir
-                ?: return@withContext Result.Failure("No sourceDir for $packageName")
+                ?: return@withContext Result.Failure(Reason.APK_UNREADABLE, "No sourceDir for $packageName")
             val sourceFile = File(source)
             if (!sourceFile.exists() || !sourceFile.canRead()) {
-                return@withContext Result.Failure("APK file unreadable: $source")
+                return@withContext Result.Failure(Reason.APK_UNREADABLE, "APK file unreadable: $source")
             }
 
-            val tree = DocumentFile.fromTreeUri(context, treeUri)
-                ?: return@withContext Result.Failure("SAF tree URI invalid")
+            // fromTreeUri throws IllegalArgumentException for a document URI that is not a tree.
+            val tree = runCatching { DocumentFile.fromTreeUri(context, treeUri) }.getOrNull()
+                ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "SAF tree URI invalid")
             if (!tree.exists() || !tree.canWrite()) {
-                return@withContext Result.Failure("SAF tree not writable")
+                return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "SAF tree not writable")
             }
 
             val fileName = sanitizeFilename("${packageName}_$versionCode.apk")
@@ -100,20 +116,40 @@ class ApkBackupManager @Inject constructor(
             tree.findFile(fileName)?.delete()
 
             val backupDoc = tree.createFile(MIME_APK, fileName)
-                ?: return@withContext Result.Failure("Failed to create backup file")
+                ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "Failed to create backup file")
 
-            val bytes = context.contentResolver.openOutputStream(backupDoc.uri)?.use { out ->
-                FileInputStream(sourceFile).use { input -> input.copyTo(out) }
-            } ?: return@withContext Result.Failure("Failed to open backup output stream")
+            val bytes = copyInto(backupDoc, sourceFile)
+                ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "Failed to open backup output stream")
 
             Timber.i("ApkBackupManager: backed up %s (%d bytes) to %s", packageName, bytes, backupDoc.uri)
             Result.Success(backupDoc.uri.toString())
+        } catch (e: PackageManager.NameNotFoundException) {
+            // Uninstalled between the catalogue read and the backup: there is no APK to copy.
+            Timber.w(e, "ApkBackupManager: %s is no longer installed", packageName)
+            Result.Failure(Reason.APK_UNREADABLE, "Package not found: $packageName", e)
         } catch (e: SecurityException) {
             Timber.w(e, "ApkBackupManager: SAF permission revoked")
-            Result.Failure("SAF permission revoked — please re-pick the backup folder", e)
+            Result.Failure(Reason.FOLDER_ACCESS_REVOKED, "SAF permission revoked", e)
         } catch (e: Exception) {
             Timber.e(e, "ApkBackupManager: backup failed for %s", packageName)
-            Result.Failure("Backup failed: ${e.message}", e)
+            Result.Failure(Reason.FAILED, "Backup failed: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Copies [source] into [target]; null when the provider gives no output stream. Whatever stops the
+     * copy — no stream, an IOException, a provider's undocumented runtime exception — deletes
+     * [target]: an empty or half-written APK must not stay in the folder looking like a backup.
+     */
+    private fun copyInto(target: DocumentFile, source: File): Long? {
+        var copied: Long? = null
+        try {
+            copied = context.contentResolver.openOutputStream(target.uri)?.use { out ->
+                FileInputStream(source).use { input -> input.copyTo(out) }
+            }
+            return copied
+        } finally {
+            if (copied == null) target.delete()
         }
     }
 

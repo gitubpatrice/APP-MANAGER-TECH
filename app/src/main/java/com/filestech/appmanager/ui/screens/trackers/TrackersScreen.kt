@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,6 +55,8 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.components.settings.ToggleRow
 import com.filestech.appmanager.ui.components.state.EmptyState
+import com.filestech.appmanager.ui.text.resolve
+import com.filestech.appmanager.ui.text.trackerCategoryLabel
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 
@@ -83,7 +86,7 @@ fun TrackersScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is TrackersViewModel.Event.ShowError ->
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
                 // v0.2.1 audit C3a — concrete refresh feedback (was missing).
                 is TrackersViewModel.Event.ScanDone ->
                     snackbarHostState.showSnackbar(
@@ -229,7 +232,7 @@ private fun SummaryCard(
             // Big number — contamination %
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text       = "${result.contaminationPercent}%",
+                    text       = stringResource(R.string.trackers_contamination_percent, result.contaminationPercent),
                     style      = MaterialTheme.typography.displayMedium,
                     color      = when {
                         result.contaminationPercent >= 50 -> BrandDanger
@@ -246,8 +249,8 @@ private fun SummaryCard(
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
-                        text  = stringResource(
-                            R.string.trackers_summary_subtitle,
+                        text  = pluralStringResource(
+                            R.plurals.trackers_summary_subtitle, result.appsWithTrackers,
                             result.appsWithTrackers,
                             result.totalAppCount,
                             result.totalDetections,
@@ -273,7 +276,7 @@ private fun SummaryCard(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text     = category,
+                            text     = trackerCategoryLabel(category),
                             style    = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.weight(1f),
                         )

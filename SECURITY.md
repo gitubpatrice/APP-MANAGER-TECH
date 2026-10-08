@@ -1,6 +1,31 @@
 # App Manager Tech — Security model
 
-Current release: **v0.4.0**
+Current release: **v0.5.0**
+
+## v0.5.0 — Build verification, German / Italian / Spanish, audit fixes
+
+- **Every build is now verified in CI** (`.github/workflows/ci.yml`), on `main`, `fix/**`, `feat/**`
+  and every pull request: build, unit tests, Android lint, detekt (blocking, no baseline), an R8
+  release build, and instrumented Room tests on an API 29 emulator. Each guard has a negative control
+  that proves it can fail, and fails for the right reason.
+- **The "no network" promise is asserted on the release APK itself**, not only on the source
+  manifest: `apkanalyzer` reads the permissions of the built APK, which must hold no `INTERNET` and
+  nothing outside a reviewed list of 11 (the same check runs on the merged release manifest).
+- **Toolchain**: AGP 9.4.1, Gradle 9.8.1, Kotlin 2.4.10 pinned with a `strictly` constraint (CodeQL
+  refuses 2.4.20+), compileSdk 37. No new dependency outside AndroidX / Kotlin / Hilt / Room.
+- **Coroutine cancellation is no longer swallowed** by the catch-alls around the quarantine and trash
+  writes, nor by the permission-snapshot purge: a cancelled operation is no longer reported as a
+  failed one.
+- **Backup and device-to-device transfer**: `data_extraction_rules.xml` and `backup_rules.xml` named
+  the `sharedpref` domain, where a DataStore file never lives, so they excluded nothing. They now
+  exclude the settings DataStore (it holds the backup-folder grant of THIS device) and the Room
+  database (it describes THIS device's apps). `allowBackup="false"` already disabled cloud backup; an
+  app targeting Android 12+ is still subject to device-to-device transfer.
+- **APK backup (real quarantine)**: a copy that fails midway deletes the partial file; a backup folder
+  for which Android refuses a persistable grant is refused when picked, instead of failing later.
+- **Expert view**: an app-op is read together with the permission behind it. An op at its default
+  mode was shown "Allowed" for an app that never declared the permission.
+- **No new permission.** The release APK declares the same 11 permissions as v0.4.0.
 
 ## v0.4.0 — Action Journal (forensic timeline) + full-app polish
 
@@ -290,6 +315,7 @@ Tink AEAD (AES-256-GCM). No home-grown crypto.
 
 | Version | Date | Scope | Findings |
 |---|---|---|---|
+| v0.5.0 | 2026-10-08 | Pre-release 3-axes audit of v0.4.0..v0.5.0 (CI, toolchain, detekt, German / Italian / Spanish), plus Claude API and GPT reviews of each change and of each translation | 0 CRITICAL, 0 HIGH, 3 MEDIUM (expert app-op state read without the permission behind it, cache notification re-alerting at every scan, release hygiene) + 7 LOW — **the 3 MEDIUM and 5 LOW fixed before tag**. Deferred: integrity check of a backed-up APK before restore (needs a schema column), English deduction labels of the privacy score (internal, never displayed, pinned by tests), CI actions pinned by tag rather than SHA. |
 | v0.2.1 | 2026-05-24 | FULL-APP "peigne fin" audit (3-axes + cohérence transversale) post-v0.2.0 + 6 user-reported UX bugs (Trash ghost rows, SecurityAudit refresh stuck, Zombies row tap, Storage refresh, AppDetail "last used", Settings shortcut Outils) | 0 CRITICAL, 8 HIGH (H1 SystemClock vs wall-clock in hold-3s timer, H3 SettingsScreen missing PermissionDrift+Quarantine callbacks, C2a/b + C8a/b RarelyUsed+Zombies missing UsageStats banner+ON_RESUME, C7a/b/c/d 4 withTimeout sites missing) + 12 MEDIUM (C1a/b/c/d AtomicBoolean replacing racy guards, M1 IntentFactory require validPkg, M2 notif ID negative hashCode mask, M4 AppDetail load fan-out timeout, M5 SecurityAuditScreen BrandDanger, M-1 delta hasUsageStatsAccess off-main, M-4/L-2 Box weight, C3a Trackers ScanDone snackbar, C6a BatchAction filter) + 12 LOW — **all blocking findings fixed before tag**. CI fix: CodeQL `--no-build-cache --rerun-tasks` so tracer observes compilation. |
 | v0.2.0 | 2026-05-23 | v0.2.0 delta — Permission Drift Tracker + App Quarantine (HARD APK backup + SOFT reminder) + Safety Guardrails (`CriticalAppDetector` + `CriticalWarningDialog` hold-3s) + Room v3→v4 migration + new IntentFactory.appPermissionsSettingsChain + SAF backup folder | 0 CRITICAL, 1 HIGH (USER_PROTECTED enum phantom — fixed by adding empty Set + ranking entry), 4 MEDIUM (notif hash collision 0x7FFF → full 32-bit, restore HARD ConfirmDialog → DestructiveDialog, detectTapGestures no drag-cancel → pointerInput awaitPointerEventScope with touchSlop, label resolution cap deferred v0.2.1) + 5 LOW — **all blocking findings fixed before tag** |
 | v0.1.0 | 2026-05-23 | Phase X final — Trash feature (Room v3 migration + 3-way uninstall dialog) + batch confirmation dialogs + 3 list-by-criterion screens (Rarely-used / Zombies / Permission-filter) + brand-discipline red | 0 CRITICAL, 1 HIGH (MigrationTest_2_3 missing — fixed), 6 MEDIUM (try/catch dao.upsert, fillMaxWidth(0f) invisible label, Spacer.padding anti-pattern, 3 IconButton contentDescription, dead strings settings_trash_default_*, UninstallChoiceDialog M3-deviation doc) + 4 LOW — **all fixed before tag** |

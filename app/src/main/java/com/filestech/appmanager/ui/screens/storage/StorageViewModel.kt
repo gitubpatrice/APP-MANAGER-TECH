@@ -3,6 +3,7 @@ package com.filestech.appmanager.ui.screens.storage
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
@@ -11,6 +12,9 @@ import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.StorageReport
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.AnalyzeStorageUseCase
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
+import com.filestech.appmanager.ui.text.uiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
@@ -91,12 +95,12 @@ class StorageViewModel @Inject constructor(
                 }
             } catch (e: TimeoutCancellationException) {
                 Timber.w(e, "analyzeAllApps timed out after %d ms", ANALYZE_TIMEOUT_MS)
-                _events.trySend(Event.ShowError("Analyse trop longue — réessayez"))
+                _events.trySend(Event.ShowError(uiText(R.string.error_timeout)))
                 Outcome.Failure(com.filestech.appmanager.core.result.AppError.Unknown(e))
             }
             _state.update { it.copy(reportOutcome = outcome) }
             (outcome as? Outcome.Failure)?.let {
-                _events.trySend(Event.ShowError(it.error.toString()))
+                _events.trySend(Event.ShowError(it.error.toUiText()))
             }
         }
     }
@@ -126,12 +130,12 @@ class StorageViewModel @Inject constructor(
                 }
             } catch (e: TimeoutCancellationException) {
                 Timber.w(e, "rescanAndAnalyze timed out after %d ms", RESCAN_TIMEOUT_MS)
-                _events.trySend(Event.ShowError("Rescan trop long — réessayez"))
+                _events.trySend(Event.ShowError(uiText(R.string.error_timeout)))
                 Outcome.Failure(com.filestech.appmanager.core.result.AppError.Unknown(e))
             }
             _state.update { it.copy(reportOutcome = outcome, isRescanning = false) }
             (outcome as? Outcome.Failure)?.let {
-                _events.trySend(Event.ShowError(it.error.toString()))
+                _events.trySend(Event.ShowError(it.error.toUiText()))
             }
         }
     }
@@ -171,7 +175,7 @@ class StorageViewModel @Inject constructor(
     )
 
     sealed interface Event {
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
         /** v0.2.1 — Settings → Usage access deep-link from the banner CTA. */
         data class LaunchIntent(val intent: Intent) : Event
     }

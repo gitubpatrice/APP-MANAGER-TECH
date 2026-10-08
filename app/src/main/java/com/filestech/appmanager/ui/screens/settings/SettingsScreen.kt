@@ -1,6 +1,11 @@
 package com.filestech.appmanager.ui.screens.settings
 
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -54,6 +59,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -123,15 +130,22 @@ fun SettingsScreen(
     // OPEN_DOCUMENT_TREE returns a content:// tree URI; we take a persistable
     // read+write grant so subsequent process restarts can still write into it
     // without re-prompting the user.
+    val resources = LocalResources.current
     val backupFolderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree(),
     ) { uri ->
         if (uri != null) {
             val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            runCatching {
+            // Without the lasting grant the folder works until the next restart, then every backup
+            // fails as "access withdrawn": refuse it now, where the user can still pick another.
+            val granted = runCatching {
                 context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+            }.isSuccess
+            if (granted) {
+                viewModel.setQuarantineBackupTreeUri(uri.toString())
+            } else {
+                Toast.makeText(context, resources.getString(R.string.settings_backup_folder_refused), Toast.LENGTH_LONG).show()
             }
-            viewModel.setQuarantineBackupTreeUri(uri.toString())
         }
     }
 
@@ -331,6 +345,17 @@ private fun SettingsBody(
                 onClick     = onThemeModeClick,
                 currentValue = themeModeLabel(settings.appearance.themeMode),
             )
+            // The per-app language picker (res/xml/locales_config.xml) lives in Android's settings,
+            // where nobody looks for it. Android 13+ only: below, the page does not exist and the row
+            // would open nothing; there, the app follows the phone's language.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val context = LocalContext.current
+                NavigationRow(
+                    title       = stringResource(R.string.settings_language),
+                    description = stringResource(R.string.settings_language_sub),
+                    onClick     = { openAppLanguageSettings(context) },
+                )
+            }
             ToggleRow(
                 title          = stringResource(R.string.settings_dynamic_color_title),
                 description    = stringResource(R.string.settings_dynamic_color_desc),
@@ -693,7 +718,7 @@ private fun TagStatsSection(appTags: Map<String, Set<AppTag>>) {
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text  = stringResource(R.string.settings_tag_stats_total, appTags.size),
+                text  = pluralStringResource(R.plurals.settings_tag_stats_total, appTags.size, appTags.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -726,4 +751,16 @@ private fun TagStatChip(label: String, count: Int) {
             )
         }
     }
+}
+
+/**
+ * Opens Android's per-app language page. Not every manufacturer exposes it: without a fallback the tap
+ * would do nothing, so the app's details page, one tap away from the language, opens instead.
+ */
+private fun openAppLanguageSettings(context: Context) {
+    val app = Uri.fromParts("package", context.packageName, null)
+    val language = Intent(Settings.ACTION_APP_LOCALE_SETTINGS, app).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    val details = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, app).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { context.startActivity(language) }
+        .onFailure { runCatching { context.startActivity(details) } }
 }

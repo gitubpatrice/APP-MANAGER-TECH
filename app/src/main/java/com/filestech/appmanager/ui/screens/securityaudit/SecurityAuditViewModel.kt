@@ -3,6 +3,7 @@ package com.filestech.appmanager.ui.screens.securityaudit
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
@@ -14,6 +15,8 @@ import com.filestech.appmanager.domain.usecase.GetAccessibilityServiceAppsUseCas
 import com.filestech.appmanager.domain.usecase.GetDeviceAdminAppsUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
 import com.filestech.appmanager.core.result.getOrNull
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.uiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
@@ -112,7 +115,7 @@ class SecurityAuditViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error     = "Système a mis trop longtemps à répondre",
+                        error     = uiText(R.string.error_timeout),
                     )
                 }
             } finally {
@@ -148,7 +151,7 @@ class SecurityAuditViewModel @Inject constructor(
         val isLoading: Boolean = false,
         val deviceAdmins: List<String> = emptyList(),
         val accessibilityServices: List<String> = emptyList(),
-        val error: String? = null,
+        val error: UiText? = null,
     )
 
     sealed interface Event {

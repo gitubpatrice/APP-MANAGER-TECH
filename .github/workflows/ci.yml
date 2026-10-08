@@ -35,6 +35,14 @@ jobs:
       - name: Negative control of the CI guards
         run: python3 tools/check-guards-negative-control.py
 
+      # Translation parity, also before any compilation. A language that loses keys does not become
+      # incomplete in the open, it does so SILENTLY: the screen falls back to English word by word.
+      # The negative control runs first, so the check's green is believed only once it has gone red.
+      - name: Translation parity
+        run: |
+          python3 tools/check-translations-negative-control.py
+          python3 tools/check-translations.py
+
       - uses: actions/setup-java@v6
         with:
           distribution: temurin

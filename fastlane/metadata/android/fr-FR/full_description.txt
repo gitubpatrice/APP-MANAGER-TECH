@@ -1,38 +1,41 @@
-App Manager Tech est un gestionnaire et nettoyeur d'applications Android entièrement local, inspiré de SD Maid. Inspectez chaque app installée, agissez en lot sur des sélections, videz les caches, auditez les privilèges système — sans qu'aucune donnée ne quitte votre appareil.
+App Manager Tech est un gestionnaire et nettoyeur d'applications Android entièrement local. Inspectez chaque app installée, agissez sur plusieurs à la fois, videz les caches et voyez à quoi chaque app a accès — sans qu'aucun octet ne quitte votre appareil.
 
 <b>Fonctionnalités</b>
 
-• Inventaire des apps installées — nom, version, taille d'installation, données, cache, dernière utilisation, source d'installation (Play / F-Droid / Aurora / hors magasin), état activé, catégorie
-• Actions par lot multi-sélection — désinstaller, vider le cache, forcer l'arrêt. Le système affiche sa confirmation par app ; nous ne la contournons jamais
-• Analyseur de stockage — répartition par catégorie, top-N des apps les plus volumineuses, top-N des plus gros caches, barres empilées
-• Analyse en arrière-plan — tâche WorkManager périodique qui actualise le catalogue chaque jour ou chaque semaine et envoie une notification locale lorsque le cache total dépasse un seuil configuré
-• Liste d'ignorance — exclure certains paquets des actions par lot et des notifications (limite 500 entrées)
-• Export — rapport de stockage en JSON ou CSV via le Storage Access Framework. Aucune permission MANAGE_EXTERNAL_STORAGE nécessaire
-• Audit de sécurité — apps avec privilèges d'administrateur d'appareil ou services d'accessibilité activés, vecteurs d'abus fréquents
-• Apps rarement utilisées — repérage des apps inutilisées depuis 7 / 14 / 30 / 60 / 90 / 180 jours
-• Apps zombies — apps jamais ouvertes ou inutilisées depuis longtemps que vous pouvez nettoyer
-• Filtre par permission — liste des apps qui déclarent une permission donnée (CAMERA, LOCATION, RECORD_AUDIO, …)
-• Détail d'une app — répartition stockage, permissions accordées vs déclarées, infos d'installation, empreinte SHA-256 du certificat de signature
-• Extraction APK — copier le base APK d'une app installée vers Documents via SAF
-• Historique des actions — journal local de chaque action destructrice déclenchée, pour audit
-• Material You — couleurs dynamiques Android 12+, thème Clair / Sombre / Système
-• Interface française et anglaise
-• Option FLAG_SECURE pour bloquer les captures d'écran et les aperçus du sélecteur de tâches
+• Apps installées — tailles, dernière utilisation, source d'installation (Play / F-Droid / Aurora / hors magasin), catégorie ; recherche, tri, filtres, vos propres étiquettes
+• Actions en lot — désinstaller, vider le cache, forcer l'arrêt. Android confirme chaque app lui-même ; App Manager Tech ne contourne jamais cette étape
+• Détail d'une app — stockage, permissions, résumé en clair, score vie privée, pisteurs, certificat de signature, vue experte des composants
+• Pisteurs — détecte hors ligne les SDK connus de publicité, de statistiques et de rapports de plantage
+• Score vie privée — estimation de 0 à 100 : permissions dangereuses, superposition, administration, accessibilité, source d'installation
+• Nettoyeur intelligent — une seule liste classée : apps inutilisées, gros caches, grosses apps peu utilisées, apps du même genre
+• Analyse du stockage, apps peu utilisées, apps zombies, filtre par permission
+• Audit de sécurité — administrateurs de l'appareil et services d'accessibilité activés
+• Changements de permissions — ce que chaque app a gagné ou perdu entre deux instantanés (à activer)
+• Historique des installations — installations, mises à jour, désinstallations (à activer)
+• Clusters de signatures — apps regroupées par certificat de signature
+• Quarantaine — mettre une app de côté avec une date de réexamen : simple rappel, ou désinstallation après sauvegarde de son APK dans le dossier de votre choix
+• Corbeille — préparer des désinstallations et les revoir d'abord
+• Apps protégées — appui de 3 secondes avant toute action destructrice, sur vos apps et sur des listes intégrées : authentificateurs, gestionnaires de mots de passe, messageries chiffrées, santé, banques et transports français
+• Journal d'actions — trace locale de ce qu'App Manager Tech a fait (à activer)
+• Export — JSON, CSV et diagnostic PDF imprimable
+• Analyse en arrière-plan — une seule notification locale quand le cache total dépasse votre seuil
+• Blocage des captures d'écran (à activer), Material You, thème clair / sombre
+• Anglais, français, allemand, italien, espagnol
 
-<b>Vie privée</b>
+<b>Confidentialité</b>
 
-• Aucune analytique, aucun rapporteur de crash, aucun SDK tiers de tracking
-• Aucune permission INTERNET — l'app n'ouvre jamais de socket réseau
-• Licence Apache 2.0 — code source : https://github.com/gitubpatrice/APP-MANAGER-TECH
-• Modèle de sécurité documenté : https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/SECURITY.md
+• Aucune permission INTERNET — l'app ne peut ouvrir aucune connexion réseau
+• Aucune statistique, aucun rapport de plantage, aucun SDK de pistage
+• Licence Apache 2.0 — https://github.com/gitubpatrice/APP-MANAGER-TECH
 
-<b>Permissions expliquées</b>
+<b>Permissions</b>
 
-QUERY_ALL_PACKAGES — énumérer les apps installées via PackageManager
-PACKAGE_USAGE_STATS — dates de dernière utilisation et tailles précises cache / données via StorageStatsManager (nécessite l'accord de l'utilisateur dans les Paramètres système ; l'app fonctionne dégradée si refusé)
-GET_PACKAGE_SIZE — tailles installation / données / cache
-REQUEST_DELETE_PACKAGES — déclencher la boîte de dialogue système de désinstallation (l'utilisateur confirme)
-KILL_BACKGROUND_PROCESSES — arrêt forcé en mode meilleur effort des processus en arrière-plan
-POST_NOTIFICATIONS (Android 13+) — afficher la notification de seuil de cache, accordée à la première utilisation
+QUERY_ALL_PACKAGES — lister les apps installées
+PACKAGE_USAGE_STATS — dernière utilisation et tailles exactes (à accorder dans les Paramètres Android ; sans elle, ces valeurs restent à 0)
+GET_PACKAGE_SIZE — tailles des apps
+REQUEST_DELETE_PACKAGES — ouvrir la fenêtre de désinstallation d'Android (vous confirmez)
+KILL_BACKGROUND_PROCESSES — arrêter les processus d'arrière-plan
+POST_NOTIFICATIONS (Android 13+) — notifications locales
+WAKE_LOCK, FOREGROUND_SERVICE, RECEIVE_BOOT_COMPLETED, ACCESS_NETWORK_STATE — ajoutées par WorkManager pour les tâches de fond. ACCESS_NETWORK_STATE dit si un réseau existe ; sans INTERNET, l'app ne peut pas s'en servir
 
-Site du projet : https://files-tech.com/app-manager-tech.php
+https://files-tech.com/app-manager-tech.php

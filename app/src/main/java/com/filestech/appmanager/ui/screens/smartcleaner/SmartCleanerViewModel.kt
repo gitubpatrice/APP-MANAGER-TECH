@@ -2,6 +2,7 @@ package com.filestech.appmanager.ui.screens.smartcleaner
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
@@ -19,6 +20,9 @@ import com.filestech.appmanager.domain.usecase.ClearAppCacheUseCase
 import com.filestech.appmanager.domain.usecase.GetSmartSuggestionsUseCase
 import com.filestech.appmanager.domain.usecase.IgnoreAppUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
+import com.filestech.appmanager.ui.text.uiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
@@ -132,14 +136,14 @@ class SmartCleanerViewModel @Inject constructor(
                     }
                     is Outcome.Failure -> {
                         _state.update { it.copy(isAnalyzing = false) }
-                        _events.trySend(Event.ShowError(outcome.error.toString()))
+                        _events.trySend(Event.ShowError(outcome.error.toUiText()))
                     }
                     Outcome.Loading -> _state.update { it.copy(isAnalyzing = false) }
                 }
             } catch (e: TimeoutCancellationException) {
                 Timber.w(e, "Smart Cleaner analyze timed out after %d ms", ANALYZE_TIMEOUT_MS)
                 _state.update { it.copy(isAnalyzing = false) }
-                _events.trySend(Event.ShowError("Analyse trop longue — réessayez"))
+                _events.trySend(Event.ShowError(uiText(R.string.error_timeout)))
             } finally {
                 isAnalyzing.set(false)
             }
@@ -230,7 +234,7 @@ class SmartCleanerViewModel @Inject constructor(
     fun ignore(packageName: String) {
         viewModelScope.launch {
             when (val r = ignoreApp(packageName)) {
-                is Outcome.Failure -> _events.trySend(Event.ShowError(r.error.toString()))
+                is Outcome.Failure -> _events.trySend(Event.ShowError(r.error.toUiText()))
                 else               -> analyze(rescanFirst = false)
             }
         }
@@ -244,7 +248,7 @@ class SmartCleanerViewModel @Inject constructor(
     )
 
     sealed interface Event {
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
         /** v0.1.3 audit L-3 fix — renamed from `LaunchUsageSettings` since it
          *  now carries any system Intent (usage settings, uninstall, app-info). */
         data class LaunchIntent(val intent: android.content.Intent) : Event

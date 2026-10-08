@@ -3,6 +3,7 @@ package com.filestech.appmanager.ui.screens.permissiondrift
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Intent
+import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
@@ -14,6 +15,9 @@ import com.filestech.appmanager.domain.model.SnapshotStats
 import com.filestech.appmanager.domain.repository.PermissionSnapshotRepository
 import com.filestech.appmanager.domain.usecase.CapturePermissionSnapshotsUseCase
 import com.filestech.appmanager.domain.usecase.ObservePermissionDriftsUseCase
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
+import com.filestech.appmanager.ui.text.uiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,7 +117,7 @@ class PermissionDriftViewModel @Inject constructor(
                     }
                 } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                     timber.log.Timber.w(e, "PermissionDrift capture timed out after %d ms", CAPTURE_TIMEOUT_MS)
-                    _events.trySend(Event.ShowError("Capture trop longue — réessayez"))
+                    _events.trySend(Event.ShowError(uiText(R.string.error_timeout)))
                     return@launch
                 }
                 when (r) {
@@ -123,7 +127,7 @@ class PermissionDriftViewModel @Inject constructor(
                             drifts    = r.value.drifts,
                         ),
                     )
-                    is Outcome.Failure -> _events.trySend(Event.ShowError(r.error.toString()))
+                    is Outcome.Failure -> _events.trySend(Event.ShowError(r.error.toUiText()))
                     Outcome.Loading    -> Unit
                 }
             } finally {
@@ -163,6 +167,6 @@ class PermissionDriftViewModel @Inject constructor(
          * for the rationale (Android 11+ resolveActivity false negatives).
          */
         data class LaunchIntentChain(val intents: List<Intent>) : Event
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
     }
 }

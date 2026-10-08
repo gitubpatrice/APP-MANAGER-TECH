@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +59,9 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
 import com.filestech.appmanager.ui.components.settings.SectionHeader
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.resolve
+import com.filestech.appmanager.ui.text.toUiText
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 import java.text.DateFormat
@@ -88,6 +92,7 @@ fun ExpertScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
 
     LaunchedEffect(packageName) {
         viewModel.load(packageName)
@@ -95,7 +100,7 @@ fun ExpertScreen(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                is ExpertViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.message)
+                is ExpertViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.text.resolve(resources))
             }
         }
     }
@@ -133,7 +138,7 @@ private fun ExpertBody(
     Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
         when (val r = state.report) {
             Outcome.Loading    -> LoadingState()
-            is Outcome.Failure -> ErrorState(message = r.error.toString(), onRetry = onRetry)
+            is Outcome.Failure -> ErrorState(message = r.error.toUiText().asString(), onRetry = onRetry)
             is Outcome.Success -> ExpertReportContent(report = r.value)
         }
     }
@@ -627,7 +632,7 @@ private fun AppOpsCard(snapshot: ExpertReport.AppOpsSnapshot) {
             }
         }
         snapshot.entries.forEach { entry ->
-            KvRow(label = entry.op, value = entry.modeLabel, mono = true)
+            KvRow(label = entry.op, value = appOpStateLabel(entry.state), mono = true)
         }
     }
 }
@@ -693,4 +698,16 @@ private fun SectionCard(
             }
         }
     }
+}
+
+@Composable
+private fun appOpStateLabel(state: ExpertReport.AppOpState): String = when (state) {
+    ExpertReport.AppOpState.NOT_DECLARED -> stringResource(R.string.expert_appop_not_declared)
+    ExpertReport.AppOpState.NOT_GRANTED -> stringResource(R.string.expert_appop_not_granted)
+    ExpertReport.AppOpState.ALLOWED -> stringResource(R.string.expert_appop_mode_allowed)
+    ExpertReport.AppOpState.FOREGROUND -> stringResource(R.string.expert_appop_mode_foreground)
+    ExpertReport.AppOpState.IGNORED -> stringResource(R.string.expert_appop_mode_ignored)
+    ExpertReport.AppOpState.DENIED  -> stringResource(R.string.expert_appop_mode_denied)
+    ExpertReport.AppOpState.DEFAULT -> stringResource(R.string.expert_appop_mode_default)
+    ExpertReport.AppOpState.UNKNOWN -> "—"
 }

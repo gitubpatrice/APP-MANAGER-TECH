@@ -8,6 +8,8 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.ExpertReport
 import com.filestech.appmanager.domain.usecase.GetExpertReportUseCase
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
@@ -58,7 +60,7 @@ class ExpertViewModel @Inject constructor(
                 }
                 _state.update { it.copy(report = outcome) }
                 if (outcome is Outcome.Failure) {
-                    _events.trySend(Event.ShowError(outcome.error.toString()))
+                    _events.trySend(Event.ShowError(outcome.error.toUiText()))
                 }
             } catch (e: TimeoutCancellationException) {
                 Timber.w(e, "ExpertReport load timed out after %d ms", LOAD_TIMEOUT_MS)
@@ -79,7 +81,7 @@ class ExpertViewModel @Inject constructor(
     )
 
     sealed interface Event {
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
     }
 
     private companion object {

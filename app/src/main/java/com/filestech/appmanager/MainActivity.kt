@@ -13,6 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.data.system.NotificationChannels
 import com.filestech.appmanager.domain.model.ThemeMode
 import com.filestech.appmanager.ui.AppRoot
 import com.filestech.appmanager.ui.theme.AppManagerTechTheme
@@ -43,6 +44,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var settings: SettingsRepository
+    @Inject lateinit var notificationChannels: NotificationChannels
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // v0.1.2 — force a ~700ms minimum splash duration so the launcher
@@ -55,6 +57,9 @@ class MainActivity : ComponentActivity() {
             System.currentTimeMillis() - splashStart < SPLASH_MIN_DURATION_MS
         }
         super.onCreate(savedInstanceState)
+        // A per-app language change recreates the activity, not the process: re-register the
+        // channels so their names (shown in Android's settings) follow the new language.
+        notificationChannels.ensureRegistered()
         enableEdgeToEdge()
 
         // FLAG_SECURE binding — repeats on STARTED so the flag is set whenever

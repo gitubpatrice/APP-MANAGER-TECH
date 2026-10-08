@@ -57,6 +57,9 @@ class NotificationHelper @Inject constructor(
             )
             .setStyle(NotificationCompat.BigTextStyle())
             .setContentIntent(pending)
+            // Posted at every scan while the cache stays above the threshold: same id, so it is
+            // replaced; without this it would ring and vibrate again each time.
+            .setOnlyAlertOnce(true)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()

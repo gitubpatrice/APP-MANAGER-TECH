@@ -16,6 +16,8 @@ import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.repository.QuarantineRepository
 import com.filestech.appmanager.domain.usecase.QuarantineAppUseCase
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -159,7 +161,7 @@ class QuarantinePickerViewModel @Inject constructor(
                             ),
                         )
                     is QuarantineAppUseCase.Result.Failure ->
-                        _events.trySend(Event.ShowError(result.message))
+                        _events.trySend(Event.ShowError(result.toUiText()))
                 }
             } finally {
                 _isWorking.update { false }
@@ -169,7 +171,7 @@ class QuarantinePickerViewModel @Inject constructor(
 
     sealed interface Event {
         data class QuarantineLaunched(val intent: Intent) : Event
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
         data object NeedsBackupFolder : Event
         /** v0.2.0 — SOFT-mode quarantine persisted; UI shows the explanatory dialog. */
         data class SoftQuarantineCreated(

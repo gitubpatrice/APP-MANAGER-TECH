@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Android 12+ data extraction rules (cloud backup + device-to-device transfer).
-    Mirrors backup_rules.xml for D2D transfer scenario.
+    Android 12+ data extraction rules. android:allowBackup="false" turns cloud backup off, but not the
+    device-to-device transfer of an app targeting Android 12+. Nothing of this app should travel:
+    - the settings DataStore (files/datastore/) holds the backup-folder URI, which is a grant of THIS
+      device;
+    - the Room database describes the apps of THIS device: carried over, its permission snapshots would
+      be compared with another phone's apps and report changes that never happened.
+    (Until v0.5.0 the rule named domain="sharedpref", where a DataStore file never lives: it excluded
+    nothing.)
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <exclude domain="sharedpref" path="app_manager_tech_settings.preferences_pb" />
+        <exclude domain="file" path="datastore/" />
+        <exclude domain="database" path="." />
     </cloud-backup>
     <device-transfer>
-        <exclude domain="sharedpref" path="app_manager_tech_settings.preferences_pb" />
+        <exclude domain="file" path="datastore/" />
+        <exclude domain="database" path="." />
     </device-transfer>
 </data-extraction-rules>

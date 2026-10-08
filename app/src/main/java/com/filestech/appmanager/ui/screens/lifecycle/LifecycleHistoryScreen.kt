@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,6 +58,8 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.toUiText
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 import java.text.DateFormat
@@ -132,7 +135,7 @@ private fun LifecycleBody(
         WindowPicker(window = window, onWindow = onWindow)
         when (events) {
             Outcome.Loading    -> LoadingState()
-            is Outcome.Failure -> ErrorState(message = events.error.toString(), onRetry = {})
+            is Outcome.Failure -> ErrorState(message = events.error.toUiText().asString(), onRetry = {})
             is Outcome.Success -> {
                 if (events.value.isEmpty()) {
                     EmptyState(
@@ -223,7 +226,7 @@ private fun StatsCard(events: List<LifecycleEvent>) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text       = stringResource(R.string.lifecycle_stats_title, events.size),
+                text       = pluralStringResource(R.plurals.lifecycle_stats_title, events.size, events.size),
                 style      = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -446,8 +449,8 @@ private fun EventCard(
                     shape = RoundedCornerShape(4.dp),
                 ) {
                     Text(
-                        text     = stringResource(
-                            R.string.lifecycle_row_perms_gained,
+                        text     = pluralStringResource(
+                            R.plurals.lifecycle_row_perms_gained, delta.gained.size,
                             delta.gained.size,
                             delta.gained.joinToString(", ") { it.substringAfterLast('.') },
                         ),

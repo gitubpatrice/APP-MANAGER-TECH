@@ -3,6 +3,7 @@ package com.filestech.appmanager.ui.screens.trash
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
@@ -17,6 +18,8 @@ import com.filestech.appmanager.domain.usecase.ObserveTrashUseCase
 import com.filestech.appmanager.domain.usecase.RestoreFromTrashUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
 import com.filestech.appmanager.domain.repository.TrashRepository
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.uiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -145,7 +148,7 @@ class TrashViewModel @Inject constructor(
             _events.trySend(Event.LaunchIntent(intent))
         } else {
             actionLogger.log(packageName, label, AmtActionType.UNINSTALL, AmtActionResult.FAILED)
-            _events.trySend(Event.ShowError("Cannot uninstall $packageName"))
+            _events.trySend(Event.ShowError(uiText(R.string.error_cannot_uninstall, packageName)))
         }
     }
 
@@ -206,7 +209,7 @@ class TrashViewModel @Inject constructor(
         data class LaunchIntent(val intent: Intent) : Event
         data class LaunchIntents(val intents: List<Intent>, val total: Int) : Event
         data class Restored(val packageName: String) : Event
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
         /**
          * v0.3.1 — surface the hold-3s [CriticalWarningDialog]. The screen
          * dispatches the confirm callback back to the appropriate

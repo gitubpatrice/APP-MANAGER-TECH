@@ -1,0 +1,8 @@
+v0.5.0
+• German, Italian and Spanish; app language setting on Android 13+
+• Every message follows your language, with real plurals
+• Expert view: an app-op whose permission is missing says so, instead of “Allowed”
+• The cache notification no longer rings at every scan
+• Misleading texts fixed (threshold advice, critical-app warnings); dead F-Droid link removed
+• Leaving a screen mid-action is no longer reported as an error
+• Newer Android libraries (Compose 1.12)

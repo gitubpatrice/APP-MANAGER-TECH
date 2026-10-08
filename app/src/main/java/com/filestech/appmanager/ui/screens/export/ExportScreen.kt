@@ -51,6 +51,7 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
 import com.filestech.appmanager.ui.components.settings.NavigationRow
 import com.filestech.appmanager.ui.components.settings.SectionHeader
+import com.filestech.appmanager.ui.text.resolve
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -95,14 +96,14 @@ fun ExportScreen(
             when (event) {
                 is ExportViewModel.Event.Done ->
                     snackbarHostState.showSnackbar(
-                        resources.getString(
-                            R.string.export_success,
+                        resources.getQuantityString(
+                            R.plurals.export_success, event.report.appCount,
                             event.report.appCount,
                             Formatter.formatShortFileSize(context, event.report.bytesWritten),
                         ),
                     )
                 is ExportViewModel.Event.ShowError ->
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
             }
         }
     }

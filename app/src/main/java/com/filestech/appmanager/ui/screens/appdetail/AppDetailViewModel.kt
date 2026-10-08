@@ -3,6 +3,7 @@ package com.filestech.appmanager.ui.screens.appdetail
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
@@ -36,6 +37,9 @@ import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.di.IoDispatcher
 import android.net.Uri
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
+import com.filestech.appmanager.ui.text.uiText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -260,7 +264,7 @@ class AppDetailViewModel @Inject constructor(
             _events.trySend(Event.LaunchIntent(intent))
         } else {
             logAction(AmtActionType.UNINSTALL, AmtActionResult.FAILED)
-            _events.trySend(Event.ShowError("Cannot uninstall $pkg"))
+            _events.trySend(Event.ShowError(uiText(R.string.error_cannot_uninstall, pkg)))
         }
     }
 
@@ -288,7 +292,7 @@ class AppDetailViewModel @Inject constructor(
                 }
                 is Outcome.Failure -> {
                     logAction(AmtActionType.MOVE_TO_TRASH, AmtActionResult.FAILED)
-                    _events.trySend(Event.ShowError(r.error.toString()))
+                    _events.trySend(Event.ShowError(r.error.toUiText()))
                 }
                 Outcome.Loading    -> Unit
             }
@@ -316,11 +320,11 @@ class AppDetailViewModel @Inject constructor(
             when (val outcome = forceStopApp(pkg)) {
                 is Outcome.Success -> {
                     logAction(AmtActionType.FORCE_STOP, AmtActionResult.SUCCESS)
-                    _events.trySend(Event.ActionDone("Force stop requested"))
+                    _events.trySend(Event.ActionDone(uiText(R.string.snackbar_force_stop_requested)))
                 }
                 is Outcome.Failure -> {
                     logAction(AmtActionType.FORCE_STOP, AmtActionResult.FAILED)
-                    _events.trySend(Event.ShowError(outcome.error.toString()))
+                    _events.trySend(Event.ShowError(outcome.error.toUiText()))
                 }
                 Outcome.Loading    -> Unit
             }
@@ -357,7 +361,8 @@ class AppDetailViewModel @Inject constructor(
                 is Outcome.Success -> when (val r = outcome.value) {
                     DisableEnableAppUseCase.Result.Done -> {
                         logAction(journalType, AmtActionResult.SUCCESS)
-                        _events.trySend(Event.ActionDone("Application ${if (enabled) "enabled" else "disabled"}"))
+                        val done = if (enabled) R.string.snackbar_app_enabled else R.string.snackbar_app_disabled
+                        _events.trySend(Event.ActionDone(uiText(done)))
                     }
                     is DisableEnableAppUseCase.Result.NeedsUserAction -> {
                         logAction(journalType, AmtActionResult.INTENT_REQUESTED)
@@ -366,7 +371,7 @@ class AppDetailViewModel @Inject constructor(
                 }
                 is Outcome.Failure -> {
                     logAction(journalType, AmtActionResult.FAILED)
-                    _events.trySend(Event.ShowError(outcome.error.toString()))
+                    _events.trySend(Event.ShowError(outcome.error.toUiText()))
                 }
                 Outcome.Loading    -> Unit
             }
@@ -496,7 +501,7 @@ class AppDetailViewModel @Inject constructor(
                 }
                 is QuarantineAppUseCase.Result.Failure -> {
                     logAction(journalType, AmtActionResult.FAILED)
-                    _events.trySend(Event.ShowError(result.message))
+                    _events.trySend(Event.ShowError(result.toUiText()))
                 }
             }
         }
@@ -511,7 +516,7 @@ class AppDetailViewModel @Inject constructor(
             _state.update { it.copy(isIgnored = newState) }
             _events.trySend(
                 Event.ActionDone(
-                    if (newState) "Added to ignore list" else "Removed from ignore list",
+                    uiText(if (newState) R.string.snackbar_exclusion_added else R.string.snackbar_exclusion_removed),
                 ),
             )
         }
@@ -577,8 +582,8 @@ class AppDetailViewModel @Inject constructor(
          * [com.filestech.appmanager.data.system.IntentFactory.appPermissionsSettingsChain]).
          */
         data class LaunchIntentChain(val intents: List<Intent>) : Event
-        data class ActionDone(val message: String) : Event
-        data class ShowError(val message: String) : Event
+        data class ActionDone(val text: UiText) : Event
+        data class ShowError(val text: UiText) : Event
         /** Phase X — fired when the app has been staged into the Trash (no system intent launched). */
         data class MovedToTrash(val label: String) : Event
         /** v0.2.0 — HARD-mode quarantine requested but the user has not picked a backup folder yet. */

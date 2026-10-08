@@ -43,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -55,6 +56,7 @@ import com.filestech.appmanager.domain.model.CriticalCategory
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.settings.SectionHeader
+import com.filestech.appmanager.ui.text.resolve
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 
@@ -80,6 +82,7 @@ fun ProtectedAppsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
     var pendingRemove by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(viewModel) {
@@ -90,7 +93,7 @@ fun ProtectedAppsScreen(
                 is ProtectedAppsViewModel.Event.Removed ->
                     snackbarHostState.showSnackbar(event.packageName)
                 is ProtectedAppsViewModel.Event.ShowError ->
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
             }
         }
     }
