@@ -43,8 +43,8 @@ android {
         applicationId = "com.filestech.appmanager"
         minSdk        = 26
         targetSdk     = 35
-        versionCode   = 13
-        versionName   = "0.4.0"
+        versionCode   = 14
+        versionName   = "0.5.0"
 
         // Etiquette du lanceur, par type de build. Le suffixe `.debug` ci-dessous laisse les deux
         // variantes coexister sur un meme telephone ; sans etiquette distincte, elles y portaient

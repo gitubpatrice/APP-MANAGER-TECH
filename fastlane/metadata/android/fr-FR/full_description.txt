@@ -4,9 +4,9 @@ App Manager Tech est un gestionnaire et nettoyeur d'applications Android entièr
 
 • Apps installées — tailles, dernière utilisation, source d'installation (Play / F-Droid / Aurora / hors magasin), catégorie ; recherche, tri, filtres, vos propres étiquettes
 • Actions en lot — désinstaller, vider le cache, forcer l'arrêt. Android confirme chaque app lui-même ; App Manager Tech ne contourne jamais cette étape
-• Détail d'une app — stockage, permissions, résumé en clair, score de confidentialité, pisteurs, certificat de signature, vue experte des composants
+• Détail d'une app — stockage, permissions, résumé en clair, score vie privée, pisteurs, certificat de signature, vue experte des composants
 • Pisteurs — détecte hors ligne les SDK connus de publicité, de statistiques et de rapports de plantage
-• Score de confidentialité — estimation de 0 à 100 : permissions dangereuses, superposition, administration, accessibilité, source d'installation
+• Score vie privée — estimation de 0 à 100 : permissions dangereuses, superposition, administration, accessibilité, source d'installation
 • Nettoyeur intelligent — une seule liste classée : apps inutilisées, gros caches, grosses apps peu utilisées, apps du même genre
 • Analyse du stockage, apps peu utilisées, apps zombies, filtre par permission
 • Audit de sécurité — administrateurs de l'appareil et services d'accessibilité activés

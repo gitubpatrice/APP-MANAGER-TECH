@@ -1,0 +1,8 @@
+v0.5.0
+• Alemán, italiano y español; idioma de la app ajustable en Android 13+
+• Todos los mensajes siguen su idioma, con plurales correctos
+• Vista experta: una app-op sin su permiso lo indica, en lugar de «Permitido»
+• La notificación de caché ya no suena en cada análisis
+• Textos engañosos corregidos (umbral, avisos de apps críticas); enlace a F-Droid roto eliminado
+• Salir de una pantalla durante una acción ya no se notifica como error
+• Bibliotecas de Android actualizadas (Compose 1.12)

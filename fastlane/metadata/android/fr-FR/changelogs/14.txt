@@ -1,0 +1,8 @@
+v0.5.0
+• Allemand, italien et espagnol ; langue de l'app réglable sous Android 13+
+• Tous les messages suivent votre langue, avec de vrais pluriels
+• Vue experte : une app-op sans sa permission l'indique, au lieu de « Autorisé »
+• La notification de cache ne sonne plus à chaque analyse
+• Textes trompeurs corrigés (seuil, alertes des apps critiques) ; lien F-Droid mort retiré
+• Quitter un écran pendant une action n'est plus signalé comme une erreur
+• Bibliothèques Android à jour (Compose 1.12)

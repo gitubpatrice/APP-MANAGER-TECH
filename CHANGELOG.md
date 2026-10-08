@@ -7,6 +7,45 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.5.0] — 2026-10-08 — German / Italian / Spanish, verified builds, audit fixes
+
+### Added
+- German, Italian and Spanish (formal register), with Android 13's per-app language picker
+  (`locales_config.xml`) and an "App language" row in Settings → Appearance.
+- CI (`ci.yml`): build, unit tests, lint, detekt (blocking, no baseline), R8 release build,
+  instrumented Room tests on an API 29 emulator, the release APK's permissions asserted (no
+  INTERNET), translation parity (keys, format arguments, plurals per language, store listings) —
+  each guard with a negative control.
+- Expert view: app-op states "Foreground only", "Permission not declared", "Permission not granted".
+
+### Changed
+- Every user-visible text comes from the resources: ViewModel messages (`UiText`), errors
+  (`AppError.toUiText()`; screens showed `Validation(message=…)`), quarantine and APK-backup
+  failures (typed reasons), smart-cleaner reasons, tracker categories, notification channels, app-op
+  states, PDF labels. Five messages were hard-coded in French. ~25 strings became real plurals.
+- Toolchain aligned on Agenda Tech: Gradle 9.8.1, AGP 9.4.1, Kotlin 2.4.10, KSP 2.3.12, Hilt 2.60.1,
+  Room 2.8.5, compileSdk 37, Compose BOM 2026.09.00 (Compose 1.12, Material 3 1.4), lifecycle 2.11,
+  navigation 2.10, WorkManager 2.12, hilt-work 1.4, coroutines 1.11.
+- Store listings rewritten from what the app does; short descriptions within F-Droid's 80 characters.
+
+### Fixed
+- Coroutine cancellation swallowed by catch-alls around Room writes (trash, quarantine) and by the
+  permission-snapshot purge, which also never logged a real failure.
+- Expert view showed "Allowed" for app-ops of permissions the app never declared.
+- The cache-threshold notification rang and vibrated again at every scan.
+- Backup rules excluded nothing (wrong domain); they now exclude the settings and the database from
+  backup and device-to-device transfer.
+- A failed APK backup left a truncated file in the folder; a folder without a persistable grant was
+  accepted, then failed at the next backup.
+- Misleading texts: the rarely-used advice said "increase the threshold" (it narrows the list); the
+  critical-app warning read "If you Empty the trash this app…" (French: "Si vous Désinstaller…");
+  "apps cached" counted every app; "Capture again" named a button that is "Capture now".
+- The About screen linked to an F-Droid page that does not exist; README and Settings said the app
+  was on F-Droid. It is not.
+- Quarantine dialog bounds read from the use case instead of being restated.
+
+---
+
 ## [0.4.0] — 2026-05-24 — Action Journal (forensic timeline) + full-app polish
 
 ### Added — AMT Action Journal (forensic timeline of AMT-initiated actions)

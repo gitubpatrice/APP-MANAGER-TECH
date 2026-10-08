@@ -1,0 +1,8 @@
+v0.5.0
+• Tedesco, italiano e spagnolo; lingua dell'app scelta da Android 13+
+• Tutti i messaggi seguono la sua lingua, con plurali corretti
+• Vista esperto: un'app-op senza la sua autorizzazione lo indica, invece di «Consentito»
+• La notifica della cache non suona più a ogni analisi
+• Testi fuorvianti corretti (soglia, avvisi); rimosso un link F-Droid non valido
+• Uscire da una schermata durante un'azione non è più segnalato come errore
+• Librerie Android aggiornate (Compose 1.12)
