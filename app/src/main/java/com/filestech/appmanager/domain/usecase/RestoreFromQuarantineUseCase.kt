@@ -17,8 +17,8 @@ import javax.inject.Inject
  *    Caller fires it → OS PackageInstaller shows its own confirm dialog. The
  *    row is KEPT: the installer reports nothing back, and the user can cancel
  *    it, or Android can refuse it (it did, for every restore until v0.5.1: the
- *    app lacked REQUEST_INSTALL_PACKAGES). The caller drops it through
- *    [confirmHardRestore] once the app is seen installed again. Until v0.5.1 the
+ *    app lacked REQUEST_INSTALL_PACKAGES). [reconcileHardRestores] drops it once
+ *    the app is seen installed again after its quarantine. Until v0.5.1 the
  *    row was dropped when the intent was produced, so a refused install lost the
  *    quarantine record.
  *  - **SOFT_REMINDER**: no install — produces an `appDetailsSettingsIntent`
@@ -37,7 +37,7 @@ class RestoreFromQuarantineUseCase @Inject constructor(
 ) {
 
     sealed interface Result {
-        /** HARD mode — caller fires this install intent. Row kept until [confirmHardRestore]. */
+        /** HARD mode — caller fires this install intent. Row kept until [reconcileHardRestores]. */
         data class HardReinstall(val intent: Intent) : Result
 
         /** SOFT mode — caller deep-links the user to OS Settings. Row already dropped. */
@@ -74,17 +74,30 @@ class RestoreFromQuarantineUseCase @Inject constructor(
     }
 
     /**
-     * Called when the user comes back from the installer. Drops the HARD entry of [packageName] if,
-     * and only if, the app is installed again; returns whether it did. A cancelled or refused
-     * install leaves the entry, and its backup, in place.
+     * v0.5.1 — Drops every HARD entry whose app came back after its quarantine: installed right now
+     * AND installed or updated at or after [QuarantineEntry.quarantinedAt]. Returns the packages
+     * dropped. Run on every resume of the Quarantine screen, so an install still in progress when the
+     * user came back, or one finished while the process was dead, is caught at a later resume.
+     *
+     * Installed alone is not enough: an uninstall the user cancelled leaves the app installed, last
+     * updated before its quarantine, and its entry must stay. A cancelled or refused install leaves
+     * the entry, and its backup, in place. SOFT entries are never touched: their app stays installed
+     * by design, and the user drops them through [invoke].
      */
-    suspend fun confirmHardRestore(packageName: String): Boolean {
-        if (!packageName.isValidPackageName()) return false
-        val entry = repository.getByPackage(packageName) ?: return false
-        if (entry.mode != QuarantineMode.HARD_UNINSTALL || !apkBackup.isInstalled(packageName)) return false
-        repository.delete(packageName)
-        Timber.i("HARD restore: %s installed again, row dropped", packageName)
-        return true
+    suspend fun reconcileHardRestores(): Set<String> {
+        val dropped = repository.getAll()
+            .filter { it.mode == QuarantineMode.HARD_UNINSTALL && cameBackSinceQuarantine(it) }
+            .mapTo(HashSet()) { it.packageName }
+        dropped.forEach { packageName ->
+            repository.delete(packageName)
+            Timber.i("HARD restore: %s installed again since its quarantine, row dropped", packageName)
+        }
+        return dropped
+    }
+
+    private suspend fun cameBackSinceQuarantine(entry: QuarantineEntry): Boolean {
+        val lastUpdate = apkBackup.lastUpdateTime(entry.packageName) ?: return false
+        return lastUpdate >= entry.quarantinedAt
     }
 
     private suspend fun softRestore(entry: QuarantineEntry): Result {

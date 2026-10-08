@@ -39,7 +39,9 @@ import javax.inject.Singleton
  *
  * Privacy:
  *  - We only copy the BASE APK, never the user's app data — Android prevents
- *    cross-app data access anyway.
+ *    cross-app data access anyway. A base APK alone cannot reinstall an app
+ *    split into several APKs, so HARD mode is refused for those upfront
+ *    ([hasSplitApks]).
  *  - The backup folder belongs to the user — uninstalling App Manager Tech
  *    later does NOT auto-wipe it.
  */
@@ -193,15 +195,33 @@ class ApkBackupManager @Inject constructor(
     }
 
     /**
-     * Live probe — true iff [packageName] is installed right now. Asks PackageManager, not the Room
-     * cache, which still lists an app for a while after it is uninstalled. A HARD restore only drops
-     * its quarantine entry once this says the install really happened.
+     * v0.5.1 — true iff [packageName] is installed as split APKs (an App Bundle, as most Play Store
+     * apps are: `ApplicationInfo.splitSourceDirs` not empty). [backupApk] copies the base APK only,
+     * which the installer cannot reinstall such an app from, so a HARD quarantine is refused for it
+     * before anything is copied or uninstalled. False when the package is not installed: [backupApk]
+     * reports that case itself, as [Reason.APK_UNREADABLE].
      */
-    fun isInstalled(packageName: String): Boolean = try {
-        context.packageManager.getPackageInfo(packageName, 0)
-        true
-    } catch (ignored: PackageManager.NameNotFoundException) {
-        false
+    suspend fun hasSplitApks(packageName: String): Boolean = withContext(io) {
+        try {
+            !context.packageManager.getApplicationInfo(packageName, 0).splitSourceDirs.isNullOrEmpty()
+        } catch (ignored: PackageManager.NameNotFoundException) {
+            false
+        }
+    }
+
+    /**
+     * v0.5.1 — Live probe: when [packageName] was last installed or updated (`PackageInfo.lastUpdateTime`,
+     * epoch ms), or null if it is not installed right now. Asks PackageManager, not the Room cache,
+     * which still lists an app for a while after it is uninstalled. The time matters as much as the
+     * presence: an uninstall the user cancelled leaves the app installed, last updated before its
+     * quarantine — see [com.filestech.appmanager.domain.usecase.RestoreFromQuarantineUseCase.reconcileHardRestores].
+     */
+    suspend fun lastUpdateTime(packageName: String): Long? = withContext(io) {
+        try {
+            context.packageManager.getPackageInfo(packageName, 0).lastUpdateTime
+        } catch (ignored: PackageManager.NameNotFoundException) {
+            null
+        }
     }
 
     /**
