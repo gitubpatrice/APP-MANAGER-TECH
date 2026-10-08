@@ -14,17 +14,19 @@ ksp                     = "2.3.12"
 agp                     = "9.4.1"
 
 # --- AndroidX Core ---
-androidxCore            = "1.15.0"
-androidxActivity        = "1.9.3"
-androidxLifecycle       = "2.8.7"
-androidxNavigation      = "2.8.4"
+# Aligned on Agenda Tech. Core 1.19, lifecycle 2.11, navigation 2.10 and hilt-navigation-compose 1.4
+# need AGP 9.1+ and compileSdk 37.
+androidxCore            = "1.19.1"
+androidxActivity        = "1.13.0"
+androidxLifecycle       = "2.11.0"
+androidxNavigation      = "2.10.2"
 
 # --- Compose ---
 composeBom              = "2026.09.00"
 
 # --- Hilt ---
 hilt                    = "2.60.1"
-hiltNavigationCompose   = "1.2.0"
+hiltNavigationCompose   = "1.4.0"
 
 # --- Room ---
 room                    = "2.8.5"
@@ -36,7 +38,7 @@ datastore               = "1.1.1"
 documentfile            = "1.0.1"
 
 # --- SplashScreen (compat for API 26–30) ---
-androidxSplashscreen    = "1.0.1"
+androidxSplashscreen    = "1.2.0"
 
 # --- Coroutines ---
 coroutines              = "1.11.0"
@@ -46,7 +48,7 @@ kotlinxSerialization    = "1.8.1"
 
 # --- WorkManager ---
 workManager             = "2.12.0"
-hiltWork                = "1.2.0"
+hiltWork                = "1.4.0"
 
 # --- Coil ---
 coil                    = "2.7.0"
@@ -57,17 +59,14 @@ timber                  = "5.0.1"
 # --- Tests ---
 junit                   = "6.1.3"
 truth                   = "1.4.5"
-robolectric             = "4.14.1"
+robolectric             = "4.17"
 androidxTestCore        = "1.7.0"
-androidxTestRunner      = "1.6.2"
+androidxTestRunner      = "1.7.0"
 mockk                   = "1.14.11"
-turbine                 = "1.2.0"
+turbine                 = "1.2.1"
 
 # --- Static analysis (same version as Agenda Tech and SMS Tech) ---
 detekt                  = "1.23.8"
-
-# --- Gradle test bridging ---
-junitVintage            = "5.11.3"
 
 [libraries]
 # Core

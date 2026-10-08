@@ -36,14 +36,15 @@ sending a single byte off the device.
 |---|---|
 | Language | Kotlin 2.4.10 |
 | Build | Android Gradle Plugin 9.4.1 (built-in Kotlin), Gradle 9.8.1, KSP 2, JDK 17 |
-| UI | Jetpack Compose Material 3 (BOM 2024.12.01), edge-to-edge |
-| DI | Hilt 2.60.1 (KSP, no kapt) + Hilt-Work for `@HiltWorker` |
+| UI | Jetpack Compose 1.12 + Material 3 1.4 (BOM 2026.09.00), Navigation 2.10, edge-to-edge |
+| DI | Hilt 2.60.1 (KSP, no kapt) + Hilt-Work 1.4 for `@HiltWorker` |
 | Storage | Room 2.8.5 (schema v8, additive migrations only) + DataStore Preferences |
-| Background | WorkManager 2.10.0 (on-demand init, no androidx.startup) |
-| Coroutines | kotlinx-coroutines 1.9.0 |
+| Background | WorkManager 2.12.0 (on-demand init, no androidx.startup) |
+| Coroutines | kotlinx-coroutines 1.11.0 |
 | Logging | Timber 5 (DebugTree in debug, NoOpReleaseTree in release) |
-| Splash | androidx.core:core-splashscreen (transparent icon workaround Android 12+) |
-| Tests | JUnit 6 (Jupiter) + Truth + MockK + Turbine + Room-testing + Robolectric |
+| Splash | androidx.core:core-splashscreen 1.2 (compat for API 26–30, native API on 31+): the launcher foreground on white |
+| Tests | JUnit 6 (Jupiter) + Truth + MockK + Turbine + Robolectric; Room DAO and migration tests on device |
+| Quality | Android lint, detekt 1.23.8 (blocking, no baseline), CodeQL; CI checks that the release APK declares no INTERNET permission |
 
 All dependencies are Apache 2.0 / MIT / BSD. **Zero proprietary SDK**.
 
@@ -53,35 +54,35 @@ All dependencies are Apache 2.0 / MIT / BSD. **Zero proprietary SDK**.
 
 ```
 ui/
-├── screens/{applist, appdetail, storage, settings, about,
-│            cleaner, ignorelist, export, securityaudit}/
+├── screens/<feature>/         one folder per screen (app list, app detail, tools: trackers,
+│                              storage, zombies, quarantine, trash, permission changes, …)
 │   ├── XxxScreen.kt           Compose UI (TopAppBar + Scaffold + sections)
 │   └── XxxViewModel.kt        @HiltViewModel, StateFlow<UiState>, Events Channel
 ├── components/{dialogs, settings, state}/  Reusable composables
 └── theme/                     Material 3 + BrandBlue (#2460AB) + BrandDanger (#C62828)
 
 domain/
-├── model/         AppInfo, AppCategory, FilterOptions, StorageReport,
-│                  AppAction, AppDetail, ZombieApp, ExportReport,
-│                  ScanInterval, ExportFormat, ThemeMode, AppSortOrder
-├── repository/    AppInfoRepository, IgnoreListRepository (interfaces only)
-└── usecase/       19 use cases — one operation per file, returns Outcome<T>
+├── model/         AppInfo, AppDetail, PrivacyScore, TrashItem, QuarantineEntry, …
+├── repository/    repository interfaces only (apps, ignore list, trash, quarantine,
+│                  lifecycle history, permission snapshots, action journal)
+└── usecase/       one operation per file, returns Outcome<T>
 
 data/
 ├── local/
-│   ├── db/{entity, dao, dto}/   Room AppInfoEntity v2 + AppInfoDao + AggregateRow
+│   ├── db/{entity, dao, dto}/   Room entities and DAOs (schema v8)
 │   ├── datastore/               SettingsRepository (DataStore Preferences)
 │   └── db/Migrations.kt         Strictly additive Room migrations
-├── repository/    AppInfoRepositoryImpl, IgnoreListRepositoryImpl, AppInfoMapper
-└── system/        IntentFactory, NotificationChannels, NotificationHelper,
-                   WorkScheduler, workers/BackgroundScanWorker (@HiltWorker)
+├── repository/    the implementations of domain/repository
+└── system/        IntentFactory, notifications, PackageMonitor, WorkScheduler,
+                   workers/ (@HiltWorker: background scan, permission snapshots,
+                   quarantine reminders, history purges)
 
 core/
 ├── ext/           StringExt (anti-ReDoS regex), FlowExt (oneShotEvents),
 │                  TimeConstants (MS_PER_DAY, STATEFLOW_STOP_TIMEOUT_MS, MAX_IGNORED_PACKAGES)
 └── result/        Outcome<T> sealed (Success/Failure/Loading) + extensions
 
-di/                4 Hilt @Module: AppModule, CoroutineModule, DatabaseModule, RepositoryModule
+di/                Hilt modules: CoroutineModule, DatabaseModule, RepositoryModule
 ```
 
 **Rules** (enforced by code review):
@@ -104,11 +105,13 @@ di/                4 Hilt @Module: AppModule, CoroutineModule, DatabaseModule, R
 ## Build
 
 ```bash
-# Prerequisites: JDK 17, Android SDK 35
-./gradlew :app:assembleDebug         # debug APK (3 ABI splits ~18.9 MB each)
-./gradlew :app:assembleRelease       # release APK (R8 minify+shrink, 3 splits ~1.86 MB each)
-./gradlew :app:testDebugUnitTest     # JUnit 5 unit tests
-./gradlew :app:connectedDebugAndroidTest  # Room CRUD + migration tests (emulator/device)
+# Prerequisites: JDK 17, Android SDK 37
+./gradlew :app:assembleDebug         # debug APKs (3 ABI splits + universal, ~20 MB each)
+./gradlew :app:assembleRelease       # release APKs (R8 minify+shrink, 3 splits + universal, ~2.3 MB each)
+./gradlew :app:testDebugUnitTest     # JUnit 6 unit tests
+./gradlew detekt                     # static analysis (blocking, no baseline)
+./gradlew :app:connectedDebugAndroidTest  # Room DAO + migration tests on an emulator
+                                          # (it installs, then uninstalls, the app on EVERY connected device)
 ```
 
 The release build runs `lintVitalRelease`, R8 minify with shrink resources,

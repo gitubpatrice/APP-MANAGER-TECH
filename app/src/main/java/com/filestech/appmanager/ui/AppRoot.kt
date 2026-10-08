@@ -288,7 +288,7 @@ fun AppRoot() {
                 navController.getBackStackEntry(NavRoute.ProtectedApps.route)
             }
             val parentVm: com.filestech.appmanager.ui.screens.safety.ProtectedAppsViewModel =
-                androidx.hilt.navigation.compose.hiltViewModel(parentEntry)
+                androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(parentEntry)
             ProtectedAppsPickerScreen(
                 onBack    = { navController.popBackStack() },
                 onPicked  = { pkg ->
