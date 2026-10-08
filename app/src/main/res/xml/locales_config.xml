@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The languages offered by the per-app language picker (Android 13+: Settings > Apps > App Manager
+     Tech > Language). Must match localeFilters in app/build.gradle.kts and the values-XX/ folders;
+     tools/check-translations.py fails the build when they disagree. English is the source. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="fr" />
+    <locale android:name="de" />
+    <locale android:name="it" />
+    <locale android:name="es" />
+</locale-config>

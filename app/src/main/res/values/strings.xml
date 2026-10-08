@@ -117,39 +117,39 @@
     <!-- v0.2.0 — Safety Guardrails (critical app warning)                -->
     <!-- ================================================================ -->
     <string name="critical_action_uninstall">Uninstall</string>
-    <string name="critical_action_quarantine_hard">Quarantine (uninstall + APK backup)</string>
+    <string name="critical_action_quarantine_hard">Quarantine + uninstall</string>
     <string name="critical_warning_hold_hint">For your protection, the confirm button requires a 3-second press. Release to cancel.</string>
-    <string name="critical_warning_hold_action">Press 3 seconds to %1$s</string>
+    <string name="critical_warning_hold_action">%1$s (hold 3 s)</string>
 
-    <!-- Per-category titles + bodies. %1$s = app label; %1$s in body = action label. -->
+    <!-- Per-category titles + bodies. %1$s in a title = app label; bodies take no argument (the action is on the button). -->
     <string name="critical_title_auth">%1$s is a 2-factor authenticator</string>
-    <string name="critical_body_auth">If you %1$s this app, you will lose access to every account whose 2FA codes it stores — unless you have exported the seeds elsewhere. Account recovery may take days.</string>
+    <string name="critical_body_auth">This app stores the 2FA codes of your accounts. Without them — and without an export of the seeds — recovering an account may take days.</string>
 
     <string name="critical_title_pwd">%1$s is a password manager</string>
-    <string name="critical_body_pwd">If you %1$s this app without first exporting your vault, you will lose access to every saved password and the biometric unlock binding.</string>
+    <string name="critical_body_pwd">This app holds your password vault and its biometric unlock. Export the vault first, or you may lose access to every saved password.</string>
 
     <string name="critical_title_bank">%1$s is a banking app</string>
-    <string name="critical_body_bank">If you %1$s this app, you will lose registered cards, biometric validation, and any recurring payment configuration. You may have to re-enrol your device at your bank.</string>
+    <string name="critical_body_bank">Banking apps hold registered cards, biometric validation and recurring payments, tied to this device. You may have to re-enrol the device with your bank.</string>
 
     <string name="critical_title_health">%1$s is a health app</string>
-    <string name="critical_body_health">If you %1$s this app, you may lose synced records, prescription history, or Health Connect bindings tied to this device.</string>
+    <string name="critical_body_health">Health apps may hold synced records, prescription history and Health Connect links tied to this device; some may be lost.</string>
 
     <string name="critical_title_msg">%1$s is an end-to-end encrypted messenger</string>
-    <string name="critical_body_msg">If you %1$s this app without exporting a backup first, all local messages and the encryption key will be permanently lost.</string>
+    <string name="critical_body_msg">Encrypted messengers keep your messages and their encryption key on this device only. Without a backup exported first, both are lost for good if the app is uninstalled.</string>
 
     <string name="critical_title_transport">%1$s is a transport / ticketing app</string>
-    <string name="critical_body_transport">If you %1$s this app, stored tickets, Navigo binding, and pass renewals may be invalidated. Re-enrolment may take 24–48h.</string>
+    <string name="critical_body_transport">Transport apps hold stored tickets, travel-card links (such as Navigo) and pass renewals; they may be invalidated, and re-enrolment can take 24–48 h.</string>
 
     <string name="critical_title_user">%1$s is on your protected list</string>
-    <string name="critical_body_user">You added this app to your protected list. Are you sure you want to %1$s it?</string>
+    <string name="critical_body_user">You added this app to your protected list. Make sure this is what you want.</string>
     <string name="app_detail_action_open_settings">Open app settings</string>
 
     <!-- ================================================================ -->
     <!-- Storage screen                                                    -->
     <!-- ================================================================ -->
     <plurals name="storage_subtitle">
-        <item quantity="one">%d app cached</item>
-        <item quantity="other">%d apps cached</item>
+        <item quantity="one">%d app in the catalogue</item>
+        <item quantity="other">%d apps in the catalogue</item>
     </plurals>
     <string name="storage_total_install">Install</string>
     <string name="storage_total_data">Data</string>
@@ -168,6 +168,8 @@
     <string name="settings_appearance_title">Appearance</string>
     <string name="settings_dynamic_color_title">Dynamic colour (Material You)</string>
     <string name="settings_dynamic_color_desc">Follow your wallpaper colours (Android 12+)</string>
+    <string name="settings_language">App language</string>
+    <string name="settings_language_sub">Opens the Android language screen for this app. App Manager Tech follows your phone\'s language unless you pick one there.</string>
     <string name="settings_theme_mode_title">Theme</string>
     <string name="settings_default_sort_title">Default sort order</string>
     <string name="settings_scanner_title">Scanner</string>
@@ -195,7 +197,7 @@
     <string name="about_description">App Manager Tech is a free and open-source app that helps you inspect, clean and manage every Android application installed on your device. It never sends any data off-device.</string>
     <string name="about_link_source_code">Source code (GitHub)</string>
     <string name="about_link_report_issue">Report an issue</string>
-    <string name="about_licence_text">Released under the Apache 2.0 licence. See LICENCE in the source repository.</string>
+    <string name="about_licence_text">Released under the Apache 2.0 licence. See LICENSE in the source repository.</string>
     <string name="about_permissions_text">App Manager Tech only requests permissions required for its core function: enumerating installed apps, reading their storage sizes and last-used timestamps. It never asks for the Internet.</string>
     <string name="about_made_in">Files Tech — France</string>
 
@@ -209,7 +211,7 @@
     <!-- Confirmation dialogs                                              -->
     <!-- ================================================================ -->
     <string name="dialog_clear_cache_title">Clear cache for %1$s?</string>
-    <string name="dialog_clear_cache_body">Android requires the user to tap "Clear cache" themselves. The next screen will open the app info page.</string>
+    <string name="dialog_clear_cache_body">Android requires the user to tap “Clear cache” themselves. The next screen will open the app info page.</string>
     <string name="dialog_force_stop_title">Force stop %1$s?</string>
     <string name="dialog_force_stop_body">Background processes for this app will be killed. Visible / foreground apps cannot be force-stopped without system permissions.</string>
     <string name="dialog_disable_title">Disable %1$s?</string>
@@ -225,7 +227,7 @@
         <item quantity="one">Clear cache for %1$d app?</item>
         <item quantity="other">Clear cache for %1$d apps?</item>
     </plurals>
-    <string name="dialog_batch_clear_cache_body">The app info page will open once per app — tap "Clear cache" each time.</string>
+    <string name="dialog_batch_clear_cache_body">The app info page will open once per app — tap “Clear cache” each time.</string>
     <plurals name="dialog_batch_force_stop_title">
         <item quantity="one">Force stop %1$d app?</item>
         <item quantity="other">Force stop %1$d apps?</item>
@@ -456,7 +458,7 @@
     <string name="home_section_apps">Installed apps</string>
 
     <!-- v0.1.1 — Manual refresh + pull-to-refresh -->
-    <string name="action_refresh_apps">Refresh apps</string>
+    <string name="action_refresh_apps">Refresh the list</string>
 
     <!-- ================================================================ -->
     <!-- Phase X.B — Rarely-used screen                                    -->
@@ -464,7 +466,7 @@
     <string name="screen_rarely_used_title">Rarely-used apps</string>
     <string name="rarely_used_threshold_title">Threshold</string>
     <string name="rarely_used_empty_title">No rarely-used apps</string>
-    <string name="rarely_used_empty_body">Every app on this device has been used within the threshold window. Increase the threshold above to broaden the search.</string>
+    <string name="rarely_used_empty_body">Every app on this device has been used within the threshold window. Lower the threshold above to broaden the search.</string>
 
     <!-- ================================================================ -->
     <!-- Phase X.B — Zombies screen                                        -->
@@ -496,7 +498,7 @@
         <item quantity="other">%1$d apps staged for uninstall · %2$s</item>
     </plurals>
     <string name="trash_empty_title">Trash is empty</string>
-    <string name="trash_empty_body">Apps moved to the trash sit here until you uninstall them for real or restore them. They are NOT uninstalled until you tap "Uninstall now".</string>
+    <string name="trash_empty_body">Apps moved to the trash sit here until you uninstall them for real or restore them. They are NOT uninstalled until you tap “Uninstall now”.</string>
     <string name="trash_action_restore">Restore</string>
     <string name="trash_action_uninstall_now">Uninstall now</string>
     <string name="trash_action_empty_all">Empty trash (uninstall everything)</string>
@@ -561,21 +563,21 @@
     <string name="drift_badge_gained">Granted</string>
     <string name="drift_badge_lost">Revoked</string>
     <string name="drift_empty_title">No permission changes yet</string>
-    <string name="drift_empty_body">Tap the blue button in the card above to record a first snapshot. Then change a permission in Android Settings (e.g. revoke Camera for one app) and tap Capture again — the change will appear here.\n\nOr enable Settings → Privacy monitor → Track permission changes for a daily automatic snapshot.</string>
+    <string name="drift_empty_body">Tap the blue button in the card above to record a first snapshot. Then change a permission in Android Settings (e.g. revoke Camera for one app) and tap “Capture now” again — the change will appear here.\n\nOr enable Settings → Privacy monitor → Track permission changes for a daily automatic snapshot.</string>
     <string name="drift_empty_title_after_capture">No changes since last capture</string>
-    <string name="drift_empty_body_after_capture">Monitoring is active. To see a change appear here:\n\n1. Open Android Settings\n2. Apps → pick a user-installed app (Firefox, Telegram… NOT a system app)\n3. Permissions → toggle a permission on/off (Camera, Mic, etc.)\n4. Come back to App Manager and tap the blue "Capture now" button above</string>
+    <string name="drift_empty_body_after_capture">Monitoring is active. To see a change appear here:\n\n1. Open Android Settings\n2. Apps → pick a user-installed app (Firefox, Telegram… NOT a system app)\n3. Permissions → toggle a permission on/off (Camera, Mic, etc.)\n4. Come back to App Manager Tech and tap the blue “Capture now” button above</string>
     <string name="drift_status_active">Monitoring active</string>
     <string name="drift_status_inactive">Monitoring not started yet</string>
-    <string name="drift_status_inactive_hint">Tap "Start monitoring" to take a first reference snapshot.</string>
+    <string name="drift_status_inactive_hint">Tap “Start monitoring” to take a first reference snapshot.</string>
     <string name="drift_status_counts">%1$d permissions tracked across %2$d apps</string>
     <string name="drift_status_last_capture">Last capture: %1$s</string>
     <string name="drift_action_capture_first">Start monitoring</string>
-    <string name="drift_capture_no_change">No changes detected — change a permission in Android Settings then tap Capture again</string>
+    <string name="drift_capture_no_change">No changes detected — change a permission in Android Settings then tap “Capture now” again</string>
     <plurals name="drift_capture_changes">
         <item quantity="one">%1$d change detected</item>
         <item quantity="other">%1$d changes detected</item>
     </plurals>
-    <string name="drift_capture_baseline">Reference snapshot saved (%1$d permissions). Change a permission in Android Settings, then tap Capture again to see the difference here.</string>
+    <string name="drift_capture_baseline">Reference snapshot saved (%1$d permissions). Change a permission in Android Settings, then tap “Capture now” again to see the difference here.</string>
     <plurals name="notif_drift_body">
         <item quantity="one">%d permission changed since the last snapshot. Tap to review.</item>
         <item quantity="other">%d permissions changed since the last snapshot. Tap to review.</item>
@@ -617,13 +619,13 @@
     <string name="quarantine_dialog_restore_title">Restore %1$s?</string>
     <string name="quarantine_dialog_restore_body_hard">The OS PackageInstaller will reinstall the app from the backup APK. App data will start fresh.</string>
     <string name="quarantine_dialog_restore_body_soft">Open Android Settings to re-enable the app. The quarantine entry will be removed.</string>
-    <string name="quarantine_dialog_drop_title">Drop %1$s?</string>
-    <string name="quarantine_dialog_drop_body">Removes the entry from the list. If the app is currently uninstalled (HARD mode), the backup APK stays on disk — restore from your file manager if needed.</string>
+    <string name="quarantine_dialog_drop_title">Remove %1$s from the list?</string>
+    <string name="quarantine_dialog_drop_body">Removes the entry from the list. If the app is currently uninstalled (real quarantine), the backup APK stays on disk — restore from your file manager if needed.</string>
     <string name="quarantine_dialog_drop_confirm">Drop entry</string>
     <string name="quarantine_dialog_backup_missing_title">Backup APK is missing</string>
     <string name="quarantine_dialog_backup_missing_body">The APK file recorded for this entry is no longer in your backup folder — it may have been deleted or the folder grant was revoked. You can drop the entry to clean up the list.</string>
     <string name="quarantine_dialog_backup_missing_drop">Drop entry</string>
-    <string name="quarantine_error_needs_backup_folder">Pick a backup folder in Settings before using HARD mode.</string>
+    <string name="quarantine_error_needs_backup_folder">Pick a backup folder in Settings before using real quarantine.</string>
 
     <!-- SOFT-mode post-confirm explanation dialog (v0.2.0 UX fix) -->
     <string name="quarantine_soft_action_title">%1$s saved in quarantine</string>
@@ -631,7 +633,7 @@
         <item quantity="one">We will remind you in %1$d day. To make the quarantine effective, you must disable the app yourself in Android Settings — App Manager Tech cannot do it for you (Android security restriction).</item>
         <item quantity="other">We will remind you in %1$d days. To make the quarantine effective, you must disable the app yourself in Android Settings — App Manager Tech cannot do it for you (Android security restriction).</item>
     </plurals>
-    <string name="quarantine_soft_action_body_step1">1. Tap "Open Settings" below.</string>
+    <string name="quarantine_soft_action_body_step1">1. Tap “Open Settings” below.</string>
     <string name="quarantine_soft_action_body_step2">2. On the App-info page that opens, tap DISABLE (or ARCHIVE if available — Android 14+).</string>
     <string name="quarantine_soft_action_body_step3">3. Done — the app is paused until the review date.</string>
     <string name="quarantine_soft_action_open_settings">Open Settings</string>
@@ -655,10 +657,10 @@
 
     <string name="settings_section_quarantine">Quarantine</string>
     <string name="settings_quarantine_backup_folder_title">APK backup folder</string>
-    <string name="settings_quarantine_backup_folder_none">No folder picked. HARD-mode quarantine is disabled.</string>
+    <string name="settings_quarantine_backup_folder_none">No folder picked. Real quarantine (uninstall) is unavailable.</string>
     <string name="settings_quarantine_backup_folder_pick">Pick folder</string>
     <string name="settings_quarantine_backup_folder_change">Change folder</string>
-    <string name="settings_quarantine_reminder_title">Restore reminders</string>
+    <string name="settings_quarantine_reminder_title">Review reminders</string>
     <string name="settings_quarantine_reminder_desc">Fire a notification when a quarantine entry passes its review date.</string>
 
     <string name="settings_retention_30_days">30 days</string>
@@ -731,7 +733,7 @@
     <string name="expert_permissions_none_declared">No permissions declared.</string>
     <string name="expert_permission_dangerous">Dangerous (runtime prompt)</string>
 
-    <string name="expert_app_ops_intro">Curated subset of AppOps. Most ops are gated by GET_APP_OPS_STATS (signature) on stock Android and are reported as Default when the OS hides them from us.</string>
+    <string name="expert_app_ops_intro">Curated subset of AppOps. Most ops are gated by GET_APP_OPS_STATS (signature) on stock Android and are reported as “Default” when the OS hides them from us.</string>
     <string name="expert_app_ops_limited">Limited visibility — the OS only surfaces app-ops the caller is allowed to query without root.</string>
 
     <!-- ================================================================ -->
@@ -799,7 +801,7 @@
     <string name="lifecycle_type_uninstalled">Uninstalled</string>
     <string name="lifecycle_type_replaced">Updated</string>
 
-    <string name="lifecycle_row_meta">v%1$s · installed by %2$s</string>
+    <string name="lifecycle_row_meta">v%1$s · source: %2$s</string>
     <string name="lifecycle_row_reason">Reason: %1$s</string>
     <string name="lifecycle_row_open_detail">Open app detail →</string>
 
@@ -961,8 +963,8 @@
     <string name="action_journal_type_clear_data">Clear data</string>
     <string name="action_journal_type_move_to_trash">Move to trash</string>
     <string name="action_journal_type_restore_from_trash">Restore from trash</string>
-    <string name="action_journal_type_quarantine_hard">Quarantine (hard)</string>
-    <string name="action_journal_type_quarantine_soft">Quarantine (soft)</string>
+    <string name="action_journal_type_quarantine_hard">Quarantine (uninstall)</string>
+    <string name="action_journal_type_quarantine_soft">Quarantine (reminder)</string>
     <!-- Result labels (3) -->
     <string name="action_journal_result_intent_requested">Intent dispatched</string>
     <string name="action_journal_result_success">Done</string>
@@ -1020,4 +1022,8 @@
     <string name="notif_channel_quarantine_name">Quarantine reminders</string>
     <string name="notif_channel_quarantine_desc">When the review date of a quarantined app has passed.</string>
 
+    <string name="expert_appop_mode_allowed">Allowed</string>
+    <string name="expert_appop_mode_ignored">Ignored</string>
+    <string name="expert_appop_mode_denied">Denied</string>
+    <string name="expert_appop_mode_default">Default</string>
 </resources>

@@ -1,6 +1,10 @@
 package com.filestech.appmanager.ui.screens.settings
 
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -332,6 +336,17 @@ private fun SettingsBody(
                 onClick     = onThemeModeClick,
                 currentValue = themeModeLabel(settings.appearance.themeMode),
             )
+            // The per-app language picker (res/xml/locales_config.xml) lives in Android's settings,
+            // where nobody looks for it. Android 13+ only: below, the page does not exist and the row
+            // would open nothing; there, the app follows the phone's language.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val context = LocalContext.current
+                NavigationRow(
+                    title       = stringResource(R.string.settings_language),
+                    description = stringResource(R.string.settings_language_sub),
+                    onClick     = { openAppLanguageSettings(context) },
+                )
+            }
             ToggleRow(
                 title          = stringResource(R.string.settings_dynamic_color_title),
                 description    = stringResource(R.string.settings_dynamic_color_desc),
@@ -727,4 +742,16 @@ private fun TagStatChip(label: String, count: Int) {
             )
         }
     }
+}
+
+/**
+ * Opens Android's per-app language page. Not every manufacturer exposes it: without a fallback the tap
+ * would do nothing, so the app's details page, one tap away from the language, opens instead.
+ */
+private fun openAppLanguageSettings(context: Context) {
+    val app = Uri.fromParts("package", context.packageName, null)
+    val language = Intent(Settings.ACTION_APP_LOCALE_SETTINGS, app).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    val details = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, app).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { context.startActivity(language) }
+        .onFailure { runCatching { context.startActivity(details) } }
 }

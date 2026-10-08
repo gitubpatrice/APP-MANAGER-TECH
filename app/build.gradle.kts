@@ -111,11 +111,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Strip locales other than en/fr from the resource bundle. `localeFilters` replaces
-    // `resourceConfigurations`, which AGP 9 no longer offers. The list must keep matching the
-    // translated `values-*` folders: a language missing here is removed from the APK without error.
+    // Keep only the shipped languages in the resource bundle. `localeFilters` replaces
+    // `resourceConfigurations`, which AGP 9 no longer offers. The list must match the translated
+    // `values-*` folders and res/xml/locales_config.xml: a language missing here is removed from the
+    // APK without error. tools/check-translations.py fails the build when they disagree.
     androidResources {
-        localeFilters += listOf("en", "fr")
+        localeFilters += listOf("en", "fr", "de", "it", "es")
     }
 
     // ---------------------------------------------------------------------------

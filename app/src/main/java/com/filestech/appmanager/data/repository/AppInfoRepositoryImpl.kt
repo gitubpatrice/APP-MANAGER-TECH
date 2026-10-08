@@ -495,18 +495,18 @@ class AppInfoRepositoryImpl @Inject constructor(
             ExpertReport.AppOpEntry(
                 op        = op,
                 mode      = mode,
-                modeLabel = formatAppOpMode(mode),
+                state     = appOpState(mode),
             )
         }
         return ExpertReport.AppOpsSnapshot(entries = entries, isFullyAccessible = anyAccessible)
     }
 
-    private fun formatAppOpMode(mode: Int): String = when (mode) {
-        AppOpsManager.MODE_ALLOWED  -> "Allowed"
-        AppOpsManager.MODE_IGNORED  -> "Ignored"
-        AppOpsManager.MODE_ERRORED  -> "Denied"
-        AppOpsManager.MODE_DEFAULT  -> "Default"
-        else                        -> "—"
+    private fun appOpState(mode: Int): ExpertReport.AppOpState = when (mode) {
+        AppOpsManager.MODE_ALLOWED  -> ExpertReport.AppOpState.ALLOWED
+        AppOpsManager.MODE_IGNORED  -> ExpertReport.AppOpState.IGNORED
+        AppOpsManager.MODE_ERRORED  -> ExpertReport.AppOpState.DENIED
+        AppOpsManager.MODE_DEFAULT  -> ExpertReport.AppOpState.DEFAULT
+        else                        -> ExpertReport.AppOpState.UNKNOWN
     }
 
     /**

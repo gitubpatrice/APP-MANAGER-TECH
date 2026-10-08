@@ -632,7 +632,7 @@ private fun AppOpsCard(snapshot: ExpertReport.AppOpsSnapshot) {
             }
         }
         snapshot.entries.forEach { entry ->
-            KvRow(label = entry.op, value = entry.modeLabel, mono = true)
+            KvRow(label = entry.op, value = appOpStateLabel(entry.state), mono = true)
         }
     }
 }
@@ -698,4 +698,13 @@ private fun SectionCard(
             }
         }
     }
+}
+
+@Composable
+private fun appOpStateLabel(state: ExpertReport.AppOpState): String = when (state) {
+    ExpertReport.AppOpState.ALLOWED -> stringResource(R.string.expert_appop_mode_allowed)
+    ExpertReport.AppOpState.IGNORED -> stringResource(R.string.expert_appop_mode_ignored)
+    ExpertReport.AppOpState.DENIED  -> stringResource(R.string.expert_appop_mode_denied)
+    ExpertReport.AppOpState.DEFAULT -> stringResource(R.string.expert_appop_mode_default)
+    ExpertReport.AppOpState.UNKNOWN -> "—"
 }

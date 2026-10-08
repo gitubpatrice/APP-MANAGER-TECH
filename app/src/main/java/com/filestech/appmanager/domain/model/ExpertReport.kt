@@ -143,11 +143,13 @@ data class ExpertReport(
     /**
      * @param op constant name (e.g. `OPSTR_FINE_LOCATION`).
      * @param mode value from `AppOpsManager.MODE_*` (-1 = not surfaced to caller).
-     * @param modeLabel pre-formatted label for display (`Allowed`, `Ignored`, `Denied`, `Default`, `—`).
+     * @param state [mode] as the screen words it.
      */
     data class AppOpEntry(
         val op: String,
         val mode: Int,
-        val modeLabel: String,
+        val state: AppOpState,
     )
+
+    enum class AppOpState { ALLOWED, IGNORED, DENIED, DEFAULT, UNKNOWN }
 }
