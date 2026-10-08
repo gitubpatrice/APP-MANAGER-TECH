@@ -16,9 +16,40 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   then to confirm each one. Measured on a Galaxy S9: `InstallStart` logged "Requesting uid … needs
   to declare permission android.permission.REQUEST_INSTALL_PACKAGES" and closed.
 - The same restore dropped the quarantine entry as soon as the installer was launched, so a refused
-  or cancelled install lost the record. The entry now goes only once the app is installed again
-  (checked when the Quarantine screen comes back to the front); otherwise it stays, with its backup,
-  and a message says so. Unit test added, proven by sabotage.
+  or cancelled install lost the record. Every time the Quarantine screen comes back to the front, a
+  HARD entry now goes only if its app is installed AND was updated since the quarantine (an
+  installed app is not enough: a cancelled uninstall, or a system app's factory version); otherwise
+  it stays, with its backup, and a message says so. The restore intent is pinned to the system
+  installer. Unit tests, proven by sabotage.
+- A real quarantine of an app installed as split APKs (App Bundle — most Play Store apps) backed up
+  its base APK only, then uninstalled it: the backup could never reinstall it. Same for a system
+  app, of which Android only removes the updates. Both are now refused before anything is written
+  or uninstalled ("Reminder only" stays available), and before a backup folder is asked for.
+
+### Fixed — found by checking every dialog, warning and setting against the code
+- **Notifications never appeared on Android 13+**: `POST_NOTIFICATIONS` was declared but never
+  requested. It is now requested when a notification is turned on (cache threshold, permission
+  changes, quarantine reminder) and when a quarantine is confirmed (its reminder is on by default).
+  A post is counted only if Android lets it through (`areNotificationsEnabled`, channel not
+  blocked): a quarantine reminder dropped by Android is no longer marked as shown.
+- **Protected apps**: batch uninstall from the app list and uninstall from the security audit
+  skipped the 3-second hold. Both now ask for it. Tests proven by sabotage.
+- **Three settings did nothing**: default sort order, show system apps, and confirm before clearing
+  the cache. All three are now applied (the latter also in the Smart Cleaner).
+- **Permission-change history** lost recorded changes before their retention: the purge deleted
+  the baseline row first. It now keeps, for each app and permission, the newest row older than the
+  cutoff. Instrumented test added.
+- **Smart Cleaner** flagged every uncategorised app as a "duplicate" and counted its whole size as
+  reclaimable. Apps without a category are left out of that rule.
+- Texts that promised what the code does not do: the exclusion list (it only filters Smart Cleaner
+  suggestions), the export (system apps are left out), "Reminder only" (nothing re-enables the app
+  on the review date), lifecycle history (recorded only while the app is running: Android does not
+  deliver these announcements to a stopped app), the PDF "zombie" count (disabled apps), batch force
+  stop ("requested", not "succeeded"). Dialog titles and the trash snackbar show the app's name
+  instead of its package name. Retry on the app list error state did nothing; it rescans.
+- `QuarantineViewModel.quarantine()`, never called, skipped the protected-app check and the
+  journal: removed. A quarantine started from the Quarantine screen is now journalled, like one
+  started from the app detail.
 - The Transparency screen claimed an exhaustive list but left out the three histories, the trash
   and quarantines, the reading of APK files and the files written outside the app, and said anyone
   could reproduce the build byte for byte, which has never been verified. Rewritten in five

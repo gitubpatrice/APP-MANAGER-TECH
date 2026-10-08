@@ -1,6 +1,7 @@
 v0.5.1
-• Restaurer une app mise en quarantaine fonctionne : Android refusait, faute de la permission d'installation
-• À propos : politique de confidentialité, conditions d'utilisation et licence dans votre langue, et un bouton « Vérifier les mises à jour »
-• Politique et conditions réécrites d'après ce que fait vraiment l'app, en 5 langues
-• Logo entier au démarrage ; barres, menus, dialogues et cartes en bleu pâle
-• Barre du haut : le nom de l'app à côté du logo, le titre de l'écran dessous
+• Restaurer une quarantaine marche (Android refusait) ; pas proposé si impossible
+• Notifications demandées à l'activation : sous Android 13+, elles n'apparaissaient jamais
+• Apps protégées : l'appui de 3 s couvre aussi la désinstallation par lot et l'audit
+• Tri par défaut, apps système et « confirmer avant suppression » fonctionnent enfin
+• Confidentialité et conditions réécrites d'après le code, en 5 langues
+• Bleu pâle, logo entier au démarrage, bouton de mise à jour

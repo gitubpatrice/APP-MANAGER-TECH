@@ -1,6 +1,7 @@
 v0.5.1
-• Restaurar una app en cuarentena ya funciona: Android lo rechazaba, faltaba el permiso de instalación
-• Acerca de: política de privacidad, condiciones de uso y licencia en su idioma, y «Buscar actualizaciones»
-• Política y condiciones reescritas a partir de lo que la app hace de verdad, en 5 idiomas
-• Logo entero al iniciar; barras, menús, diálogos y tarjetas en azul claro
-• Barra superior: el nombre de la app junto al logo, el título de la pantalla debajo
+• Restaurar desde la cuarentena funciona (Android lo rechazaba); no se ofrece si es imposible
+• Las notificaciones se solicitan al activarlas: desde Android 13 no aparecían nunca
+• Apps protegidas: mantener 3 s también en la desinstalación por lotes y la auditoría
+• Orden predeterminado, apps del sistema y «confirmar antes de borrar» ya funcionan
+• Privacidad y condiciones reescritas a partir del código, en 5 idiomas
+• Azul claro, logo entero al iniciar, botón de actualizaciones

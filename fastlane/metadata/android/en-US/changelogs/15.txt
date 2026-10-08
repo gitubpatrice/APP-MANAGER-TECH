@@ -1,6 +1,7 @@
 v0.5.1
-• Restoring a quarantined app now works: Android refused it, the install permission was missing
-• About: privacy policy, terms of use and licence in your language, and a “Check for updates” button
-• Privacy policy and terms rewritten from what the app really does, in 5 languages
-• Splash screen with the whole logo; pale-blue bars, menus, dialogs and cards
-• Top bar: the app name next to the logo, the screen’s title below
+• Quarantine restore works (Android refused it); not offered for apps it could not restore
+• Notifications are requested when you turn one on: on Android 13+ they never appeared
+• Protected apps: the 3-second hold also covers batch uninstall and the security audit
+• Default sort, system apps and “confirm before deleting” settings now take effect
+• Privacy policy and terms rewritten from the code, in 5 languages, linked from About
+• Pale-blue look, whole splash logo, update button
