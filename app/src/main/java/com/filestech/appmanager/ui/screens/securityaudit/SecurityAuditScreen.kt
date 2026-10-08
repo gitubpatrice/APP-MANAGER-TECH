@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,6 +80,7 @@ fun SecurityAuditScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel) {
@@ -87,7 +89,7 @@ fun SecurityAuditScreen(
                 is SecurityAuditViewModel.Event.LaunchIntent -> launchIntent(context, event.intent)
                 is SecurityAuditViewModel.Event.RefreshDone ->
                     snackbarHostState.showSnackbar(
-                        context.getString(
+                        resources.getString(
                             R.string.security_audit_refresh_done,
                             event.adminCount,
                             event.a11yCount,

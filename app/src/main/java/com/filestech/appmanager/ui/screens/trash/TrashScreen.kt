@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,6 +81,7 @@ fun TrashScreen(
 ) {
     val items by viewModel.items.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     var dialog by rememberSaveable { mutableStateOf<TrashDialog?>(null) }
@@ -105,12 +107,12 @@ fun TrashScreen(
                 is TrashViewModel.Event.LaunchIntents -> {
                     event.intents.forEach { launchIntent(context, it) }
                     snackbarHostState.showSnackbar(
-                        context.getString(R.string.trash_emptied_snackbar, event.total),
+                        resources.getString(R.string.trash_emptied_snackbar, event.total),
                     )
                 }
                 is TrashViewModel.Event.Restored -> {
                     snackbarHostState.showSnackbar(
-                        context.getString(R.string.trash_restored_snackbar, event.packageName),
+                        resources.getString(R.string.trash_restored_snackbar, event.packageName),
                     )
                 }
                 is TrashViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.message)

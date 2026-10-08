@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -73,6 +74,7 @@ fun ZombiesScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     // v0.3.1 — local search filter (label OR package, case-insensitive). Kept
     // VM-free because the filtering is pure UI: the unfiltered Outcome stays
@@ -95,7 +97,7 @@ fun ZombiesScreen(
             when (event) {
                 is ZombiesViewModel.Event.RefreshDone ->
                     snackbarHostState.showSnackbar(
-                        context.getString(R.string.zombies_refresh_done, event.count),
+                        resources.getString(R.string.zombies_refresh_done, event.count),
                     )
                 is ZombiesViewModel.Event.LaunchIntent -> {
                     runCatching {

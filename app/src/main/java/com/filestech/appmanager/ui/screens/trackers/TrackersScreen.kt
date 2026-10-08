@@ -38,7 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -78,7 +78,7 @@ fun TrackersScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val context = LocalContext.current
+    val resources = LocalResources.current
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
@@ -87,7 +87,7 @@ fun TrackersScreen(
                 // v0.2.1 audit C3a — concrete refresh feedback (was missing).
                 is TrackersViewModel.Event.ScanDone ->
                     snackbarHostState.showSnackbar(
-                        context.getString(
+                        resources.getString(
                             R.string.trackers_scan_done,
                             event.appsScanned,
                             event.trackersFound,

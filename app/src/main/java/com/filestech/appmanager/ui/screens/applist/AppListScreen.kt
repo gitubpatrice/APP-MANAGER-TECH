@@ -66,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -112,6 +113,7 @@ fun AppListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
 
@@ -133,7 +135,7 @@ fun AppListScreen(
                     val r = event.result
                     // v0.1.3 audit M-2 fix — string externalised + translated FR/EN.
                     snackbarHostState.showSnackbar(
-                        context.getString(R.string.batch_done_result, r.successCount, r.total),
+                        resources.getString(R.string.batch_done_result, r.successCount, r.total),
                     )
                 }
                 is AppListViewModel.Event.NavigateToDetail -> onNavigateToDetail(event.packageName)

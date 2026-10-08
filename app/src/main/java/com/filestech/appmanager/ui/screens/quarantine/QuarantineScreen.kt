@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -88,6 +89,7 @@ fun QuarantineScreen(
 ) {
     val items by viewModel.items.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     var dialog by rememberSaveable { mutableStateOf<QuarantineDialog?>(null) }
@@ -100,7 +102,7 @@ fun QuarantineScreen(
                 is QuarantineViewModel.Event.BackupMissing -> dialog = QuarantineDialog.BackupMissing(event.packageName)
                 QuarantineViewModel.Event.NeedsBackupFolder ->
                     snackbarHostState.showSnackbar(
-                        context.getString(R.string.quarantine_error_needs_backup_folder),
+                        resources.getString(R.string.quarantine_error_needs_backup_folder),
                     )
             }
         }
