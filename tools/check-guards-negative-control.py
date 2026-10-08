@@ -199,7 +199,7 @@ def main(argv: list[str]) -> int:
          lambda: manifest_case(work, MANIFEST_OK.replace("</manifest>", "")), 1, "merged manifest unreadable"),
 
         ("tests: POSITIVE WITNESS (4 executed, 1 skipped)", TESTS_CHECK,
-         lambda: results_case(work, REPORTS_OK), 0, "Unit tests executed: 4 (1 skipped, 2 reports)"),
+         lambda: results_case(work, REPORTS_OK), 0, "Tests executed: 4 (1 skipped, 2 reports)"),
         ("tests: no report at all (the JUnit 6 symptom)", TESTS_CHECK,
          lambda: results_case(work, {}), 1, "no TEST-*.xml report"),
         ("tests: directory missing", TESTS_CHECK,

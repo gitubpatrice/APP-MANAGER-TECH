@@ -8,10 +8,6 @@ name: CI
 # `fix/**` and `feat/**` are triggers on purpose: a work branch must not pile up commits with nothing
 # ever running on them (measured on a sibling app: 25 commits, a blocking check failing since the
 # morning, unreported).
-#
-# No instrumented-test job yet: the androidTest APK does not build (two copies of META-INF/LICENSE.md,
-# from junit-jupiter-api on the classpath of tests written for JUnit 4). Fixed separately, and the job
-# added once the two tests are seen passing on an emulator.
 on:
   push:
     branches: [main, 'fix/**', 'feat/**']
@@ -119,3 +115,63 @@ jobs:
       # and its failure paths are exercised by the step above instead of being assumed.
       - name: Assert the permissions of the merged release manifest
         run: python3 tools/check-manifest-permissions.py
+
+  instrumented:
+    name: Instrumented tests (API 29)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # KVM has to be enabled explicitly on GitHub-hosted runners for the emulator to boot.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # The Room migration and DAO tests need Android's own SQLite, which is why they cannot be JVM
+      # tests. API 29 matches the physical test device (Galaxy S9), so a green CI run and a green
+      # local run mean the same thing.
+      #
+      # ⚠️ `connectedDebugAndroidTest` is used HERE ONLY, where the emulator is the sole attached
+      # device. Never run it on a developer machine: it targets EVERY connected device and uninstalls
+      # the app at the end, and one of the devices attached locally is a real phone. Locally, install
+      # both APKs and target the phone by serial:
+      #   adb -s <serial> shell am instrument -w -r \
+      #     com.filestech.appmanager.debug.test/androidx.test.runner.AndroidJUnitRunner
+      - name: Run instrumented tests on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          ram-size: 4096M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+
+      # This runner reports a test skipped by an `assume` as passed: only the reports' `skipped`
+      # count tells them apart, and an empty run looks green too.
+      - name: Instrumented tests were actually executed
+        run: python3 tools/check-test-results.py app/build/outputs/androidTest-results/connected/debug
+
+      - name: Upload instrumented reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: instrumented-reports
+          path: |
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+          retention-days: 14
+          if-no-files-found: ignore

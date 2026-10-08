@@ -162,6 +162,12 @@ room {
     schemaDirectory("$projectDir/../schemas")
 }
 
+// MigrationTestHelper reads the exported schemas from the androidTest ASSETS, and the Room plugin
+// does not package them there: the seven migration tests failed on "Cannot find the schema file in
+// the assets folder" (measured 2026-10-08 on a Galaxy S9 — never seen before, because the
+// androidTest APK did not build either).
+android.sourceSets.getByName("androidTest").assets.srcDir("$projectDir/../schemas")
+
 dependencies {
     // --- Core ---
     implementation(libs.androidx.core.ktx)
@@ -239,6 +245,5 @@ dependencies {
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.room.testing)
     androidTestImplementation(libs.coroutines.test)
-    androidTestImplementation(libs.junit.jupiter.api)
     androidTestImplementation(libs.truth)
 }

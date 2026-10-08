@@ -48,7 +48,7 @@ class AppInfoDaoTest {
     }
 
     @Test
-    fun upsert_and_getByPackage_round_trip() = runBlocking {
+    fun upsert_and_getByPackage_round_trip() = runBlocking<Unit> {
         val entity = sample("com.a")
         dao.upsert(entity)
 
@@ -57,7 +57,7 @@ class AppInfoDaoTest {
     }
 
     @Test
-    fun getAll_returns_all_inserted_rows() = runBlocking {
+    fun getAll_returns_all_inserted_rows() = runBlocking<Unit> {
         dao.upsertAll(listOf(sample("com.a"), sample("com.b"), sample("com.c")))
 
         val all = dao.getAll()
@@ -65,7 +65,7 @@ class AppInfoDaoTest {
     }
 
     @Test
-    fun observeAll_emits_initial_and_after_insert() = runBlocking {
+    fun observeAll_emits_initial_and_after_insert() = runBlocking<Unit> {
         // Initial empty emission
         val initial = dao.observeAll().first()
         assertThat(initial).isEmpty()
@@ -77,7 +77,7 @@ class AppInfoDaoTest {
     }
 
     @Test
-    fun getUserApps_excludes_system_apps() = runBlocking {
+    fun getUserApps_excludes_system_apps() = runBlocking<Unit> {
         dao.upsert(sample("com.user.app", isSystem = false))
         dao.upsert(sample("com.system.app", isSystem = true))
 
@@ -86,7 +86,7 @@ class AppInfoDaoTest {
     }
 
     @Test
-    fun aggregateSizes_sums_correctly() = runBlocking {
+    fun aggregateSizes_sums_correctly() = runBlocking<Unit> {
         dao.upsertAll(listOf(
             sample("com.a", install = 100L, cache = 10L, data = 1L),
             sample("com.b", install = 200L, cache = 20L, data = 2L),
@@ -100,7 +100,7 @@ class AppInfoDaoTest {
     }
 
     @Test
-    fun aggregateSizes_excludes_system_when_flag_false() = runBlocking {
+    fun aggregateSizes_excludes_system_when_flag_false() = runBlocking<Unit> {
         dao.upsert(sample("com.user", install = 100L, isSystem = false))
         dao.upsert(sample("com.sys",  install = 999L, isSystem = true))
 
@@ -110,7 +110,7 @@ class AppInfoDaoTest {
     }
 
     @Test
-    fun updateEnabled_persists() = runBlocking {
+    fun updateEnabled_persists() = runBlocking<Unit> {
         dao.upsert(sample("com.x", isEnabled = true))
         val updated = dao.updateEnabled("com.x", enabled = false)
         assertThat(updated).isEqualTo(1)
@@ -118,7 +118,7 @@ class AppInfoDaoTest {
     }
 
     @Test
-    fun deleteByPackage_removes_only_target() = runBlocking {
+    fun deleteByPackage_removes_only_target() = runBlocking<Unit> {
         dao.upsertAll(listOf(sample("com.a"), sample("com.b")))
         dao.deleteByPackage("com.a")
 
@@ -126,7 +126,7 @@ class AppInfoDaoTest {
     }
 
     @Test
-    fun deleteAll_wipes_table() = runBlocking {
+    fun deleteAll_wipes_table() = runBlocking<Unit> {
         dao.upsertAll(listOf(sample("com.a"), sample("com.b")))
         val removed = dao.deleteAll()
 
