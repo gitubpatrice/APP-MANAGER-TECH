@@ -7,6 +7,7 @@ import com.filestech.appmanager.core.ext.isValidPackageName
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.system.ApkBackupManager
 import com.filestech.appmanager.data.system.IntentFactory
+import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.QuarantineEntry
 import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.domain.repository.AppInfoRepository
@@ -22,6 +23,8 @@ import javax.inject.Inject
  *  - HARD_UNINSTALL: requires a SAF [Uri] pointing at the user-picked backup
  *    folder. Copies the APK + persists the entry + returns the uninstall
  *    intent for the UI to launch. The OS shows its own uninstall confirm.
+ *    Refused upfront for an app the backup could never restore (v0.5.1, see
+ *    [FailureReason.SYSTEM_APP] and [FailureReason.SPLIT_APKS]).
  *  - SOFT_REMINDER: just persists the entry — no APK copy, no uninstall.
  *
  * The UI is responsible for the destructive-data warning before HARD mode
@@ -47,9 +50,15 @@ class QuarantineAppUseCase @Inject constructor(
 
         /**
          * Validation, backup or persist failed. [reason] decides the message the user sees; [detail]
-         * is the technical cause, in English, for the logs only.
+         * is the technical cause, in English, for the logs only. [appLabel] names the app in the
+         * messages that refuse this app in particular ([FailureReason.SPLIT_APKS],
+         * [FailureReason.SYSTEM_APP]).
          */
-        data class Failure(val reason: FailureReason, val detail: String) : Result
+        data class Failure(
+            val reason: FailureReason,
+            val detail: String,
+            val appLabel: String? = null,
+        ) : Result
     }
 
     enum class FailureReason {
@@ -63,6 +72,12 @@ class QuarantineAppUseCase @Inject constructor(
         BACKUP_FOLDER_ACCESS_REVOKED,
         BACKUP_FAILED,
         SAVE_FAILED,
+
+        /** v0.5.1 — HARD refused: split APKs (App Bundle), which the base-APK backup cannot reinstall. */
+        SPLIT_APKS,
+
+        /** v0.5.1 — HARD refused: a system app, whose uninstall only removes its updates. */
+        SYSTEM_APP,
     }
 
     suspend operator fun invoke(
@@ -87,7 +102,7 @@ class QuarantineAppUseCase @Inject constructor(
         val restoreAt = nowMs + durationDays.toLong() * MS_PER_DAY
 
         return when (mode) {
-            QuarantineMode.HARD_UNINSTALL -> doHard(
+            QuarantineMode.HARD_UNINSTALL -> refuseUnrestorable(info) ?: doHard(
                 packageName = packageName,
                 label       = info.label,
                 versionName = info.versionName,
@@ -105,6 +120,30 @@ class QuarantineAppUseCase @Inject constructor(
                 restoreAt   = restoreAt,
             )
         }
+    }
+
+    /**
+     * v0.5.1 — HARD mode uninstalls the app, and its data with it, on the promise of a later restore
+     * from the backup. Refused, before anything is copied, persisted or uninstalled, when that restore
+     * could never happen:
+     *  - a system app: Android's uninstall only removes its updates, the app itself stays;
+     *  - an app installed as split APKs (App Bundle): the backup holds the base APK only, which the
+     *    installer cannot reinstall the app from.
+     * Until v0.5.1 both went through: entry saved, backup written, uninstall launched, on a promise
+     * that backup could not keep. Returns null when HARD mode may proceed.
+     */
+    private suspend fun refuseUnrestorable(info: AppInfo): Result.Failure? = when {
+        info.isSystemApp -> Result.Failure(
+            reason   = FailureReason.SYSTEM_APP,
+            detail   = "HARD mode refused for system app ${info.packageName}",
+            appLabel = info.label,
+        )
+        apkBackup.hasSplitApks(info.packageName) -> Result.Failure(
+            reason   = FailureReason.SPLIT_APKS,
+            detail   = "HARD mode refused for split-APK app ${info.packageName}",
+            appLabel = info.label,
+        )
+        else -> null
     }
 
     // doHard and doSoft catch everything on purpose: Room reports a failed write through several

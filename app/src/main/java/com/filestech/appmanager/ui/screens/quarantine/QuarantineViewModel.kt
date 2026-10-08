@@ -67,7 +67,11 @@ class QuarantineViewModel @Inject constructor(
      *  single-in-flight per action across the 3 entry points. */
     private val isWorking = AtomicBoolean(false)
 
-    /** The package whose HARD restore was handed to the installer, checked when the screen resumes. */
+    /**
+     * The package whose HARD restore was handed to the installer. Only picks the message shown at the
+     * next resume; whether its entry goes is decided by [RestoreFromQuarantineUseCase.reconcileHardRestores],
+     * on every resume, so losing this field (process death) loses a message, never an outcome.
+     */
     private var pendingRestore: String? = null
 
     /** Quarantine an app (called from AppDetail / list screens via QuarantineLauncher). */
@@ -135,18 +139,19 @@ class QuarantineViewModel @Inject constructor(
     }
 
     /**
-     * The screen is back in front: if a HARD restore was handed to the installer, say whether the app
-     * is installed again. Its entry is dropped only then; otherwise it stays, with its backup.
+     * v0.5.1 — The screen is back in front: drop every HARD entry whose app came back after its
+     * quarantine (see [RestoreFromQuarantineUseCase.reconcileHardRestores]); the others stay, with
+     * their backup. If a HARD restore was just handed to the installer, say once whether that app is
+     * back; later resumes reconcile silently, so an install that finishes later still drops its entry.
      */
     fun onResumed() {
-        val packageName = pendingRestore ?: return
+        val pending = pendingRestore
         pendingRestore = null
         viewModelScope.launch {
-            if (restore.confirmHardRestore(packageName)) {
-                _events.trySend(Event.ShowMessage(uiText(R.string.quarantine_restore_done, packageName)))
-            } else {
-                _events.trySend(Event.ShowMessage(uiText(R.string.quarantine_restore_not_installed, packageName)))
-            }
+            val dropped = restore.reconcileHardRestores()
+            if (pending == null) return@launch
+            val message = if (pending in dropped) R.string.quarantine_restore_done else R.string.quarantine_restore_not_installed
+            _events.trySend(Event.ShowMessage(uiText(message, pending)))
         }
     }
 

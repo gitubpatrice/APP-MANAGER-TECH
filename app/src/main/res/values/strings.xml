@@ -1007,6 +1007,8 @@
     <string name="quarantine_error_backup_folder_revoked">Access to the backup folder was withdrawn. Pick it again in Settings.</string>
     <string name="quarantine_error_backup_failed">The APK backup failed.</string>
     <string name="quarantine_error_save_failed">The quarantine entry could not be saved.</string>
+    <string name="quarantine_error_split_apks">%1$s is installed as several APK files (App Bundle): a backup of its main file could not reinstall it. Use \"Reminder only\".</string>
+    <string name="quarantine_error_system_app">%1$s is a system app: Android can only remove its updates, not the app itself. Use \"Reminder only\".</string>
 
     <!-- ================================================================ -->
     <!-- Smart cleaner reasons, tracker categories, notification channels -->

@@ -9,7 +9,10 @@ import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.data.system.AmtActionLogger
 import com.filestech.appmanager.data.system.CriticalAppDetector
+import com.filestech.appmanager.domain.model.AmtActionResult
+import com.filestech.appmanager.domain.model.AmtActionType
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.model.QuarantineMode
@@ -49,6 +52,7 @@ class QuarantinePickerViewModel @Inject constructor(
     private val quarantineUseCase: QuarantineAppUseCase,
     private val settings: SettingsRepository,
     private val criticalDetector: CriticalAppDetector,
+    private val actionLogger: AmtActionLogger,
 ) : ViewModel() {
 
     private val _search = MutableStateFlow("")
@@ -101,7 +105,8 @@ class QuarantinePickerViewModel @Inject constructor(
         bypassCriticalCheck: Boolean = false,
     ) {
         if (_isWorking.value) return
-        val label = apps.value.firstOrNull { it.packageName == packageName }?.label ?: packageName
+        val knownLabel = apps.value.firstOrNull { it.packageName == packageName }?.label
+        val label = knownLabel ?: packageName
 
         // v0.2.0 Safety Guardrails — same friction layer as AppDetail.
         // HARD mode wipes user data; require a hold-3s confirmation when the
@@ -140,6 +145,9 @@ class QuarantinePickerViewModel @Inject constructor(
                     durationDays  = durationDays,
                     backupTreeUri = backupTreeUri,
                 )
+                // v0.5.1 — journalled like the same action started from AppDetail: until v0.5.1 a
+                // quarantine started from this screen left no trace in the journal.
+                actionLogger.log(packageName, knownLabel, mode.journalType(), result.journalResult())
                 when (result) {
                     is QuarantineAppUseCase.Result.HardReady ->
                         // HARD mode launches the OS uninstall confirm directly
@@ -192,4 +200,20 @@ class QuarantinePickerViewModel @Inject constructor(
             val durationDays: Int,
         ) : Event
     }
+}
+
+/** v0.5.1 — the journal type of a quarantine, as AppDetail records it. */
+private fun QuarantineMode.journalType(): AmtActionType = when (this) {
+    QuarantineMode.HARD_UNINSTALL -> AmtActionType.QUARANTINE_HARD
+    QuarantineMode.SOFT_REMINDER -> AmtActionType.QUARANTINE_SOFT
+}
+
+/**
+ * v0.5.1 — the journal result of a quarantine, as AppDetail records it: HARD only requested the OS
+ * uninstall confirm; SOFT saved its entry, a completed action.
+ */
+private fun QuarantineAppUseCase.Result.journalResult(): AmtActionResult = when (this) {
+    is QuarantineAppUseCase.Result.HardReady -> AmtActionResult.INTENT_REQUESTED
+    is QuarantineAppUseCase.Result.SoftReady -> AmtActionResult.SUCCESS
+    is QuarantineAppUseCase.Result.Failure -> AmtActionResult.FAILED
 }

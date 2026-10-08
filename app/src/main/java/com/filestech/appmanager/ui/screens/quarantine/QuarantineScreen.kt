@@ -97,7 +97,8 @@ fun QuarantineScreen(
 
     var dialog by rememberSaveable { mutableStateOf<QuarantineDialog?>(null) }
 
-    // Back from the installer after a HARD restore: the entry goes only if the app is installed again.
+    // Every resume, not only back from the installer: a HARD entry goes once its app is back since its
+    // quarantine, even if that install finished later or while the process was dead.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         viewModel.onResumed()
     }
