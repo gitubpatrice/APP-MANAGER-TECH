@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,6 +84,7 @@ fun SmartCleanerScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val resources = LocalResources.current
     // v0.3.1 Safety Phase B — pending critical confirmation for a suggested
     // uninstall. `remember` (not Saveable) because the classification carries
     // a non-Serializable enum value; a config change drops the dialog.
@@ -100,7 +102,7 @@ fun SmartCleanerScreen(
                 }
                 is SmartCleanerViewModel.Event.AnalyzeDone ->
                     snackbarHostState.showSnackbar(
-                        context.getString(
+                        resources.getString(
                             R.string.smart_cleaner_refresh_done,
                             event.suggestionsCount,
                         ),

@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -88,6 +89,7 @@ fun PermissionDriftScreen(
     val isCapturing by viewModel.isCapturing.collectAsStateWithLifecycle()
     val stats by viewModel.stats.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel) {
@@ -96,17 +98,17 @@ fun PermissionDriftScreen(
                 is PermissionDriftViewModel.Event.CaptureDone -> {
                     val msg = when {
                         event.drifts > 0 ->
-                            context.getString(R.string.drift_capture_changes, event.drifts)
+                            resources.getString(R.string.drift_capture_changes, event.drifts)
                         event.baselines > 0 ->
-                            context.getString(R.string.drift_capture_baseline, event.baselines)
+                            resources.getString(R.string.drift_capture_baseline, event.baselines)
                         else ->
-                            context.getString(R.string.drift_capture_no_change)
+                            resources.getString(R.string.drift_capture_no_change)
                     }
                     snackbarHostState.showSnackbar(msg)
                 }
                 is PermissionDriftViewModel.Event.LaunchIntentChain ->
                     if (!launchIntentChain(context, event.intents)) {
-                        snackbarHostState.showSnackbar(context.getString(R.string.error_no_handler))
+                        snackbarHostState.showSnackbar(resources.getString(R.string.error_no_handler))
                     }
                 is PermissionDriftViewModel.Event.ShowError ->
                     snackbarHostState.showSnackbar(event.message)

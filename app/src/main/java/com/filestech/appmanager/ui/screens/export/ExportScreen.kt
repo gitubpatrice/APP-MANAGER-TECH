@@ -40,6 +40,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -70,6 +71,7 @@ fun ExportScreen(
     val format by viewModel.preferredFormat.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     var formatDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -93,7 +95,7 @@ fun ExportScreen(
             when (event) {
                 is ExportViewModel.Event.Done ->
                     snackbarHostState.showSnackbar(
-                        context.getString(
+                        resources.getString(
                             R.string.export_success,
                             event.report.appCount,
                             Formatter.formatShortFileSize(context, event.report.bytesWritten),

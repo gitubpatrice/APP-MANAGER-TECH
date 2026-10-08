@@ -59,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -126,6 +127,7 @@ fun AppDetailScreen(
     val lifecycleEvents by viewModel.lifecycleEvents.collectAsStateWithLifecycle()
     val currentTags by viewModel.currentTags.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     // v0.3.3 — tag picker open state. Not Saveable because AppTag enum is
@@ -165,15 +167,15 @@ fun AppDetailScreen(
                     snackbarHostState.showSnackbar(event.message)
                 is AppDetailViewModel.Event.MovedToTrash ->
                     snackbarHostState.showSnackbar(
-                        context.getString(R.string.trash_moved_snackbar, event.label),
+                        resources.getString(R.string.trash_moved_snackbar, event.label),
                     )
                 AppDetailViewModel.Event.NeedsBackupFolder ->
                     snackbarHostState.showSnackbar(
-                        context.getString(R.string.quarantine_error_needs_backup_folder),
+                        resources.getString(R.string.quarantine_error_needs_backup_folder),
                     )
                 is AppDetailViewModel.Event.LaunchIntentChain ->
                     if (!launchIntentChain(context, event.intents)) {
-                        snackbarHostState.showSnackbar(context.getString(R.string.error_no_handler))
+                        snackbarHostState.showSnackbar(resources.getString(R.string.error_no_handler))
                     }
                 is AppDetailViewModel.Event.SoftQuarantineCreated ->
                     softQuarantinePending = SoftQuarantinePrompt(
