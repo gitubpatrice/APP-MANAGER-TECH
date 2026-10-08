@@ -646,6 +646,8 @@
     <string name="quarantine_dialog_restore_body_hard">Il programma di installazione di Android reinstallerà l\'app dall\'APK salvato; la prima volta, Android le chiede di consentire le installazioni da App Manager Tech. I dati dell\'app ripartiranno da zero.</string>
     <string name="quarantine_restore_done">%1$s è di nuovo installata. La voce di quarantena è stata rimossa.</string>
     <string name="quarantine_restore_not_installed">%1$s non è stata reinstallata. La voce di quarantena e il backup vengono conservati.</string>
+    <string name="quarantine_error_split_apks">%1$s è installata come più file APK (App Bundle): un backup del solo file principale non potrebbe reinstallarla. Usi «Solo promemoria».</string>
+    <string name="quarantine_error_system_app">%1$s è un\'app di sistema: Android può rimuoverne solo gli aggiornamenti, non l\'app stessa. Usi «Solo promemoria».</string>
     <string name="quarantine_dialog_restore_body_soft">Apra le Impostazioni Android per riattivare l\'app. La voce di quarantena verrà rimossa.</string>
     <string name="quarantine_dialog_drop_title">Rimuovere %1$s dall\'elenco?</string>
     <string name="quarantine_dialog_drop_body">Rimuove la voce dall\'elenco. Se l\'app è attualmente disinstallata (quarantena effettiva), l\'APK di backup resta nella cartella di backup — se necessario, ripristini l\'app dal Suo gestore di file.</string>

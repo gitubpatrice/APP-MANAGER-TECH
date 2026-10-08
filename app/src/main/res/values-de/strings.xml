@@ -628,6 +628,8 @@
     <string name="quarantine_dialog_restore_body_hard">Das Installationsprogramm von Android installiert die App aus dem gesicherten APK neu; beim ersten Mal bittet Android Sie, Installationen über App Manager Tech zu erlauben. Die App startet ohne ihre bisherigen Daten.</string>
     <string name="quarantine_restore_done">%1$s ist wieder installiert. Der Quarantäne-Eintrag wurde entfernt.</string>
     <string name="quarantine_restore_not_installed">%1$s wurde nicht neu installiert. Quarantäne-Eintrag und Sicherung bleiben erhalten.</string>
+    <string name="quarantine_error_split_apks">%1$s ist aus mehreren APK-Dateien installiert (App Bundle): Eine Sicherung allein ihrer Hauptdatei könnte sie nicht neu installieren. Verwenden Sie „Nur Erinnerung“.</string>
+    <string name="quarantine_error_system_app">%1$s ist eine System-App: Android kann nur ihre Updates entfernen, nicht die App selbst. Verwenden Sie „Nur Erinnerung“.</string>
     <string name="quarantine_dialog_restore_body_soft">Öffnen Sie die Android-Einstellungen, um die App wieder zu aktivieren. Der Quarantäne-Eintrag wird entfernt.</string>
     <string name="quarantine_dialog_drop_title">%1$s aus der Liste entfernen?</string>
     <string name="quarantine_dialog_drop_body">Entfernt den Eintrag aus der Liste. Ist die App gerade deinstalliert (Modus „Echte Quarantäne“), bleibt das gesicherte APK im Speicher — stellen Sie es bei Bedarf über Ihren Dateimanager wieder her.</string>
