@@ -75,10 +75,10 @@ class GetSmartSuggestionsUseCase @Inject constructor(
                 category           = cat,
                 reclaimableBytes   = reclaim,
                 recommendedAction  = SmartSuggestion.RecommendedAction.UNINSTALL,
-                reasonShort        = if (cat == SmartSuggestion.Category.ZOMBIE_NEVER_OPENED) {
-                    "Never opened ($days days installed)"
+                reason             = if (cat == SmartSuggestion.Category.ZOMBIE_NEVER_OPENED) {
+                    SmartSuggestion.Reason.NeverOpened(daysInstalled = days)
                 } else {
-                    "Unused for $days days"
+                    SmartSuggestion.Reason.UnusedFor(days = days)
                 },
             )
             seenPackages += app.packageName
@@ -92,7 +92,7 @@ class GetSmartSuggestionsUseCase @Inject constructor(
                     category           = SmartSuggestion.Category.CACHE_HOG,
                     reclaimableBytes   = app.cacheSizeBytes,
                     recommendedAction  = SmartSuggestion.RecommendedAction.CLEAR_CACHE,
-                    reasonShort        = "Large cache",
+                    reason             = SmartSuggestion.Reason.LargeCache,
                 )
                 seenPackages += app.packageName
             }
@@ -108,7 +108,7 @@ class GetSmartSuggestionsUseCase @Inject constructor(
                 category           = SmartSuggestion.Category.OVERSIZED_RARELY_USED,
                 reclaimableBytes   = app.totalSizeBytes,
                 recommendedAction  = SmartSuggestion.RecommendedAction.REVIEW_AND_DECIDE,
-                reasonShort        = "Large + rarely used",
+                reason             = SmartSuggestion.Reason.LargeAndRarelyUsed,
             )
             seenPackages += app.packageName
         }
@@ -126,7 +126,7 @@ class GetSmartSuggestionsUseCase @Inject constructor(
                         category           = SmartSuggestion.Category.DUPLICATE_CATEGORY,
                         reclaimableBytes   = app.totalSizeBytes,
                         recommendedAction  = SmartSuggestion.RecommendedAction.REVIEW_AND_DECIDE,
-                        reasonShort        = "Duplicate ${app.category.name.lowercase()}",
+                        reason             = SmartSuggestion.Reason.DuplicateCategory(app.category),
                     )
                 }
             }

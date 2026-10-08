@@ -932,4 +932,56 @@
     <string name="action_journal_result_success">Done</string>
     <string name="action_journal_result_failed">Failed</string>
 
+    <!-- ================================================================ -->
+    <!-- Messages emitted by ViewModels and failure reasons (ui/text)     -->
+    <!-- ================================================================ -->
+    <string name="error_invalid_package">Invalid package name.</string>
+    <string name="error_cannot_uninstall">Cannot uninstall %1$s.</string>
+    <string name="error_timeout">This took too long. Please try again.</string>
+    <string name="snackbar_force_stop_requested">Force stop requested</string>
+    <string name="snackbar_app_enabled">App enabled</string>
+    <string name="snackbar_app_disabled">App disabled</string>
+    <string name="snackbar_exclusion_added">Added to the exclusion list</string>
+    <string name="snackbar_exclusion_removed">Removed from the exclusion list</string>
+    <string name="protected_apps_list_full">The list is full (%1$d apps maximum).</string>
+    <string name="quarantine_error_entry_not_found">No quarantine entry for %1$s.</string>
+    <string name="quarantine_error_invalid_duration">The duration must be between %1$d and %2$d days.</string>
+    <string name="quarantine_error_app_list_loading">The app list is still loading. Try again in a moment.</string>
+    <string name="quarantine_error_apk_unreadable">The app's APK cannot be read, so it cannot be backed up.</string>
+    <string name="quarantine_error_backup_folder_unavailable">The backup folder cannot be written to. Pick it again in Settings.</string>
+    <string name="quarantine_error_backup_folder_revoked">Access to the backup folder was withdrawn. Pick it again in Settings.</string>
+    <string name="quarantine_error_backup_failed">The APK backup failed.</string>
+    <string name="quarantine_error_save_failed">The quarantine entry could not be saved.</string>
+
+    <!-- ================================================================ -->
+    <!-- Smart cleaner reasons, tracker categories, notification channels -->
+    <!-- ================================================================ -->
+    <plurals name="smart_reason_never_opened">
+        <item quantity="one">Never opened · installed %d day ago</item>
+        <item quantity="other">Never opened · installed %d days ago</item>
+    </plurals>
+    <plurals name="smart_reason_unused_for">
+        <item quantity="one">Unused for %d day</item>
+        <item quantity="other">Unused for %d days</item>
+    </plurals>
+    <string name="smart_reason_large_cache">Large cache</string>
+    <string name="smart_reason_large_rarely_used">Large and rarely used</string>
+    <string name="smart_reason_duplicate_category">Same category: %1$s</string>
+    <string name="tracker_category_ads">Advertising</string>
+    <string name="tracker_category_analytics">Analytics</string>
+    <string name="tracker_category_attribution">Attribution</string>
+    <string name="tracker_category_crash_reporter">Crash reporting</string>
+    <string name="tracker_category_identification">Identification</string>
+    <string name="tracker_category_profiling">Profiling</string>
+    <string name="tracker_category_push">Push notifications</string>
+    <string name="tracker_category_session_replay">Session replay</string>
+    <string name="trackers_contamination_percent">%1$d%%</string>
+    <string name="rarely_used_days_short">%1$d d</string>
+    <string name="notif_channel_scan_name">Background scan</string>
+    <string name="notif_channel_scan_desc">Notifications from the periodic catalogue scan.</string>
+    <string name="notif_channel_drift_name">Permission changes</string>
+    <string name="notif_channel_drift_desc">When an installed app\'s permissions change between two snapshots.</string>
+    <string name="notif_channel_quarantine_name">Quarantine reminders</string>
+    <string name="notif_channel_quarantine_desc">When the review date of a quarantined app has passed.</string>
+
 </resources>

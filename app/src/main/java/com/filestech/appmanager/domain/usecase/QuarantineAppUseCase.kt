@@ -45,8 +45,24 @@ class QuarantineAppUseCase @Inject constructor(
         /** SOFT mode — entry persisted, [appDetailsIntent] points to OS Settings for manual disable. */
         data class SoftReady(val appDetailsIntent: Intent) : Result
 
-        /** Backup or persist failed; [message] is human-readable English. */
-        data class Failure(val message: String) : Result
+        /**
+         * Validation, backup or persist failed. [reason] decides the message the user sees; [detail]
+         * is the technical cause, in English, for the logs only.
+         */
+        data class Failure(val reason: FailureReason, val detail: String) : Result
+    }
+
+    enum class FailureReason {
+        INVALID_PACKAGE,
+        INVALID_DURATION,
+        APP_NOT_FOUND,
+        APP_LIST_LOADING,
+        NEEDS_BACKUP_FOLDER,
+        APK_UNREADABLE,
+        BACKUP_FOLDER_UNAVAILABLE,
+        BACKUP_FOLDER_ACCESS_REVOKED,
+        BACKUP_FAILED,
+        SAVE_FAILED,
     }
 
     suspend operator fun invoke(
@@ -56,16 +72,16 @@ class QuarantineAppUseCase @Inject constructor(
         backupTreeUri: Uri?,
         nowMs: Long = System.currentTimeMillis(),
     ): Result {
-        if (!packageName.isValidPackageName()) return Result.Failure("Invalid package name")
+        if (!packageName.isValidPackageName()) return Result.Failure(FailureReason.INVALID_PACKAGE, "Invalid package name: $packageName")
         if (durationDays !in MIN_DAYS..MAX_DAYS) {
-            return Result.Failure("Duration must be in [$MIN_DAYS, $MAX_DAYS] days")
+            return Result.Failure(FailureReason.INVALID_DURATION, "Duration $durationDays not in [$MIN_DAYS, $MAX_DAYS]")
         }
 
         // Resolve label + version snapshot from the cache.
         val info = when (val r = appInfo.getApp(packageName)) {
             is Outcome.Success -> r.value
-            is Outcome.Failure -> return Result.Failure("App not found in cache: $packageName")
-            Outcome.Loading    -> return Result.Failure("Cache not ready")
+            is Outcome.Failure -> return Result.Failure(FailureReason.APP_NOT_FOUND, "App not found in cache: $packageName")
+            Outcome.Loading    -> return Result.Failure(FailureReason.APP_LIST_LOADING, "Cache not ready")
         }
 
         val restoreAt = nowMs + durationDays.toLong() * MS_PER_DAY
@@ -107,12 +123,20 @@ class QuarantineAppUseCase @Inject constructor(
         backupTreeUri: Uri?,
     ): Result {
         if (backupTreeUri == null) {
-            return Result.Failure("HARD mode requires a backup folder — please pick one in Settings")
+            return Result.Failure(FailureReason.NEEDS_BACKUP_FOLDER, "HARD mode without a backup folder")
         }
         val backupResult = apkBackup.backupApk(backupTreeUri, packageName, versionCode)
         val backupUri = when (backupResult) {
             is ApkBackupManager.Result.Success -> backupResult.documentUri
-            is ApkBackupManager.Result.Failure -> return Result.Failure(backupResult.message)
+            is ApkBackupManager.Result.Failure -> return Result.Failure(
+                reason = when (backupResult.reason) {
+                    ApkBackupManager.Reason.APK_UNREADABLE -> FailureReason.APK_UNREADABLE
+                    ApkBackupManager.Reason.FOLDER_UNAVAILABLE -> FailureReason.BACKUP_FOLDER_UNAVAILABLE
+                    ApkBackupManager.Reason.FOLDER_ACCESS_REVOKED -> FailureReason.BACKUP_FOLDER_ACCESS_REVOKED
+                    ApkBackupManager.Reason.FAILED -> FailureReason.BACKUP_FAILED
+                },
+                detail = backupResult.message,
+            )
         }
         return try {
             repository.upsert(
@@ -135,7 +159,7 @@ class QuarantineAppUseCase @Inject constructor(
             throw ce
         } catch (e: Exception) {
             Timber.e(e, "Quarantine HARD: persist failed for %s", packageName)
-            Result.Failure("Failed to persist quarantine entry: ${e.message}")
+            Result.Failure(FailureReason.SAVE_FAILED, "Failed to persist quarantine entry: ${e.message}")
         }
     }
 
@@ -169,7 +193,7 @@ class QuarantineAppUseCase @Inject constructor(
             throw ce
         } catch (e: Exception) {
             Timber.e(e, "Quarantine SOFT: persist failed for %s", packageName)
-            Result.Failure("Failed to persist quarantine entry: ${e.message}")
+            Result.Failure(FailureReason.SAVE_FAILED, "Failed to persist quarantine entry: ${e.message}")
         }
     }
 

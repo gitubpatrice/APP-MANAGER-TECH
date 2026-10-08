@@ -2,6 +2,7 @@ package com.filestech.appmanager.ui.screens.safety
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.isValidPackageName
@@ -12,6 +13,8 @@ import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.CriticalCategory
 import com.filestech.appmanager.domain.repository.AppInfoRepository
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.uiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -78,14 +81,14 @@ class ProtectedAppsViewModel @Inject constructor(
      */
     fun add(packageName: String) {
         if (!packageName.isValidPackageName()) {
-            _events.trySend(Event.ShowError("Invalid package name"))
+            _events.trySend(Event.ShowError(uiText(R.string.error_invalid_package)))
             return
         }
         viewModelScope.launch {
             settings.update {
                 if (packageName in safety.userProtectedPackages) return@update this
                 if (safety.userProtectedPackages.size >= MAX_CAP) {
-                    _events.trySend(Event.ShowError("Liste pleine ($MAX_CAP max)"))
+                    _events.trySend(Event.ShowError(uiText(R.string.protected_apps_list_full, MAX_CAP)))
                     return@update this
                 }
                 copy(safety = safety.copy(
@@ -122,7 +125,7 @@ class ProtectedAppsViewModel @Inject constructor(
     sealed interface Event {
         data class Added(val packageName: String) : Event
         data class Removed(val packageName: String) : Event
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
     }
 
     private companion object {

@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import androidx.core.content.ContextCompat
+import com.filestech.appmanager.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -45,10 +46,10 @@ class NotificationChannels @Inject constructor(
         mgr.createNotificationChannel(
             NotificationChannel(
                 SCAN_CHANNEL_ID,
-                "Background scan",
+                context.getString(R.string.notif_channel_scan_name),
                 NotificationManager.IMPORTANCE_DEFAULT,
             ).apply {
-                description = "Notifications fired by the periodic catalogue scan worker."
+                description = context.getString(R.string.notif_channel_scan_desc)
                 setShowBadge(false)
             },
         )
@@ -59,10 +60,10 @@ class NotificationChannels @Inject constructor(
         mgr.createNotificationChannel(
             NotificationChannel(
                 DRIFT_CHANNEL_ID,
-                "Permission changes",
+                context.getString(R.string.notif_channel_drift_name),
                 NotificationManager.IMPORTANCE_DEFAULT,
             ).apply {
-                description = "Fired when an installed app's permissions change between snapshots."
+                description = context.getString(R.string.notif_channel_drift_desc)
                 setShowBadge(true)
             },
         )
@@ -72,10 +73,10 @@ class NotificationChannels @Inject constructor(
         mgr.createNotificationChannel(
             NotificationChannel(
                 QUARANTINE_CHANNEL_ID,
-                "Quarantine reminders",
+                context.getString(R.string.notif_channel_quarantine_name),
                 NotificationManager.IMPORTANCE_DEFAULT,
             ).apply {
-                description = "Fired when a quarantined app's review date has passed."
+                description = context.getString(R.string.notif_channel_quarantine_desc)
                 setShowBadge(true)
             },
         )

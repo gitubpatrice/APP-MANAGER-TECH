@@ -89,6 +89,9 @@ import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.resolve
+import com.filestech.appmanager.ui.text.toUiText
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 import timber.log.Timber
@@ -162,9 +165,9 @@ fun AppDetailScreen(
             when (event) {
                 is AppDetailViewModel.Event.LaunchIntent -> launchIntent(context, event.intent)
                 is AppDetailViewModel.Event.ActionDone   ->
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is AppDetailViewModel.Event.ShowError    ->
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is AppDetailViewModel.Event.MovedToTrash ->
                     snackbarHostState.showSnackbar(
                         resources.getString(R.string.trash_moved_snackbar, event.label),
@@ -454,7 +457,7 @@ private fun AppDetailBody(
             when (val o = state.detailOutcome) {
                 Outcome.Loading -> LoadingState()
                 is Outcome.Failure -> ErrorState(
-                    message = o.error.toString(),
+                    message = o.error.toUiText().asString(),
                     onRetry = onRetry,
                 )
                 is Outcome.Success -> AppDetailContent(

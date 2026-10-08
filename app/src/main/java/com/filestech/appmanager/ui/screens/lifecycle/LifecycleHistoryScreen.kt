@@ -57,6 +57,8 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.toUiText
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 import java.text.DateFormat
@@ -132,7 +134,7 @@ private fun LifecycleBody(
         WindowPicker(window = window, onWindow = onWindow)
         when (events) {
             Outcome.Loading    -> LoadingState()
-            is Outcome.Failure -> ErrorState(message = events.error.toString(), onRetry = {})
+            is Outcome.Failure -> ErrorState(message = events.error.toUiText().asString(), onRetry = {})
             is Outcome.Success -> {
                 if (events.value.isEmpty()) {
                     EmptyState(

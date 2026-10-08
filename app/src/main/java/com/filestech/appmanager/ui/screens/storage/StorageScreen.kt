@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,7 +53,6 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.core.result.Outcome
-import com.filestech.appmanager.domain.model.AppCategory
 import com.filestech.appmanager.domain.model.StorageReport
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
@@ -61,6 +61,10 @@ import com.filestech.appmanager.ui.components.settings.ToggleRow
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.categoryLabel
+import com.filestech.appmanager.ui.text.resolve
+import com.filestech.appmanager.ui.text.toUiText
 import com.filestech.appmanager.ui.theme.BrandBlue
 import timber.log.Timber
 
@@ -81,6 +85,7 @@ fun StorageScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
 
     // v0.2.1 — re-probe PACKAGE_USAGE_STATS on ON_RESUME so that once the
     // user grants the permission in Settings and comes back, the banner
@@ -96,7 +101,7 @@ fun StorageScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is StorageViewModel.Event.ShowError ->
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is StorageViewModel.Event.LaunchIntent -> {
                     runCatching {
                         context.startActivity(
@@ -173,7 +178,7 @@ private fun StorageBody(
         Box(modifier = Modifier.weight(1f)) {
             when (val o = state.reportOutcome) {
                 Outcome.Loading -> LoadingState()
-                is Outcome.Failure -> ErrorState(message = o.error.toString(), onRetry = onRetry)
+                is Outcome.Failure -> ErrorState(message = o.error.toUiText().asString(), onRetry = onRetry)
                 is Outcome.Success -> {
                     if (o.value.totalAppCount == 0) {
                         EmptyState(
@@ -382,23 +387,6 @@ private fun TopAppRow(entry: StorageReport.AppFootprint, useCache: Boolean) {
         )
     }
 }
-
-@Composable
-private fun categoryLabel(category: AppCategory): String = stringResource(
-    when (category) {
-        AppCategory.GAMES         -> R.string.category_games
-        AppCategory.AUDIO         -> R.string.category_audio
-        AppCategory.VIDEO         -> R.string.category_video
-        AppCategory.IMAGE         -> R.string.category_image
-        AppCategory.SOCIAL        -> R.string.category_social
-        AppCategory.NEWS          -> R.string.category_news
-        AppCategory.MAPS          -> R.string.category_maps
-        AppCategory.PRODUCTIVITY  -> R.string.category_productivity
-        AppCategory.ACCESSIBILITY -> R.string.category_accessibility
-        AppCategory.OTHER         -> R.string.category_other
-        AppCategory.UNDEFINED     -> R.string.category_undefined
-    }
-)
 
 @Composable
 private fun SectionCard(content: @Composable () -> Unit) {

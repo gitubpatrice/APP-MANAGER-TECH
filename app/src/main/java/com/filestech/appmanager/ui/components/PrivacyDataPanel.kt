@@ -31,6 +31,7 @@ import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.PrivacyScore
 import com.filestech.appmanager.domain.model.PrivacyTier
 import com.filestech.appmanager.domain.model.TrackerReport
+import com.filestech.appmanager.ui.text.trackerCategoryLabel
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
 
@@ -165,7 +166,7 @@ fun PrivacyDataPanel(
                 Spacer(modifier = Modifier.size(4.dp))
                 trackerReport.detectedTrackers.forEach { tracker ->
                     Text(
-                        text     = "• ${tracker.name} (${tracker.category})",
+                        text     = "• ${tracker.name} (${trackerCategoryLabel(tracker.category)})",
                         style    = MaterialTheme.typography.bodySmall,
                         color    = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 22.dp, top = 2.dp, bottom = 2.dp),

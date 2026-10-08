@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.filestech.appmanager.R
 import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
@@ -14,6 +15,9 @@ import com.filestech.appmanager.domain.usecase.DropQuarantineEntryUseCase
 import com.filestech.appmanager.domain.usecase.ObserveQuarantinesUseCase
 import com.filestech.appmanager.domain.usecase.QuarantineAppUseCase
 import com.filestech.appmanager.domain.usecase.RestoreFromQuarantineUseCase
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
+import com.filestech.appmanager.ui.text.uiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -95,7 +99,7 @@ class QuarantineViewModel @Inject constructor(
                     is QuarantineAppUseCase.Result.SoftReady ->
                         _events.trySend(Event.LaunchIntent(result.appDetailsIntent))
                     is QuarantineAppUseCase.Result.Failure ->
-                        _events.trySend(Event.ShowError(result.message))
+                        _events.trySend(Event.ShowError(result.toUiText()))
                 }
             } finally {
                 isWorking.set(false)
@@ -115,9 +119,9 @@ class QuarantineViewModel @Inject constructor(
                     RestoreFromQuarantineUseCase.Result.BackupMissing ->
                         _events.trySend(Event.BackupMissing(packageName))
                     RestoreFromQuarantineUseCase.Result.NotFound ->
-                        _events.trySend(Event.ShowError("Entry not found: $packageName"))
+                        _events.trySend(Event.ShowError(uiText(R.string.quarantine_error_entry_not_found, packageName)))
                     RestoreFromQuarantineUseCase.Result.InvalidPackage ->
-                        _events.trySend(Event.ShowError("Invalid package: $packageName"))
+                        _events.trySend(Event.ShowError(uiText(R.string.error_invalid_package)))
                 }
             } finally {
                 isWorking.set(false)
@@ -138,7 +142,7 @@ class QuarantineViewModel @Inject constructor(
 
     sealed interface Event {
         data class LaunchIntent(val intent: Intent) : Event
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
         /** HARD restore requested but APK file is gone — UI asks user to drop the entry. */
         data class BackupMissing(val packageName: String) : Event
         /** HARD quarantine requested but the user has not picked a backup folder yet. */

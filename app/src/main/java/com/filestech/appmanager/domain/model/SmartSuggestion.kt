@@ -12,14 +12,15 @@ package com.filestech.appmanager.domain.model
  * - a [category] for the badge,
  * - the [appInfo] subject,
  * - an estimate of how much space the user could reclaim by acting on it,
- * - a [recommendedAction] hint the UI can wire to an existing UseCase.
+ * - a [recommendedAction] hint the UI can wire to an existing UseCase,
+ * - the [reason] it was picked, which the screen words in the user's language.
  */
 data class SmartSuggestion(
     val appInfo: AppInfo,
     val category: Category,
     val reclaimableBytes: Long,
     val recommendedAction: RecommendedAction,
-    val reasonShort: String,
+    val reason: Reason,
 ) {
 
     /** Visual badge category — drives the colour and section grouping. */
@@ -36,6 +37,15 @@ data class SmartSuggestion(
         UNINSTALL,
         CLEAR_CACHE,
         REVIEW_AND_DECIDE,
+    }
+
+    /** Why the app was suggested — data, not a sentence: the screen words it. */
+    sealed interface Reason {
+        data class NeverOpened(val daysInstalled: Int) : Reason
+        data class UnusedFor(val days: Int) : Reason
+        data object LargeCache : Reason
+        data object LargeAndRarelyUsed : Reason
+        data class DuplicateCategory(val category: AppCategory) : Reason
     }
 }
 

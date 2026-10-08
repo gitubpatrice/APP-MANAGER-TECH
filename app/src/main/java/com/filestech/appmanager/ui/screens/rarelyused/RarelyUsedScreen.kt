@@ -54,6 +54,8 @@ import com.filestech.appmanager.ui.components.settings.NavigationRow
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.toUiText
 import timber.log.Timber
 
 /**
@@ -179,7 +181,7 @@ private fun RarelyUsedBody(
     Box(modifier = Modifier.fillMaxSize()) {
         when (val o = outcome) {
             Outcome.Loading      -> LoadingState()
-            is Outcome.Failure   -> ErrorState(message = o.error.toString())
+            is Outcome.Failure   -> ErrorState(message = o.error.toUiText().asString())
             is Outcome.Success   -> {
                 if (o.value.isEmpty()) {
                     EmptyState(
@@ -231,13 +233,10 @@ private fun RarelyUsedBody(
 @Composable
 private fun RarelyUsedRow(app: AppInfo, now: Long, onClick: () -> Unit) {
     val context = LocalContext.current
-    val daysLabel = remember(app.lastUsedTime, now) {
-        if (app.lastUsedTime == 0L) {
-            "—"
-        } else {
-            "${((now - app.lastUsedTime) / MS_PER_DAY).toInt()} d"
-        }
+    val days = remember(app.lastUsedTime, now) {
+        if (app.lastUsedTime == 0L) null else ((now - app.lastUsedTime) / MS_PER_DAY).toInt()
     }
+    val daysLabel = days?.let { stringResource(R.string.rarely_used_days_short, it) } ?: "—"
     val sizeLabel = remember(app.totalSizeBytes) {
         Formatter.formatShortFileSize(context, app.totalSizeBytes)
     }

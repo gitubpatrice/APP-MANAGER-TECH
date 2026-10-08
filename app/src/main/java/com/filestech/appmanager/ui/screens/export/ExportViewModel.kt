@@ -11,6 +11,8 @@ import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.domain.model.ExportFormat
 import com.filestech.appmanager.domain.model.ExportReport
 import com.filestech.appmanager.domain.usecase.ExportReportUseCase
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.toUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,7 +71,7 @@ class ExportViewModel @Inject constructor(
                 }
                 is Outcome.Failure -> {
                     _state.update { it.copy(isExporting = false) }
-                    _events.trySend(Event.ShowError(outcome.error.toString()))
+                    _events.trySend(Event.ShowError(outcome.error.toUiText()))
                 }
                 Outcome.Loading -> Unit
             }
@@ -92,7 +94,7 @@ class ExportViewModel @Inject constructor(
                 }
                 is Outcome.Failure -> {
                     _state.update { it.copy(isExporting = false) }
-                    _events.trySend(Event.ShowError(outcome.error.toString()))
+                    _events.trySend(Event.ShowError(outcome.error.toUiText()))
                 }
                 Outcome.Loading -> Unit
             }
@@ -106,6 +108,6 @@ class ExportViewModel @Inject constructor(
 
     sealed interface Event {
         data class Done(val report: ExportReport) : Event
-        data class ShowError(val message: String) : Event
+        data class ShowError(val text: UiText) : Event
     }
 }

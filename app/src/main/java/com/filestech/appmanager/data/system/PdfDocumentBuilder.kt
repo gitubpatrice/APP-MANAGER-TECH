@@ -229,8 +229,8 @@ class PdfDocumentBuilder @Inject constructor(
         }
         rows.forEach { row ->
             val kind = when (row.kind) {
-                DiagnosticReport.SensitiveAccessKind.DEVICE_ADMIN  -> "DEVICE_ADMIN"
-                DiagnosticReport.SensitiveAccessKind.ACCESSIBILITY -> "ACCESSIBILITY"
+                DiagnosticReport.SensitiveAccessKind.DEVICE_ADMIN  -> context.getString(R.string.security_audit_section_device_admin)
+                DiagnosticReport.SensitiveAccessKind.ACCESSIBILITY -> context.getString(R.string.security_audit_section_accessibility)
             }
             p.drawBody(row.label + "  —  " + kind)
             p.drawMono(row.packageName)

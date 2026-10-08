@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,6 +61,8 @@ import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.state.EmptyState
+import com.filestech.appmanager.ui.text.categoryLabel
+import com.filestech.appmanager.ui.text.resolve
 import timber.log.Timber
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
@@ -94,7 +97,7 @@ fun SmartCleanerScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is SmartCleanerViewModel.Event.ShowError ->
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is SmartCleanerViewModel.Event.LaunchIntent -> {
                     runCatching {
                         context.startActivity(event.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
@@ -339,7 +342,7 @@ private fun SuggestionRow(
                 CategoryBadge(category = suggestion.category)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text  = suggestion.reasonShort,
+                    text  = suggestion.reason.label(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -448,3 +451,14 @@ private data class SmartCleanerCriticalConfirm(
     val classification: com.filestech.appmanager.domain.model.CriticalClassification,
     val appLabel: String,
 )
+
+@Composable
+private fun SmartSuggestion.Reason.label(): String = when (this) {
+    is SmartSuggestion.Reason.NeverOpened ->
+        pluralStringResource(R.plurals.smart_reason_never_opened, daysInstalled, daysInstalled)
+    is SmartSuggestion.Reason.UnusedFor -> pluralStringResource(R.plurals.smart_reason_unused_for, days, days)
+    SmartSuggestion.Reason.LargeCache -> stringResource(R.string.smart_reason_large_cache)
+    SmartSuggestion.Reason.LargeAndRarelyUsed -> stringResource(R.string.smart_reason_large_rarely_used)
+    is SmartSuggestion.Reason.DuplicateCategory ->
+        stringResource(R.string.smart_reason_duplicate_category, categoryLabel(category))
+}

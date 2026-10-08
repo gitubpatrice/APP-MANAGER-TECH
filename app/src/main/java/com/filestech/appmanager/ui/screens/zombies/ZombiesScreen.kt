@@ -58,6 +58,8 @@ import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.toUiText
 import com.filestech.appmanager.ui.theme.BrandDanger
 import timber.log.Timber
 
@@ -166,7 +168,7 @@ fun ZombiesScreen(
             Box(modifier = Modifier.fillMaxSize()) {
                 when (val o = state.outcome) {
                     Outcome.Loading      -> LoadingState()
-                    is Outcome.Failure   -> ErrorState(message = o.error.toString(), onRetry = viewModel::refresh)
+                    is Outcome.Failure   -> ErrorState(message = o.error.toUiText().asString(), onRetry = viewModel::refresh)
                     is Outcome.Success   -> {
                         if (o.value.isEmpty()) {
                             EmptyState(

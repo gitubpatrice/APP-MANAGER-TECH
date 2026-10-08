@@ -85,6 +85,9 @@ import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
 import com.filestech.appmanager.ui.components.dialogs.appTagLabelRes
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.resolve
+import com.filestech.appmanager.ui.text.toUiText
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
@@ -129,7 +132,7 @@ fun AppListScreen(
                     event.intents.forEach { launchIntent(context, it) }
                 }
                 is AppListViewModel.Event.ShowError -> {
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
                 }
                 is AppListViewModel.Event.BatchDone -> {
                     val r = event.result
@@ -472,7 +475,7 @@ private fun AppListBody(
             when (val o = state.listOutcome) {
                 Outcome.Loading -> LoadingState()
                 is Outcome.Failure -> ErrorState(
-                    message = o.error.toString(),
+                    message = o.error.toUiText().asString(),
                     onRetry = onRetry,
                 )
                 is Outcome.Success -> {

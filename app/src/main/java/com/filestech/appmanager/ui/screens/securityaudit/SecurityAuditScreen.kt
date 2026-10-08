@@ -56,6 +56,8 @@ import com.filestech.appmanager.R
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.settings.SectionHeader
+import com.filestech.appmanager.ui.text.UiText
+import com.filestech.appmanager.ui.text.asString
 import com.filestech.appmanager.ui.theme.BrandDanger
 import timber.log.Timber
 
@@ -141,7 +143,7 @@ fun SecurityAuditScreen(
 private fun SecurityAuditBody(
     innerPadding: PaddingValues,
     isLoading: Boolean,
-    error: String?,
+    error: UiText?,
     deviceAdmins: List<String>,
     accessibilityServices: List<String>,
     onAppClick: (String) -> Unit,
@@ -168,7 +170,7 @@ private fun SecurityAuditBody(
         ) {
             if (error != null) {
                 Text(
-                    text     = error,
+                    text     = error.asString(),
                     style    = MaterialTheme.typography.bodyMedium,
                     // v0.2.1 audit M5 fix — was `colorScheme.error` which
                     // can drift to pink/purple under Material You dynamic

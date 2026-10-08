@@ -60,6 +60,7 @@ import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.state.EmptyState
+import com.filestech.appmanager.ui.text.resolve
 import com.filestech.appmanager.ui.theme.BrandDanger
 import timber.log.Timber
 import java.text.DateFormat
@@ -115,7 +116,7 @@ fun TrashScreen(
                         resources.getString(R.string.trash_restored_snackbar, event.packageName),
                     )
                 }
-                is TrashViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.message)
+                is TrashViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is TrashViewModel.Event.RequiresCriticalConfirmation ->
                     criticalConfirm = CriticalConfirmState(
                         classification = event.classification,

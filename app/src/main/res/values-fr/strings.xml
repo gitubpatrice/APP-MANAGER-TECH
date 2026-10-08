@@ -925,4 +925,58 @@
     <string name="action_journal_result_success">Effectué</string>
     <string name="action_journal_result_failed">Échec</string>
 
+    <!-- ================================================================ -->
+    <!-- Messages emitted by ViewModels and failure reasons (ui/text)     -->
+    <!-- ================================================================ -->
+    <string name="error_invalid_package">Nom de paquet invalide.</string>
+    <string name="error_cannot_uninstall">Impossible de désinstaller %1$s.</string>
+    <string name="error_timeout">L'opération a pris trop de temps. Réessayez.</string>
+    <string name="snackbar_force_stop_requested">Arrêt forcé demandé</string>
+    <string name="snackbar_app_enabled">Application activée</string>
+    <string name="snackbar_app_disabled">Application désactivée</string>
+    <string name="snackbar_exclusion_added">Ajoutée à la liste des exclusions</string>
+    <string name="snackbar_exclusion_removed">Retirée de la liste des exclusions</string>
+    <string name="protected_apps_list_full">La liste est pleine (%1$d applications au maximum).</string>
+    <string name="quarantine_error_entry_not_found">Aucune entrée de quarantaine pour %1$s.</string>
+    <string name="quarantine_error_invalid_duration">La durée doit être comprise entre %1$d et %2$d jours.</string>
+    <string name="quarantine_error_app_list_loading">La liste des applications est encore en cours de chargement. Réessayez dans un instant.</string>
+    <string name="quarantine_error_apk_unreadable">L'APK de l'application est illisible : impossible de le sauvegarder.</string>
+    <string name="quarantine_error_backup_folder_unavailable">Impossible d'écrire dans le dossier de sauvegarde. Choisissez-le à nouveau dans les Paramètres.</string>
+    <string name="quarantine_error_backup_folder_revoked">L'accès au dossier de sauvegarde a été retiré. Choisissez-le à nouveau dans les Paramètres.</string>
+    <string name="quarantine_error_backup_failed">La sauvegarde de l'APK a échoué.</string>
+    <string name="quarantine_error_save_failed">L'entrée de quarantaine n'a pas pu être enregistrée.</string>
+
+    <!-- ================================================================ -->
+    <!-- Smart cleaner reasons, tracker categories, notification channels -->
+    <!-- ================================================================ -->
+    <plurals name="smart_reason_never_opened">
+        <item quantity="one">Jamais ouverte · installée il y a %d jour</item>
+        <item quantity="many">Jamais ouverte · installée il y a %d jours</item>
+        <item quantity="other">Jamais ouverte · installée il y a %d jours</item>
+    </plurals>
+    <plurals name="smart_reason_unused_for">
+        <item quantity="one">Inutilisée depuis %d jour</item>
+        <item quantity="many">Inutilisée depuis %d jours</item>
+        <item quantity="other">Inutilisée depuis %d jours</item>
+    </plurals>
+    <string name="smart_reason_large_cache">Cache volumineux</string>
+    <string name="smart_reason_large_rarely_used">Volumineuse et peu utilisée</string>
+    <string name="smart_reason_duplicate_category">Même catégorie : %1$s</string>
+    <string name="tracker_category_ads">Publicité</string>
+    <string name="tracker_category_analytics">Statistiques</string>
+    <string name="tracker_category_attribution">Attribution</string>
+    <string name="tracker_category_crash_reporter">Rapports de plantage</string>
+    <string name="tracker_category_identification">Identification</string>
+    <string name="tracker_category_profiling">Profilage</string>
+    <string name="tracker_category_push">Notifications push</string>
+    <string name="tracker_category_session_replay">Enregistrement de session</string>
+    <string name="trackers_contamination_percent">%1$d\u00A0%%</string>
+    <string name="rarely_used_days_short">%1$d j</string>
+    <string name="notif_channel_scan_name">Analyse en arrière-plan</string>
+    <string name="notif_channel_scan_desc">Notifications de l\'analyse périodique du catalogue.</string>
+    <string name="notif_channel_drift_name">Changements de permissions</string>
+    <string name="notif_channel_drift_desc">Lorsque les permissions d\'une application installée changent entre deux instantanés.</string>
+    <string name="notif_channel_quarantine_name">Rappels de quarantaine</string>
+    <string name="notif_channel_quarantine_desc">Lorsque la date de réexamen d\'une application en quarantaine est passée.</string>
+
 </resources>

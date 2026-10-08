@@ -50,6 +50,8 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.settings.ToggleRow
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
+import com.filestech.appmanager.ui.text.asString
+import com.filestech.appmanager.ui.text.toUiText
 
 /**
  * Permission-filter screen — input a permission FQCN and list every user
@@ -149,7 +151,7 @@ fun PermissionFilterScreen(
             ) {
                 when (val o = state.outcome) {
                     Outcome.Loading      -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    is Outcome.Failure   -> ErrorState(message = o.error.toString())
+                    is Outcome.Failure   -> ErrorState(message = o.error.toUiText().asString())
                     is Outcome.Success   -> {
                         if (o.value.isEmpty() && state.permission.isNotBlank() && !state.isSearching) {
                             EmptyState(

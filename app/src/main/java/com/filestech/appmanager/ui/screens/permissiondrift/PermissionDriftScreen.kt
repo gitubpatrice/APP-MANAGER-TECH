@@ -57,6 +57,7 @@ import com.filestech.appmanager.domain.model.SnapshotStats
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.state.EmptyState
+import com.filestech.appmanager.ui.text.resolve
 import com.filestech.appmanager.ui.theme.BrandDanger
 import java.text.DateFormat
 import java.util.Date
@@ -111,7 +112,7 @@ fun PermissionDriftScreen(
                         snackbarHostState.showSnackbar(resources.getString(R.string.error_no_handler))
                     }
                 is PermissionDriftViewModel.Event.ShowError ->
-                    snackbarHostState.showSnackbar(event.message)
+                    snackbarHostState.showSnackbar(event.text.resolve(resources))
             }
         }
     }
