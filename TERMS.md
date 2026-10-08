@@ -56,6 +56,8 @@ forbids it.
   is lost when it is uninstalled, and restoring it reinstalls a blank app. Restoring goes through
   Android's installer, which asks for your consent and, the first time, for permission to install
   apps from App Manager Tech.
+  Quarantine with backup is not offered for an app installed as several APK files (App Bundle) or for a system app:
+  a backup of its main file alone could not reinstall it.
 - **App Manager Tech does not yet check that a backed-up APK has not been modified** in its folder.
   Only restore files you backed up yourself, in a folder no other app modifies.
 - Uninstalling App Manager Tech deletes its histories, its trash and its quarantines. Backed-up

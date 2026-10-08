@@ -43,10 +43,9 @@ redistribuya si su licencia lo prohíbe.
   presente pero que nunca se utiliza.
 - **La puntuación de privacidad es una estimación.** Se calcula a partir de los permisos
   declarados, de ciertos accesos especiales y del origen de la instalación. Mide el alcance de los
-  accesos de una app, no sus intenciones: una puntuación baja no designa un software malicioso, una
-  puntuación alta no garantiza nada.
+  accesos de una app, no sus intenciones: una puntuación baja no significa que la app sea maliciosa, y una puntuación alta no garantiza nada.
 - **La advertencia «app crítica» no es exhaustiva.** Antes de una acción sobre una app que reconoce
-  como crítica, o que usted ha protegido, la app exige una pulsación mantenida de tres segundos. No
+  como crítica, o que usted ha protegido, la app exige mantener pulsado durante tres segundos. No
   las reconoce todas: desactivar o desinstalar una app del sistema puede volver inestable el
   teléfono.
 - Sin el «Acceso a datos de uso», los tamaños aparecen en 0 y las apps como «Nunca usada». Android
@@ -59,9 +58,11 @@ redistribuya si su licencia lo prohíbe.
 - **La papelera no desinstala nada** mientras usted no la vacíe: vaciarla inicia la desinstalación
   de cada app que contiene.
 - **Una cuarentena con copia de seguridad solo conserva el APK.** Los datos de la app — cuentas,
-  preferencias, archivos — se pierden al desinstalarla, y restaurarla reinstala una app en blanco.
+  preferencias, archivos — se pierden al desinstalarla; al restaurarla, la app se reinstala sin sus datos.
   La restauración pasa por el instalador de Android, que le pide su consentimiento y, la primera
   vez, la autorización para instalar apps desde App Manager Tech.
+  La cuarentena con copia de seguridad no se ofrece para una app instalada como varios archivos APK (App Bundle) ni para una app del
+  sistema: una copia de seguridad de su archivo principal por sí solo no podría reinstalarla.
 - **App Manager Tech todavía no comprueba que el APK de una copia de seguridad no haya sido
   modificado** en su carpeta. Restaure únicamente archivos que usted mismo haya guardado, en una
   carpeta que ninguna otra app modifique.

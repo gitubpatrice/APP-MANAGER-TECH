@@ -29,7 +29,7 @@ your apps, not your content.
 | List of apps: name, version, sizes, install, update and last-used dates, store of origin, state (enabled, hibernated) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Replaced at every scan |
 | Trackers detected, privacy score | Computed on the phone (see below) | Recomputed every time they are shown |
 | History of the permissions granted to each app — **off by default** | Periodic capture, if you turn it on | 90 days by default, adjustable from 7 to 365 |
-| History of installs, updates and uninstalls, with the SHA-256 fingerprint of each APK and the uninstall reason you choose to give — **off by default** | Android's announcements, if you turn it on | 180 days by default, adjustable from 30 to 365 |
+| History of installs, updates and uninstalls, with the SHA-256 fingerprint of each APK and the uninstall reason you choose to give — **off by default** | Android's announcements received while the app is running, if you turn it on | 180 days by default, adjustable from 30 to 365 |
 | Journal of the actions started from App Manager Tech — **off by default** | Your actions, if you turn it on | 180 days by default, adjustable from 30 to 365 |
 | Trash and quarantines | Your actions | Until you empty or restore them |
 | Settings: theme, thresholds, ignored or protected apps, tags, and the access grant to the backup folder you picked | You | Until uninstall |
@@ -60,7 +60,7 @@ brought with it. An automated check rejects any build whose APK departs from thi
 | `REQUEST_DELETE_PACKAGES` | Open Android's uninstall window. Android asks for confirmation and uninstalls. | No |
 | `REQUEST_INSTALL_PACKAGES` | Restore a quarantined app: hand the backed-up APK to Android's installer. Android additionally requires you to allow App Manager Tech to install apps yourself, and asks for confirmation at every install. It serves nothing else. | No |
 | `KILL_BACKGROUND_PROCESSES` | Stop an app's background processes, at your request. | No |
-| `POST_NOTIFICATIONS` | Three optional notifications: cache threshold reached, permissions changed, end of a quarantine. Requested at run time, can be refused. | No |
+| `POST_NOTIFICATIONS` | Three optional notifications: cache threshold reached, permissions changed, end of a quarantine. Requested when you turn one of them on (Android 13 and later), can be refused. | No |
 
 ### Brought by the libraries used
 

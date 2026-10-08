@@ -13,7 +13,7 @@ App Manager Tech è un'app completamente locale per gestire e pulire le app Andr
 • Modifiche alle autorizzazioni — ciò che ogni app ha ottenuto o perso tra due istantanee (da attivare)
 • Storico delle installazioni — installazioni, aggiornamenti e disinstallazioni (da attivare)
 • Gruppi per firma — app raggruppate per certificato di firma
-• Quarantena — mettere da parte un'app con una data di revisione: un semplice promemoria, oppure una disinstallazione dopo il backup dell'APK in una cartella a sua scelta
+• Quarantena — mettere da parte un'app con una data di revisione: un semplice promemoria, oppure — per un'app installata da un unico file APK — una disinstallazione dopo il backup dell'APK in una cartella a sua scelta
 • Cestino — mettere in attesa le disinstallazioni e riesaminarle prima
 • App protette — conferma con pressione di 3 secondi prima delle azioni distruttive, sulle sue app e su elenchi integrati: autenticatori, gestori di password, messaggistica crittografata, salute, banche e trasporti francesi
 • Registro delle azioni — una traccia locale di ciò che ha fatto App Manager Tech (da attivare)

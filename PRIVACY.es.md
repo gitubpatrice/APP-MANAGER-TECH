@@ -32,7 +32,7 @@ apps, no sus contenidos.
 | Lista de las apps: nombre, versión, tamaños, fechas de instalación, de actualización y de último uso, tienda de origen, estado (activada, hibernada) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Se sustituye en cada análisis |
 | Rastreadores detectados, puntuación de privacidad | Calculados en el teléfono (véase más abajo) | Se recalculan cada vez que se muestran |
 | Historial de los permisos concedidos a cada app — **desactivado por defecto** | Instantánea periódica, si lo activa | 90 días por defecto, ajustable de 7 a 365 |
-| Historial de las instalaciones, actualizaciones y desinstalaciones, con la huella SHA-256 de cada APK y el motivo de desinstalación que usted decida indicar — **desactivado por defecto** | Avisos de Android, si lo activa | 180 días por defecto, ajustable de 30 a 365 |
+| Historial de las instalaciones, actualizaciones y desinstalaciones, con la huella SHA-256 de cada APK y el motivo de desinstalación que usted decida indicar — **desactivado por defecto** | Avisos de Android recibidos mientras la app está en funcionamiento, si lo activa | 180 días por defecto, ajustable de 30 a 365 |
 | Registro de las acciones iniciadas desde App Manager Tech — **desactivado por defecto** | Sus acciones, si lo activa | 180 días por defecto, ajustable de 30 a 365 |
 | Papelera y cuarentenas | Sus acciones | Hasta que usted las vacíe o las restaure |
 | Ajustes: tema, umbrales, apps ignoradas o protegidas, etiquetas, y la autorización de acceso a la carpeta de copias de seguridad que usted haya elegido | Usted | Hasta la desinstalación |
@@ -49,8 +49,7 @@ El desarrollador **no tiene acceso** a estos datos y **no recibe ninguna copia**
 
 ## Permisos solicitados, y para qué
 
-Esta lista es **exhaustiva**: son los doce permisos que lleva el APK publicado, tal como se leen en
-su manifiesto. Incluye, por tanto, los que ninguna línea de nuestro código solicita, pero que una
+Esta lista es **exhaustiva**: son los doce permisos declarados en el APK publicado, tal como figuran en su manifiesto. Incluye, por tanto, los que ninguna línea de nuestro código solicita, pero que una
 biblioteca trajo consigo. Una comprobación automática rechaza cualquier compilación cuyo APK se
 aparte de esta lista (`tools/check-manifest-permissions.py`, ejecutado en cada compilación de
 integración continua).
@@ -65,7 +64,7 @@ integración continua).
 | `REQUEST_DELETE_PACKAGES` | Abrir la ventana de desinstalación de Android. Es Android quien pide confirmación y quien desinstala. | No |
 | `REQUEST_INSTALL_PACKAGES` | Restaurar una app puesta en cuarentena: entregar el APK guardado al instalador de Android. Android exige además que usted mismo autorice a App Manager Tech a instalar apps, y pide confirmación en cada instalación. No sirve para nada más. | No |
 | `KILL_BACKGROUND_PROCESSES` | Detener los procesos en segundo plano de una app, a petición suya. | No |
-| `POST_NOTIFICATIONS` | Tres notificaciones opcionales: umbral de caché alcanzado, permisos modificados, fin de una cuarentena. Se solicita durante el uso y puede denegarse. | No |
+| `POST_NOTIFICATIONS` | Tres notificaciones opcionales: umbral de caché alcanzado, permisos modificados, fin de una cuarentena. Se solicita cuando usted activa una de ellas (Android 13 y posteriores) y puede denegarse. | No |
 
 ### Traídos por las bibliotecas utilizadas
 
@@ -75,7 +74,7 @@ integración continua).
 | `RECEIVE_BOOT_COMPLETED` | `androidx.work` | Volver a programar esas tareas tras un reinicio. | No |
 | `FOREGROUND_SERVICE` | `androidx.work` | **Nada.** `androidx.work` lo declara para las tareas «expedited»; la app no programa ninguna. | No |
 | `ACCESS_NETWORK_STATE` | `androidx.work` | **Nada.** `androidx.work` lo declara para las tareas que esperan una red; todas las de la app se programan sin condición de red. Solo permitiría saber si hay una red disponible: sin `INTERNET`, es imposible usar esa red. | No |
-| `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | Permiso **autoconcedido**, de nivel «signature»: solo una app firmada con nuestra clave puede obtenerlo. Cierra a las demás apps el receptor que la app registra para seguir las instalaciones. | No |
+| `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | Permiso **autoconcedido**, de nivel «signature»: solo una app firmada con nuestra clave puede obtenerlo. Impide que las demás apps accedan al receptor que la app registra para seguir las instalaciones. | No |
 
 La app **nunca** solicita acceso a Internet, a la ubicación, a los contactos, a los SMS, al
 calendario, al micrófono, a la cámara ni a sus archivos (`MANAGE_EXTERNAL_STORAGE`,
@@ -110,8 +109,7 @@ ADB.
 
 ## Sus derechos (RGPD)
 
-Como la app no trata ningún dato personal fuera de su dispositivo, no existe ningún tratamiento
-remoto al que acceder, que rectificar o que suprimir. Usted conserva el control total: desactivar
+Como la app no trata ningún dato personal fuera de su dispositivo, no existe ningún tratamiento remoto respecto del cual pueda ejercer los derechos de acceso, rectificación o supresión. Usted conserva el control total: desactivar
 un historial, vaciar la papelera o desinstalar la app borra los datos correspondientes del
 dispositivo. La exportación le proporciona una copia legible de lo que la app sabe de sus apps.
 

@@ -13,7 +13,7 @@ App Manager Tech is a fully local Android app manager and cleaner. Inspect every
 • Permission changes — what each app was granted or lost between snapshots (opt-in)
 • Install history — installs, updates and uninstalls (opt-in)
 • Signature clusters — apps grouped by signing certificate
-• Quarantine — set an app aside with a review date: a reminder, or an uninstall after backing up its APK to a folder you choose
+• Quarantine — set an app aside with a review date: a reminder, or — for a single-APK app you installed — an uninstall after backing up its APK to a folder you choose
 • Trash — stage uninstalls and review them first
 • Protected apps — a 3-second hold before destructive actions, on your apps and on built-in lists: authenticators, password managers, encrypted messengers, health, French banks and transport
 • Action journal — a local record of what App Manager Tech did (opt-in)

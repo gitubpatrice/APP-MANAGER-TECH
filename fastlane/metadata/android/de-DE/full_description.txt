@@ -13,7 +13,7 @@ App Manager Tech ist ein vollständig lokales Werkzeug zur Verwaltung und Berein
 • Berechtigungsänderungen — was jeder App zwischen zwei Momentaufnahmen erteilt oder entzogen wurde (optional aktivierbar)
 • Installationsverlauf — Installationen, Updates und Deinstallationen (optional aktivierbar)
 • Signaturgruppen — Apps nach Signaturzertifikat gruppiert
-• Quarantäne — eine App mit Prüftermin beiseitestellen: nur eine Erinnerung oder eine Deinstallation, nachdem ihr APK in einem Ordner Ihrer Wahl gesichert wurde
+• Quarantäne — eine App mit Prüftermin beiseitestellen: nur eine Erinnerung oder — bei einer selbst installierten App aus einer einzigen APK-Datei — eine Deinstallation, nachdem ihr APK in einem Ordner Ihrer Wahl gesichert wurde
 • Papierkorb — Deinstallationen vormerken und vorher prüfen
 • Geschützte Apps — 3 Sekunden langes Gedrückthalten vor destruktiven Aktionen, für Ihre Apps und für integrierte Listen: Authenticator-Apps, Passwortmanager, verschlüsselte Messenger, Gesundheits-Apps, französische Banking- und Verkehrs-Apps
 • Aktionsprotokoll — eine lokale Aufzeichnung dessen, was App Manager Tech getan hat (optional aktivierbar)

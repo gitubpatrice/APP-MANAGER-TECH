@@ -13,7 +13,7 @@ App Manager Tech est un gestionnaire et nettoyeur d'applications Android entièr
 • Changements de permissions — ce que chaque app a gagné ou perdu entre deux instantanés (à activer)
 • Historique des installations — installations, mises à jour, désinstallations (à activer)
 • Clusters de signatures — apps regroupées par certificat de signature
-• Quarantaine — mettre une app de côté avec une date de réexamen : simple rappel, ou désinstallation après sauvegarde de son APK dans le dossier de votre choix
+• Quarantaine — mettre une app de côté avec une date de réexamen : simple rappel, ou — pour une app installée d'un seul fichier APK — désinstallation après sauvegarde de son APK dans le dossier de votre choix
 • Corbeille — préparer des désinstallations et les revoir d'abord
 • Apps protégées — appui de 3 secondes avant toute action destructrice, sur vos apps et sur des listes intégrées : authentificateurs, gestionnaires de mots de passe, messageries chiffrées, santé, banques et transports français
 • Journal d'actions — trace locale de ce qu'App Manager Tech a fait (à activer)

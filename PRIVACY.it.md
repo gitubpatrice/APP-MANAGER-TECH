@@ -31,7 +31,7 @@ le sue app, non i suoi contenuti.
 | Elenco delle app: nome, versione, dimensioni, date di installazione, di aggiornamento e di ultimo utilizzo, store di origine, stato (attivata, ibernata) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Sostituito a ogni analisi |
 | Tracker rilevati, punteggio privacy | Calcolati sul telefono (veda più avanti) | Ricalcolati a ogni visualizzazione |
 | Storico delle autorizzazioni concesse a ciascuna app — **disattivato per impostazione predefinita** | Rilevazione periodica, se lo attiva | 90 giorni per impostazione predefinita, regolabile da 7 a 365 |
-| Storico di installazioni, aggiornamenti e disinstallazioni, con l'impronta SHA-256 di ciascun APK e il motivo della disinstallazione che sceglie di indicare — **disattivato per impostazione predefinita** | Segnalazioni di Android, se lo attiva | 180 giorni per impostazione predefinita, regolabile da 30 a 365 |
+| Storico di installazioni, aggiornamenti e disinstallazioni, con l'impronta SHA-256 di ciascun APK e il motivo della disinstallazione che sceglie di indicare — **disattivato per impostazione predefinita** | Segnalazioni di Android ricevute mentre l'app è in esecuzione, se lo attiva | 180 giorni per impostazione predefinita, regolabile da 30 a 365 |
 | Registro delle azioni avviate da App Manager Tech — **disattivato per impostazione predefinita** | Le sue azioni, se lo attiva | 180 giorni per impostazione predefinita, regolabile da 30 a 365 |
 | Cestino e quarantene | Le sue azioni | Finché non li svuota o non li ripristina |
 | Impostazioni: tema, soglie, app ignorate o protette, tag, e l'autorizzazione di accesso alla cartella di backup che ha scelto | Lei | Fino alla disinstallazione |
@@ -48,8 +48,7 @@ Lo sviluppatore **non ha accesso** a questi dati e **non ne riceve alcuna copia*
 
 ## Autorizzazioni richieste, e perché
 
-Questo elenco è **completo**: sono le dodici autorizzazioni che porta l'APK pubblicato, così come si
-leggono nel suo manifest. Comprende quindi anche quelle che nessuna riga del nostro codice richiede,
+Questo elenco è **completo**: sono le dodici autorizzazioni dichiarate nell'APK pubblicato, così come risultano dal relativo file manifest. Comprende quindi anche quelle che nessuna riga del nostro codice richiede,
 ma che una libreria ha portato con sé. Un controllo automatico rifiuta ogni build il cui APK si
 discosti da questo elenco (`tools/check-manifest-permissions.py`, eseguito a ogni build di
 integrazione continua).
@@ -64,17 +63,17 @@ integrazione continua).
 | `REQUEST_DELETE_PACKAGES` | Aprire la finestra di disinstallazione di Android. È Android a chiedere conferma e a disinstallare. | No |
 | `REQUEST_INSTALL_PACKAGES` | Ripristinare un'app messa in quarantena: consegnare l'APK salvato al programma di installazione di Android. Android richiede inoltre che sia lei ad autorizzare personalmente App Manager Tech a installare app, e chiede conferma a ogni installazione. Non serve a nient'altro. | No |
 | `KILL_BACKGROUND_PROCESSES` | Arrestare i processi in background di un'app, su sua richiesta. | No |
-| `POST_NOTIFICATIONS` | Tre notifiche facoltative: soglia della cache raggiunta, autorizzazioni modificate, fine di una quarantena. Richiesta durante l'uso, può essere negata. | No |
+| `POST_NOTIFICATIONS` | Tre notifiche facoltative: soglia della cache raggiunta, autorizzazioni modificate, fine di una quarantena. Viene richiesta quando ne attiva una (Android 13 e versioni successive) e può essere negata. | No |
 
 ### Portate dalle librerie utilizzate
 
 | Autorizzazione | Proviene da | Cosa fa **realmente** qui | Rete? |
 |---|---|---|---|
-| `WAKE_LOCK` | `androidx.work` | Mantenuta per un istante mentre gira un'attività in background: analisi automatica, rilevazione delle autorizzazioni, pulizia degli storici, promemoria della quarantena — quelle che ha attivato. | No |
+| `WAKE_LOCK` | `androidx.work` | Un wake lock viene acquisito brevemente durante l'esecuzione di un'attività in background: analisi automatica, rilevazione delle autorizzazioni, pulizia degli storici, promemoria della quarantena — quelle che ha attivato. | No |
 | `RECEIVE_BOOT_COMPLETED` | `androidx.work` | Riprogrammare queste attività dopo un riavvio. | No |
 | `FOREGROUND_SERVICE` | `androidx.work` | **Nulla.** `androidx.work` la dichiara per le attività «expedited»; l'app non ne programma nessuna. | No |
 | `ACCESS_NETWORK_STATE` | `androidx.work` | **Nulla.** `androidx.work` la dichiara per le attività che attendono una rete; tutte quelle dell'app sono programmate senza alcuna condizione di rete. Permetterebbe soltanto di sapere se una rete è presente: senza `INTERNET`, è impossibile servirsene. | No |
-| `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | Autorizzazione **auto-concessa**, di livello «signature»: solo un'app firmata con la nostra chiave può ottenerla. Chiude alle altre app il ricevitore che l'app registra per seguire le installazioni. | No |
+| `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | Autorizzazione **auto-concessa**, di livello «signature»: solo un'app firmata con la nostra chiave può ottenerla. Impedisce alle altre app di accedere al ricevitore che l'app registra per seguire le installazioni. | No |
 
 L'app non chiede **mai** l'accesso a Internet, alla posizione, ai contatti, agli SMS, al calendario,
 al microfono, alla fotocamera, né ai suoi file (`MANAGE_EXTERNAL_STORAGE`,
@@ -107,8 +106,7 @@ essere scritto. Solo le versioni di sviluppo ne scrivono, visibili unicamente tr
 
 ## I suoi diritti (GDPR)
 
-Poiché l'app non tratta alcun dato personale al di fuori del suo dispositivo, non esiste alcun
-trattamento remoto a cui accedere, da rettificare o cancellare. Lei mantiene il pieno controllo:
+Poiché l'app non tratta alcun dato personale al di fuori del suo dispositivo, non esiste alcun trattamento remoto in relazione al quale esercitare i diritti di accesso, rettifica o cancellazione. Lei mantiene il pieno controllo:
 disattivare uno storico, svuotare il cestino o disinstallare l'app cancella i dati corrispondenti
 dal dispositivo. L'esportazione le fornisce una copia leggibile di ciò che l'app sa delle sue app.
 

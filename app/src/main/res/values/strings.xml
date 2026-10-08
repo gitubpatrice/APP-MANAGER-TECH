@@ -292,12 +292,12 @@
     <string name="screen_ignore_list_title">Ignored apps</string>
     <string name="ignore_list_subtitle">%1$d of %2$d max</string>
     <string name="ignore_list_empty_title">No apps ignored</string>
-    <string name="ignore_list_empty_body">Apps you add here are excluded from batch actions (uninstall, force stop, cache clean) and background-scan notifications.</string>
+    <string name="ignore_list_empty_body">Apps you add here are left out of the Smart Cleaner\'s suggestions. They stay in every other list and in batch actions.</string>
     <string name="ignore_list_remove">Remove from list</string>
 
     <!-- Export screen -->
     <string name="screen_export_title">Export storage report</string>
-    <string name="export_description">Choose a format and a destination. The report contains every installed app with its sizes, install date, and source store.</string>
+    <string name="export_description">Choose a format and a destination. The report lists the apps you installed (system apps are left out) with their sizes, install date and source store.</string>
     <string name="export_action">Export now</string>
     <plurals name="export_success">
         <item quantity="one">%1$d app exported (%2$s)</item>
@@ -652,7 +652,7 @@
     </plurals>
     <string name="quarantine_soft_action_body_step1">1. Tap “Open Settings” below.</string>
     <string name="quarantine_soft_action_body_step2">2. On the App-info page that opens, tap DISABLE (or ARCHIVE if available — Android 14+).</string>
-    <string name="quarantine_soft_action_body_step3">3. Done — the app is paused until the review date.</string>
+    <string name="quarantine_soft_action_body_step3">3. Done — the app stays disabled until you turn it back on; App Manager Tech reminds you on the review date.</string>
     <string name="quarantine_soft_action_open_settings">Open Settings</string>
     <string name="quarantine_soft_action_later">Later</string>
     <string name="action_keep">Keep</string>
@@ -782,8 +782,8 @@
     <string name="pdf_label_amt_apps_tracked">Apps tracked</string>
     <string name="pdf_inventory_header">Label · Package · Version · Installer · Total</string>
     <plurals name="pdf_issue_zombies">
-        <item quantity="one">%1$d disabled / never-used app</item>
-        <item quantity="other">%1$d disabled / never-used apps</item>
+        <item quantity="one">%1$d disabled app</item>
+        <item quantity="other">%1$d disabled apps</item>
     </plurals>
     <plurals name="pdf_issue_rarely_used">
         <item quantity="one">%1$d rarely-used app (≥ 60 days)</item>
@@ -835,7 +835,7 @@
     <!-- Settings — Lifecycle History -->
     <string name="settings_section_lifecycle">App lifecycle history</string>
     <string name="settings_lifecycle_enabled_title">Track install / uninstall events</string>
-    <string name="settings_lifecycle_enabled_desc">Record every PACKAGE_ADDED / REMOVED / REPLACED broadcast from the OS, plus a one-shot baseline of currently-installed apps. Stays on the device.</string>
+    <string name="settings_lifecycle_enabled_desc">Record the installs, updates and uninstalls Android announces while App Manager Tech is running, plus a one-time baseline of the apps already installed. Android does not deliver these announcements to an app that is not running: changes made in the meantime are not recorded. Stays on the device.</string>
     <string name="settings_lifecycle_retention_title">History retention</string>
     <string name="settings_lifecycle_retention_desc">%1$d days</string>
     <string name="settings_lifecycle_prompt_reason_title">Ask the reason on uninstall</string>

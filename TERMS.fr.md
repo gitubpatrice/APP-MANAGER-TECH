@@ -62,6 +62,9 @@ redistribuez pas si sa licence l'interdit.
   préférences, fichiers — sont perdues à sa désinstallation, et la restaurer réinstalle une
   application vierge. La restauration passe par l'installateur d'Android, qui demande votre accord
   et, la première fois, l'autorisation d'installer des applications depuis App Manager Tech.
+  La quarantaine avec sauvegarde n'est pas proposée pour une application installée en plusieurs
+  fichiers APK (App Bundle) ni pour une application système : la sauvegarde de son seul fichier principal ne pourrait pas
+  la réinstaller.
 - **App Manager Tech ne vérifie pas encore qu'un APK sauvegardé n'a pas été modifié** dans son
   dossier. Ne restaurez que des fichiers que vous avez vous-même sauvegardés, dans un dossier
   qu'aucune autre application ne modifie.

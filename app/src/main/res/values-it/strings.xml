@@ -296,12 +296,12 @@
     <string name="screen_ignore_list_title">App escluse</string>
     <string name="ignore_list_subtitle">%1$d su %2$d max</string>
     <string name="ignore_list_empty_title">Nessuna app esclusa</string>
-    <string name="ignore_list_empty_body">Le app aggiunte qui sono escluse dalle azioni in blocco (disinstallazione, interruzione forzata, svuotamento della cache) e dalle notifiche dell\'analisi in background.</string>
+    <string name="ignore_list_empty_body">Le app aggiunte qui vengono escluse dai suggerimenti della Pulizia intelligente. Restano in tutti gli altri elenchi e nelle azioni in blocco.</string>
     <string name="ignore_list_remove">Rimuovi dall\'elenco</string>
 
     <!-- Export screen -->
     <string name="screen_export_title">Esporta il rapporto sullo spazio</string>
-    <string name="export_description">Scelga un formato e una destinazione. Il rapporto contiene tutte le app installate, con dimensioni, data di installazione e store di provenienza.</string>
+    <string name="export_description">Scelga un formato e una destinazione. Il rapporto elenca le app che ha installato (le app di sistema sono escluse), con dimensioni, data di installazione e store di provenienza.</string>
     <string name="export_action">Esporta ora</string>
     <plurals name="export_success">
         <item quantity="one">%1$d app esportata (%2$s)</item>
@@ -664,7 +664,7 @@
     </plurals>
     <string name="quarantine_soft_action_body_step1">1. Tocchi «Apri Impostazioni» qui sotto.</string>
     <string name="quarantine_soft_action_body_step2">2. Nella pagina Informazioni app che si apre, tocchi DISATTIVA (o ARCHIVIA, se disponibile — Android 14+).</string>
-    <string name="quarantine_soft_action_body_step3">3. Fatto — l\'app resta in pausa fino alla data di revisione.</string>
+    <string name="quarantine_soft_action_body_step3">3. Fatto — l\'app resta disattivata finché non la riattiva; App Manager Tech glielo ricorda alla data di revisione.</string>
     <string name="quarantine_soft_action_open_settings">Apri Impostazioni</string>
     <string name="quarantine_soft_action_later">Più tardi</string>
     <string name="action_keep">Conserva</string>
@@ -792,9 +792,9 @@
     <string name="pdf_label_amt_apps_tracked">App monitorate</string>
     <string name="pdf_inventory_header">Nome · Pacchetto · Versione · Origine · Totale</string>
     <plurals name="pdf_issue_zombies">
-        <item quantity="one">%1$d app disattivata / mai usata</item>
-        <item quantity="many">%1$d app disattivate / mai usate</item>
-        <item quantity="other">%1$d app disattivate / mai usate</item>
+        <item quantity="one">%1$d app disattivata</item>
+        <item quantity="many">%1$d app disattivate</item>
+        <item quantity="other">%1$d app disattivate</item>
     </plurals>
     <plurals name="pdf_issue_rarely_used">
         <item quantity="one">%1$d app usata raramente (≥ 60 giorni)</item>
@@ -849,7 +849,7 @@
     <!-- Settings — Lifecycle History -->
     <string name="settings_section_lifecycle">Storico del ciclo di vita delle app</string>
     <string name="settings_lifecycle_enabled_title">Registra installazioni / disinstallazioni</string>
-    <string name="settings_lifecycle_enabled_desc">Registra ogni broadcast PACKAGE_ADDED / REMOVED / REPLACED del sistema, più un riferimento iniziale, una tantum, delle app già installate. Tutto resta sul dispositivo.</string>
+    <string name="settings_lifecycle_enabled_desc">Registra le installazioni, gli aggiornamenti e le disinstallazioni che Android segnala mentre App Manager Tech è in esecuzione, più un riferimento iniziale, una tantum, delle app già installate. Android non invia queste segnalazioni a un\'app che non è in esecuzione: le modifiche fatte nel frattempo non vengono registrate. Tutto resta sul dispositivo.</string>
     <string name="settings_lifecycle_retention_title">Conservazione dello storico</string>
     <string name="settings_lifecycle_retention_desc">%1$d giorni</string>
     <string name="settings_lifecycle_prompt_reason_title">Chiedi il motivo alla disinstallazione</string>

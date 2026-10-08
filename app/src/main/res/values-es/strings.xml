@@ -296,12 +296,12 @@
     <string name="screen_ignore_list_title">Apps excluidas</string>
     <string name="ignore_list_subtitle">%1$d de %2$d como máximo</string>
     <string name="ignore_list_empty_title">Ninguna app excluida</string>
-    <string name="ignore_list_empty_body">Las apps que añada aquí quedan excluidas de las acciones por lotes (desinstalar, forzar detención, borrar caché) y de las notificaciones del análisis en segundo plano.</string>
+    <string name="ignore_list_empty_body">Las apps que añada aquí quedan fuera de las sugerencias del Limpiador inteligente. Siguen en todas las demás listas y en las acciones por lotes.</string>
     <string name="ignore_list_remove">Quitar de la lista</string>
 
     <!-- Export screen -->
     <string name="screen_export_title">Exportar el informe de almacenamiento</string>
-    <string name="export_description">Elija un formato y un destino. El informe contiene todas las apps instaladas con sus tamaños, su fecha de instalación y su tienda de origen.</string>
+    <string name="export_description">Elija un formato y un destino. El informe enumera las apps que usted ha instalado (las apps del sistema quedan excluidas), con sus tamaños, su fecha de instalación y su tienda de origen.</string>
     <string name="export_action">Exportar ahora</string>
     <plurals name="export_success">
         <item quantity="one">%1$d app exportada (%2$s)</item>
@@ -664,7 +664,7 @@
     </plurals>
     <string name="quarantine_soft_action_body_step1">1. Toque «Abrir Ajustes» abajo.</string>
     <string name="quarantine_soft_action_body_step2">2. En la página Información de la aplicación que se abre, toque DESACTIVAR (o ARCHIVAR si está disponible — Android 14+).</string>
-    <string name="quarantine_soft_action_body_step3">3. Listo — la app queda en pausa hasta la fecha de revisión.</string>
+    <string name="quarantine_soft_action_body_step3">3. Listo — la app sigue desactivada hasta que usted la vuelva a activar; App Manager Tech se lo recuerda en la fecha de revisión.</string>
     <string name="quarantine_soft_action_open_settings">Abrir Ajustes</string>
     <string name="quarantine_soft_action_later">Más tarde</string>
     <string name="action_keep">Conservar</string>
@@ -792,9 +792,9 @@
     <string name="pdf_label_amt_apps_tracked">Apps supervisadas</string>
     <string name="pdf_inventory_header">Nombre · Paquete · Versión · Instalador · Total</string>
     <plurals name="pdf_issue_zombies">
-        <item quantity="one">%1$d app desactivada / nunca usada</item>
-        <item quantity="many">%1$d apps desactivadas / nunca usadas</item>
-        <item quantity="other">%1$d apps desactivadas / nunca usadas</item>
+        <item quantity="one">%1$d app desactivada</item>
+        <item quantity="many">%1$d apps desactivadas</item>
+        <item quantity="other">%1$d apps desactivadas</item>
     </plurals>
     <plurals name="pdf_issue_rarely_used">
         <item quantity="one">%1$d app poco usada (≥ 60 días)</item>
@@ -849,7 +849,7 @@
     <!-- Settings — Lifecycle History -->
     <string name="settings_section_lifecycle">Historial del ciclo de vida de las apps</string>
     <string name="settings_lifecycle_enabled_title">Seguir las instalaciones / desinstalaciones</string>
-    <string name="settings_lifecycle_enabled_desc">Registra cada emisión PACKAGE_ADDED / REMOVED / REPLACED del sistema, además de una referencia inicial única de las apps ya instaladas. Se queda en el dispositivo.</string>
+    <string name="settings_lifecycle_enabled_desc">Registra las instalaciones, actualizaciones y desinstalaciones que Android anuncia mientras App Manager Tech está en funcionamiento, además de una referencia inicial única de las apps ya instaladas. Android no envía estos anuncios a una app que no está en funcionamiento: los cambios hechos mientras tanto no se registran. Se queda en el dispositivo.</string>
     <string name="settings_lifecycle_retention_title">Conservación del historial</string>
     <string name="settings_lifecycle_retention_desc">%1$d días</string>
     <string name="settings_lifecycle_prompt_reason_title">Preguntar el motivo al desinstalar</string>

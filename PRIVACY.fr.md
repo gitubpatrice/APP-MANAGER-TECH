@@ -30,7 +30,7 @@ elle décrit vos applications, pas vos contenus.
 | Liste des applications : nom, version, tailles, dates d'installation, de mise à jour et de dernière utilisation, magasin d'origine, état (activée, en veille) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Remplacée à chaque analyse |
 | Pisteurs détectés, score de confidentialité | Calculés sur le téléphone (voir plus bas) | Recalculés à chaque affichage |
 | Historique des permissions accordées à chaque application — **désactivé par défaut** | Relevé périodique, si vous l'activez | 90 jours par défaut, réglable de 7 à 365 |
-| Historique des installations, mises à jour et désinstallations, avec l'empreinte SHA-256 de chaque APK et le motif de désinstallation que vous choisissez de donner — **désactivé par défaut** | Annonces d'Android, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 |
+| Historique des installations, mises à jour et désinstallations, avec l'empreinte SHA-256 de chaque APK et le motif de désinstallation que vous choisissez de donner — **désactivé par défaut** | Annonces d'Android reçues pendant que l'application fonctionne, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 |
 | Journal des actions lancées depuis App Manager Tech — **désactivé par défaut** | Vos actions, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 |
 | Corbeille et quarantaines | Vos actions | Jusqu'à ce que vous les vidiez ou restauriez |
 | Réglages : thème, seuils, applications ignorées ou protégées, étiquettes, et l'autorisation d'accès au dossier de sauvegarde que vous avez choisi | Vous | Jusqu'à la désinstallation |
@@ -63,7 +63,7 @@ intégration continue).
 | `REQUEST_DELETE_PACKAGES` | Ouvrir la fenêtre de désinstallation d'Android. C'est Android qui demande confirmation et qui désinstalle. | Non |
 | `REQUEST_INSTALL_PACKAGES` | Restaurer une application mise en quarantaine : remettre l'APK sauvegardé à l'installateur d'Android. Android exige en plus que vous autorisiez vous-même App Manager Tech à installer des applications, et demande confirmation à chaque installation. Elle ne sert à rien d'autre. | Non |
 | `KILL_BACKGROUND_PROCESSES` | Arrêter les processus d'arrière-plan d'une application, à votre demande. | Non |
-| `POST_NOTIFICATIONS` | Trois notifications facultatives : seuil de cache atteint, permissions modifiées, fin d'une quarantaine. Demandée à l'exécution, refusable. | Non |
+| `POST_NOTIFICATIONS` | Trois notifications facultatives : seuil de cache atteint, permissions modifiées, fin d'une quarantaine. Demandée quand vous activez l'une d'elles (Android 13 et plus), refusable. | Non |
 
 ### Apportées par les bibliothèques utilisées
 

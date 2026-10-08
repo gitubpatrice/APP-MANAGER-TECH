@@ -6,9 +6,7 @@ _Übersetzung der Fassung vom 8. Oktober 2026._ · 🇬🇧 [English](PRIVACY.md
 > Muttersprachlerin oder einem Muttersprachler geprüft. **Bei Abweichungen gilt die
 > [französische Fassung](PRIVACY.fr.md).**
 
-App Manager Tech (`com.filestech.appmanager`) ist ein **vollständig lokaler** App-Manager: Er
-untersucht die auf Ihrem Telefon installierten Apps direkt auf diesem Telefon und sendet nichts
-irgendwohin.
+App Manager Tech (`com.filestech.appmanager`) ist ein **vollständig lokaler** App-Manager: Er untersucht die auf Ihrem Telefon installierten Apps unmittelbar auf diesem Gerät und übermittelt nichts nach außen.
 
 ## Kurz gesagt
 
@@ -33,7 +31,7 @@ nicht verschlüsselt: Sie beschreibt Ihre Apps, nicht Ihre Inhalte.
 | Liste der Apps: Name, Version, Größen, Datum der Installation, der Aktualisierung und der letzten Nutzung, Herkunfts-Store, Zustand (aktiviert, im Ruhezustand) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Bei jedem Scan ersetzt |
 | Erkannte Tracker, Datenschutz-Score | Auf dem Telefon berechnet (siehe unten) | Bei jeder Anzeige neu berechnet |
 | Verlauf der Berechtigungen, die jeder App erteilt wurden — **standardmäßig deaktiviert** | Regelmäßige Erfassung, wenn Sie den Verlauf aktivieren | Standardmäßig 90 Tage, einstellbar von 7 bis 365 |
-| Verlauf der Installationen, Updates und Deinstallationen, mit dem SHA-256-Fingerabdruck jedes APK und dem Deinstallationsgrund, den Sie freiwillig angeben — **standardmäßig deaktiviert** | Meldungen von Android, wenn Sie den Verlauf aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365 |
+| Verlauf der Installationen, Updates und Deinstallationen, mit dem SHA-256-Fingerabdruck jedes APK und dem Deinstallationsgrund, den Sie freiwillig angeben — **standardmäßig deaktiviert** | Meldungen von Android, die eingehen, während die App läuft, wenn Sie den Verlauf aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365 |
 | Protokoll der Aktionen, die in App Manager Tech ausgelöst wurden — **standardmäßig deaktiviert** | Ihre Aktionen, wenn Sie das Protokoll aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365 |
 | Papierkorb und Quarantänen | Ihre Aktionen | Bis Sie sie leeren oder wiederherstellen |
 | Einstellungen: Design, Schwellenwerte, ausgeschlossene oder geschützte Apps, Tags, und die Zugriffsberechtigung für den von Ihnen gewählten Sicherungsordner | Sie | Bis zur Deinstallation |
@@ -51,8 +49,7 @@ Der Entwickler hat **keinen Zugriff** auf diese Daten und erhält **keine Kopie*
 
 ## Angeforderte Berechtigungen, und wozu
 
-Diese Liste ist **vollständig**: Es sind die zwölf Berechtigungen, die das veröffentlichte APK
-trägt, so wie sie in seinem Manifest zu lesen sind. Sie umfasst daher auch die, die keine Zeile
+Diese Liste ist **vollständig**: Es handelt sich um die zwölf Berechtigungen, die im veröffentlichten APK deklariert und in dessen Manifest aufgeführt sind. Sie umfasst daher auch die, die keine Zeile
 unseres Codes anfordert, sondern die eine Bibliothek mitgebracht hat. Eine automatische Prüfung
 lehnt jeden Build ab, dessen APK von dieser Liste abweichen würde
 (`tools/check-manifest-permissions.py`, bei jedem Lauf der kontinuierlichen Integration
@@ -63,12 +60,12 @@ ausgeführt).
 | Berechtigung | Zweck | Netzwerk? |
 |---|---|---|
 | `QUERY_ALL_PACKAGES` | Alle installierten Apps sehen: Das ist die eigentliche Funktion der App. | Nein |
-| `PACKAGE_USAGE_STATS` | Spezieller Zugriff „Zugriff auf Nutzungsdaten“, den Sie selbst in den Android-Einstellungen erteilen. Er liefert die Größen und das Datum der letzten Nutzung jeder App. Wird er verweigert, zeigen die Größen 0 und die Apps „Nie verwendet“ an; alles andere funktioniert weiter. | Nein |
+| `PACKAGE_USAGE_STATS` | Spezieller Zugriff „Zugriff auf Nutzungsdaten“, den Sie selbst in den Android-Einstellungen erteilen. Er liefert die Größen und das Datum der letzten Nutzung jeder App. Wird der Zugriff verweigert, werden die Größen mit 0 und die Apps als „Nie verwendet“ angezeigt; alles andere funktioniert weiter. | Nein |
 | `GET_PACKAGE_SIZE` | Die Größe der Apps lesen. | Nein |
 | `REQUEST_DELETE_PACKAGES` | Das Deinstallationsfenster von Android öffnen. Android selbst fragt nach der Bestätigung und deinstalliert. | Nein |
 | `REQUEST_INSTALL_PACKAGES` | Eine unter Quarantäne gestellte App wiederherstellen: das gesicherte APK an das Installationsprogramm von Android übergeben. Android verlangt zusätzlich, dass Sie App Manager Tech selbst erlauben, Apps zu installieren, und fragt bei jeder Installation nach einer Bestätigung. Sie dient zu nichts anderem. | Nein |
 | `KILL_BACKGROUND_PROCESSES` | Die Hintergrundprozesse einer App beenden, auf Ihren Wunsch. | Nein |
-| `POST_NOTIFICATIONS` | Drei optionale Benachrichtigungen: Cache-Schwellenwert erreicht, Berechtigungen geändert, Ende einer Quarantäne. Wird zur Laufzeit angefordert und kann verweigert werden. | Nein |
+| `POST_NOTIFICATIONS` | Drei optionale Benachrichtigungen: Cache-Schwellenwert erreicht, Berechtigungen geändert, Ende einer Quarantäne. Wird angefordert, wenn Sie eine davon aktivieren (Android 13 und höher), und kann verweigert werden. | Nein |
 
 ### Von den verwendeten Bibliotheken mitgebracht
 
@@ -78,7 +75,7 @@ ausgeführt).
 | `RECEIVE_BOOT_COMPLETED` | `androidx.work` | Diese Aufgaben nach einem Neustart wieder einplanen. | Nein |
 | `FOREGROUND_SERVICE` | `androidx.work` | **Nichts.** `androidx.work` deklariert sie für Aufgaben vom Typ „expedited“; die App plant keine solche ein. | Nein |
 | `ACCESS_NETWORK_STATE` | `androidx.work` | **Nichts.** `androidx.work` deklariert sie für Aufgaben, die auf ein Netzwerk warten; alle Aufgaben der App werden ohne Netzwerkbedingung eingeplant. Sie würde nur erkennen lassen, ob ein Netzwerk vorhanden ist: Ohne `INTERNET` ist es unmöglich, es zu nutzen. | Nein |
-| `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | Eine **selbst erteilte** Berechtigung auf Signaturebene: Nur eine mit unserem Schlüssel signierte App kann sie erhalten. Sie sperrt für andere Apps den Empfänger, den die App registriert, um die Installationen zu verfolgen. | Nein |
+| `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | Eine **selbst erteilte** Berechtigung auf Signaturebene: Nur eine mit unserem Schlüssel signierte App kann sie erhalten. Sie verhindert, dass andere Apps den Empfänger ansprechen, den die App registriert, um die Installationen zu verfolgen. | Nein |
 
 Die App fordert **nie** Zugriff auf das Internet, den Standort, die Kontakte, SMS, den Kalender, das
 Mikrofon, die Kamera oder Ihre Dateien an (`MANAGE_EXTERNAL_STORAGE`, `READ_EXTERNAL_STORAGE`).
@@ -112,8 +109,7 @@ ausschließlich über ADB sichtbar.
 
 ## Ihre Rechte (DSGVO)
 
-Da die App keine personenbezogenen Daten außerhalb Ihres Geräts verarbeitet, gibt es keine
-entfernte Verarbeitung, auf die man zugreifen, die man berichtigen oder löschen könnte. Sie behalten
+Da die App keine personenbezogenen Daten außerhalb Ihres Geräts verarbeitet, gibt es keine solche Verarbeitung, hinsichtlich deren Sie Ihre Rechte auf Auskunft, Berichtigung oder Löschung ausüben könnten. Sie behalten
 die volle Kontrolle: Das Deaktivieren eines Verlaufs, das Leeren des Papierkorbs oder das
 Deinstallieren der App löscht die entsprechenden Daten vom Gerät. Der Export gibt Ihnen eine
 lesbare Kopie dessen, was die App über Ihre Apps weiß.

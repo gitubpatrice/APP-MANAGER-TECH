@@ -50,7 +50,7 @@ dieser App: Verbreiten Sie das APK nicht weiter, wenn die Lizenz der App dies ve
   kritisch erkennt oder die Sie geschützt haben, verlangt die App ein drei Sekunden langes
   Gedrückthalten. Die App erkennt nicht alle kritischen Apps: Das Deaktivieren oder Deinstallieren
   einer System-App kann das Telefon instabil machen.
-- Ohne den „Zugriff auf Nutzungsdaten“ zeigen die Größen 0 und die Apps „Nie verwendet“ an. Android kann Benachrichtigungen verzögern oder blockieren; die App kann ihre Zustellung
+- Ohne den „Zugriff auf Nutzungsdaten“ werden die Größen mit 0 und die Apps als „Nie verwendet“ angezeigt. Android kann Benachrichtigungen verzögern oder blockieren; die App kann ihre Zustellung
   nicht garantieren.
 
 ## Datenverlust
@@ -65,6 +65,8 @@ dieser App: Verbreiten Sie das APK nicht weiter, wenn die Lizenz der App dies ve
   installiert die App ohne Daten neu. Die Wiederherstellung läuft über das Installationsprogramm von
   Android, das Sie um Ihre Zustimmung bittet und beim ersten Mal um die Erlaubnis, Apps über
   App Manager Tech zu installieren.
+  Für eine App aus mehreren APK-Dateien (App Bundle) und für eine System-App wird die Quarantäne
+  mit Sicherung nicht angeboten: Eine Sicherung allein ihrer Hauptdatei könnte sie nicht neu installieren.
 - **App Manager Tech prüft noch nicht, ob ein gesichertes APK in seinem Ordner verändert wurde.**
   Stellen Sie nur Dateien wieder her, die Sie selbst gesichert haben, in einem Ordner, den keine
   andere App verändert.

@@ -57,9 +57,11 @@ ridistribuisca se la sua licenza lo vieta.
 - **Il cestino non disinstalla nulla** finché non lo svuota: svuotarlo avvia la disinstallazione di
   ciascuna app che contiene.
 - **Una quarantena con backup conserva soltanto l'APK.** I dati dell'app — account, preferenze,
-  file — vanno persi alla sua disinstallazione, e ripristinarla reinstalla un'app vergine. Il
+  file — vanno persi al momento della disinstallazione; il ripristino reinstalla l'app senza i suoi dati. Il
   ripristino passa per il programma di installazione di Android, che le chiede il consenso e, la
   prima volta, l'autorizzazione a installare app da App Manager Tech.
+  La quarantena con backup non è proposta per un'app installata come più file APK (App Bundle) né per un'app di sistema:
+  un backup del solo file principale non potrebbe reinstallarla.
 - **App Manager Tech non verifica ancora che un APK salvato non sia stato modificato** nella sua
   cartella. Ripristini soltanto file che ha salvato personalmente, in una cartella che nessun'altra
   app modifica.
