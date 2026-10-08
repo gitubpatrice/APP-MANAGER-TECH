@@ -45,7 +45,7 @@ coroutines              = "1.11.0"
 kotlinxSerialization    = "1.8.1"
 
 # --- WorkManager ---
-workManager             = "2.10.0"
+workManager             = "2.12.0"
 hiltWork                = "1.2.0"
 
 # --- Coil ---
