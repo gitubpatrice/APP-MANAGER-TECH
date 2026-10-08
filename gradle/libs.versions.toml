@@ -1,10 +1,17 @@
 [versions]
 # --- Kotlin ---
-kotlin                  = "2.1.0"
-ksp                     = "2.1.0-1.0.29"
+# Capped below 2.4.20: CodeQL 2.27 refuses to compile from there ("Kotlin version 2.4.20 is too
+# recent", measured on Agenda Tech). 2.4.10 is the version Agenda Tech runs with CodeQL green.
+# This is the EXACT compiler version: the root build.gradle.kts pins the Kotlin Gradle Plugin to it
+# with `strictly`, since AGP 9 would otherwise bring its own.
+kotlin                  = "2.4.10"
+# KSP2: Room 2.8 does not run on the KSP 1.x of Kotlin 2.1 (internal compiler error, Dependabot #4).
+ksp                     = "2.3.12"
 
 # --- Android Gradle Plugin ---
-agp                     = "8.7.3"
+# AGP 9: Kotlin is built into AGP, there is no `org.jetbrains.kotlin.android` plugin any more.
+# Aligned on Agenda Tech (migrated 2026-09-14).
+agp                     = "9.4.1"
 
 # --- AndroidX Core ---
 androidxCore            = "1.15.0"
@@ -16,11 +23,11 @@ androidxNavigation      = "2.8.4"
 composeBom              = "2024.12.01"
 
 # --- Hilt ---
-hilt                    = "2.55"
+hilt                    = "2.60.1"
 hiltNavigationCompose   = "1.2.0"
 
 # --- Room ---
-room                    = "2.6.1"
+room                    = "2.8.5"
 
 # --- DataStore ---
 datastore               = "1.1.1"
@@ -33,6 +40,9 @@ androidxSplashscreen    = "1.0.1"
 
 # --- Coroutines ---
 coroutines              = "1.9.0"
+
+# --- kotlinx-serialization (version constraint only, see app/build.gradle.kts) ---
+kotlinxSerialization    = "1.8.1"
 
 # --- WorkManager ---
 workManager             = "2.10.0"
@@ -106,6 +116,9 @@ androidx-splashscreen                   = { group = "androidx.core",            
 coroutines-android                      = { group = "org.jetbrains.kotlinx",           name = "kotlinx-coroutines-android",        version.ref = "coroutines" }
 coroutines-test                         = { group = "org.jetbrains.kotlinx",           name = "kotlinx-coroutines-test",           version.ref = "coroutines" }
 
+# kotlinx-serialization — used as a version constraint, never declared as a dependency
+kotlinx-serialization-core              = { group = "org.jetbrains.kotlinx",           name = "kotlinx-serialization-core",        version.ref = "kotlinxSerialization" }
+
 # WorkManager
 work-runtime-ktx                        = { group = "androidx.work",                   name = "work-runtime-ktx",                  version.ref = "workManager" }
 
@@ -144,7 +157,6 @@ turbine                                 = { group = "app.cash.turbine",         
 
 [plugins]
 android-application    = { id = "com.android.application",                    version.ref = "agp" }
-kotlin-android         = { id = "org.jetbrains.kotlin.android",               version.ref = "kotlin" }
 kotlin-compose         = { id = "org.jetbrains.kotlin.plugin.compose",        version.ref = "kotlin" }
 hilt                   = { id = "com.google.dagger.hilt.android",             version.ref = "hilt" }
 ksp                    = { id = "com.google.devtools.ksp",                    version.ref = "ksp" }

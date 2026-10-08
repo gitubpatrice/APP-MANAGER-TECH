@@ -34,16 +34,16 @@ sending a single byte off the device.
 
 | Layer | Tooling |
 |---|---|
-| Language | Kotlin 2.1.0 |
-| Build | Android Gradle Plugin 8.7.3, Gradle 8.11.1, JDK 17 |
+| Language | Kotlin 2.4.10 |
+| Build | Android Gradle Plugin 9.4.1 (built-in Kotlin), Gradle 9.8.1, KSP 2, JDK 17 |
 | UI | Jetpack Compose Material 3 (BOM 2024.12.01), edge-to-edge |
-| DI | Hilt 2.55 (KSP, no kapt) + Hilt-Work for `@HiltWorker` |
-| Storage | Room 2.6.1 (`app_info` v2, additive migrations only) + DataStore Preferences |
+| DI | Hilt 2.60.1 (KSP, no kapt) + Hilt-Work for `@HiltWorker` |
+| Storage | Room 2.8.5 (schema v8, additive migrations only) + DataStore Preferences |
 | Background | WorkManager 2.10.0 (on-demand init, no androidx.startup) |
 | Coroutines | kotlinx-coroutines 1.9.0 |
 | Logging | Timber 5 (DebugTree in debug, NoOpReleaseTree in release) |
 | Splash | androidx.core:core-splashscreen (transparent icon workaround Android 12+) |
-| Tests | JUnit 5 + Truth + MockK + Turbine + Room-testing + Robolectric |
+| Tests | JUnit 6 (Jupiter) + Truth + MockK + Turbine + Room-testing + Robolectric |
 
 All dependencies are Apache 2.0 / MIT / BSD. **Zero proprietary SDK**.
 

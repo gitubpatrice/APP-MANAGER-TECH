@@ -13,6 +13,12 @@ updates:
     labels:
       - "dependencies"
       - "gradle"
+    ignore:
+      # Kotlin 2.4.20+: CodeQL 2.27 refuses to compile it ("currently supports versions below
+      # 2.4.20", measured on Agenda Tech). A bump PR would fail on every run. Remove once a CodeQL
+      # release supports it.
+      - dependency-name: "org.jetbrains.kotlin*"
+        versions: [">= 2.4.20"]
     # Group patch bumps to reduce PR noise.
     groups:
       androidx-patch:
