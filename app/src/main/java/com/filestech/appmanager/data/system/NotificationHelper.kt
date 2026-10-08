@@ -149,7 +149,7 @@ class NotificationHelper @Inject constructor(
         return try {
             notificationManager.notify(id, notif)
             true
-        } catch (e: SecurityException) {
+        } catch (expected: SecurityException) {
             // POST_NOTIFICATIONS not granted on API 33+ → silently drop.
             // The Settings screen has a UI to request grant explicitly.
             false

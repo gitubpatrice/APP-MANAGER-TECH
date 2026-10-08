@@ -174,8 +174,9 @@ fun ZombiesScreen(
                             )
                         } else {
                             val filtered = remember(o.value, searchQuery) {
-                                if (searchQuery.isBlank()) o.value
-                                else {
+                                if (searchQuery.isBlank()) {
+                                    o.value
+                                } else {
                                     val q = searchQuery.trim().lowercase()
                                     o.value.filter { z ->
                                         z.info.label.lowercase().contains(q) ||

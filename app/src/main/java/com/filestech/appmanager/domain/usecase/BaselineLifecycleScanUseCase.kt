@@ -62,8 +62,9 @@ class BaselineLifecycleScanUseCase @Inject constructor(
                         type        = LifecycleEventType.BASELINE,
                         capturedAt  = now,
                     )
-                    if (result is Outcome.Success) inserted++
-                    else if (result is Outcome.Failure) {
+                    if (result is Outcome.Success) {
+                        inserted++
+                    } else if (result is Outcome.Failure) {
                         Timber.w("BaselineLifecycleScan: insert failed for %s: %s",
                             app.packageName, result.error)
                     }

@@ -295,4 +295,3 @@ private fun suggestedPdfFileName(): String {
     val ts = SimpleDateFormat("yyyyMMdd_HHmm", Locale.ROOT).format(Date())
     return "app_manager_tech_diagnostic_$ts.pdf"
 }
-

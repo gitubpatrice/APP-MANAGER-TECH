@@ -87,6 +87,7 @@ inline fun <S> Outcome<S>.getOrElse(fallback: () -> S): S =
  * - Does NOT catch [kotlinx.coroutines.CancellationException] — coroutine
  *   cancellation must propagate.
  */
+@Suppress("TooGenericExceptionCaught") // Catching everything is this bridge's job; see above.
 inline fun <S> runCatchingOutcome(
     mapError: (Throwable) -> AppError,
     block: () -> S,

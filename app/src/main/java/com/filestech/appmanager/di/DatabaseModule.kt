@@ -32,6 +32,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
+    @Suppress("SpreadOperator") // addMigrations is vararg; one small copy, once, when the DB is built.
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(
             context,

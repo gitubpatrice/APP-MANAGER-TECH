@@ -1,0 +1,131 @@
+# detekt policy for App Manager Tech — built upon detekt's default configuration.
+#
+# Measured on 2026-10-08, first run of detekt on this repository (default configuration, 216 Kotlin
+# files): 3,534 findings. This file states, rule by rule, which of them describe a BEHAVIOUR (kept
+# active, and fixed in the code) and which assert a LAYOUT TASTE this codebase contradicts
+# consistently (turned off here, with the reason). It is not a baseline: a baseline lists instances
+# and lets the next one through unnoticed; this names rules and says why, so the count cannot creep.
+#
+# Same structure as Agenda Tech's policy. The thresholds are NOT copied from it: each one below was
+# measured on this code, and says how far it sits from detekt's default.
+
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+complexity:
+  active: true
+  # Compose functions are a declarative UI tree, one lambda per user action: their length and
+  # parameter count describe the screen, not tangled logic. They are exempt from the three size
+  # rules; everything else keeps detekt's default thresholds.
+  LongMethod:
+    active: true
+    ignoreAnnotated: ['Composable']
+    # The Room migration tests replay one schema version per test, with its full fixture.
+    excludes: ['**/test/**', '**/androidTest/**']
+  LongParameterList:
+    active: true
+    # `Inject`: a Hilt constructor's parameter list is its dependency list (AppDetailViewModel: 17).
+    ignoreAnnotated: ['Composable', 'Inject']
+    # Test fixture builders take one parameter per field they let a test vary.
+    excludes: ['**/test/**', '**/androidTest/**']
+  CyclomaticComplexMethod:
+    active: true
+    ignoreAnnotated: ['Composable']
+    # A `when` that maps each value to a result is a lookup table, not branching logic.
+    ignoreSimpleWhenEntries: true
+  TooManyFunctions:
+    active: true
+    # Private composables split a screen file into readable pieces, and a repository implements the
+    # interface it is given: neither is a sign of a class doing too much.
+    ignorePrivate: true
+    ignoreOverridden: true
+    # A Room DAO is one function per query; the annotation says what each one is.
+    ignoreAnnotatedFunctions: ['Query', 'Insert', 'Update', 'Delete', 'Upsert', 'Transaction']
+    # Size rule, so a threshold rather than per-site suppressions — said plainly: 20 is 1.8x detekt's
+    # default of 11. What exceeds 11 here are ViewModels with one handler per user action
+    # (SettingsViewModel: 19, one setter per setting — the flat shape a settings screen should have).
+    thresholdInClasses: 20
+    # AppInfoRepository: 13 — the read and write operations of the app catalogue.
+    thresholdInInterfaces: 15
+
+exceptions:
+  active: true
+
+naming:
+  active: true
+  FunctionNaming:
+    # Composables are PascalCase by Compose's own convention: all 167 findings of this rule were
+    # @Composable functions in ui/.
+    ignoreAnnotated: ['Composable']
+
+style:
+  active: true
+  # 149 findings, none of them a hidden business rule: colour literals (ui/theme/Color.kt alone: 40),
+  # dp and alpha values in ui/ (91 in total), coordinates of the PDF layout (17) and SQL text in the
+  # Room migrations (11). Naming each one would add constants without making anything checkable.
+  # Same choice as Agenda Tech.
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 140
+  # All 7 findings were `continue` guards — "skip this item" before the loop body, the loop form of the
+  # guard clauses ReturnCount excludes below — save one pointer-event loop with three exits. The rule
+  # counts a guard `continue` like a tangled jump and cannot be told apart, so it is off; the
+  # complexity of a loop stays covered by CyclomaticComplexMethod and NestedBlockDepth.
+  LoopWithTooManyJumpStatements:
+    active: false
+  ReturnCount:
+    active: true
+    # Same value as Agenda Tech. Guard clauses (`if (…) return …` before the body) are not counted:
+    # validating inputs first is the idiom, not tangled flow. Functions that still exceed it carry a
+    # targeted @Suppress with the reason on the spot, rather than a raised global threshold.
+    max: 4
+    excludeGuardClauses: true
+
+formatting:
+  active: true
+  android: true
+  autoCorrect: false
+
+  # Duplicate of style.MaxLineLength above, which carries the threshold.
+  MaximumLineLength:
+    active: false
+
+  # ------------------------------------------------------------------------------------------------
+  # LAYOUT POLICY — where the ktlint `android: true` preset and this codebase disagree, everywhere.
+  #
+  # NoMultipleSpaces is 2,527 of the 3,534 findings: this code aligns assignments and named arguments
+  # in columns (`cacheBytes = …` / `dataBytes  = …`), on purpose and in every package. The other rules
+  # below assert a wrapping, spacing or ordering taste the code does not follow either. None of them
+  # describes a behaviour.
+  #
+  # Turned off rather than auto-corrected: reformatting would rewrite most files of the app and bury
+  # every real diff under whitespace. Every rule of the preset that is NOT listed here stays active
+  # and blocking — MultiLineIfElse (if/else bodies spanning lines without braces), Indentation and the
+  # dead imports were FIXED, not silenced.
+  # ------------------------------------------------------------------------------------------------
+  NoMultipleSpaces:
+    active: false
+  ArgumentListWrapping:
+    active: false
+  Wrapping:
+    active: false
+  ParameterListWrapping:
+    active: false
+  ParameterWrapping:
+    active: false
+  PropertyWrapping:
+    active: false
+  AnnotationOnSeparateLine:
+    active: false
+  SpacingBetweenDeclarationsWithAnnotations:
+    active: false
+  SpacingBetweenDeclarationsWithComments:
+    active: false
+  ImportOrdering:
+    active: false

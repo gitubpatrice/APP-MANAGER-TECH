@@ -61,8 +61,8 @@ class ExportReportUseCase @Inject constructor(
     ): ExportReport {
         val snapshot = when (val r = backup(includeSystemApps)) {
             is Outcome.Success -> r.value
-            is Outcome.Failure -> throw IllegalStateException(r.error.toString())
-            Outcome.Loading    -> throw IllegalStateException("Unexpected Loading")
+            is Outcome.Failure -> error(r.error.toString())
+            Outcome.Loading    -> error("Unexpected Loading")
         }
         val payload = when (format) {
             ExportFormat.JSON -> renderJson(snapshot).toByteArray(Charsets.UTF_8)
@@ -97,8 +97,8 @@ class ExportReportUseCase @Inject constructor(
     private suspend fun exportDiagnosticPdf(destination: Uri): ExportReport {
         val report = when (val r = buildDiagnostic()) {
             is Outcome.Success -> r.value
-            is Outcome.Failure -> throw IllegalStateException(r.error.toString())
-            Outcome.Loading    -> throw IllegalStateException("Unexpected Loading")
+            is Outcome.Failure -> error(r.error.toString())
+            Outcome.Loading    -> error("Unexpected Loading")
         }
         val displayPath = destination.lastPathSegment ?: destination.toString()
         val written = withContext(io) {

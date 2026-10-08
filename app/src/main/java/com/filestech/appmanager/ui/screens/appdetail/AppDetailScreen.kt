@@ -90,7 +90,6 @@ import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
 import com.filestech.appmanager.ui.theme.BrandBlue
 import com.filestech.appmanager.ui.theme.BrandDanger
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.text.DateFormat
 import java.util.Date
@@ -881,8 +880,11 @@ private fun ActionsCard(
                 Icon(Icons.Outlined.PowerSettingsNew, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    if (info.isEnabled) stringResource(R.string.app_detail_action_disable)
-                    else stringResource(R.string.app_detail_action_enable),
+                    if (info.isEnabled) {
+                        stringResource(R.string.app_detail_action_disable)
+                    } else {
+                        stringResource(R.string.app_detail_action_enable)
+                    },
                 )
             }
             // v0.2.0 — Quarantine this app. Opens the shared QuarantineConfigDialog
@@ -908,8 +910,11 @@ private fun ActionsCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    if (isIgnored) stringResource(R.string.appdetail_unignore_action)
-                    else stringResource(R.string.appdetail_ignore_action),
+                    if (isIgnored) {
+                        stringResource(R.string.appdetail_unignore_action)
+                    } else {
+                        stringResource(R.string.appdetail_ignore_action)
+                    },
                 )
             }
         }
@@ -993,8 +998,11 @@ private fun PermissionRow(permission: String, granted: Boolean) {
         Icon(
             imageVector        = if (granted) Icons.Outlined.CheckCircle else Icons.Outlined.Block,
             contentDescription = null,
-            tint               = if (granted) MaterialTheme.colorScheme.primary
-                                 else MaterialTheme.colorScheme.onSurfaceVariant,
+            tint               = if (granted) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
             modifier           = Modifier.size(16.dp),
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -1026,8 +1034,11 @@ private fun InstallInfoCard(info: AppInfo) {
             )
             InfoRow(
                 label = stringResource(R.string.app_detail_last_used),
-                value = if (info.lastUsedTime > 0L) dateFormat.format(Date(info.lastUsedTime))
-                        else stringResource(R.string.app_detail_never_used),
+                value = if (info.lastUsedTime > 0L) {
+                    dateFormat.format(Date(info.lastUsedTime))
+                } else {
+                    stringResource(R.string.app_detail_never_used)
+                },
             )
             // v0.3.2 — surface the OS-reported hibernation state when true.
             // Skipping the row when false avoids cluttering the card for the

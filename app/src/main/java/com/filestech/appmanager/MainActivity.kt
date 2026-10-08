@@ -104,8 +104,8 @@ class MainActivity : ComponentActivity() {
                 null             -> isSystemInDarkTheme()
             }
             // v0.1.2 — default to OFF so the first frame matches the
-             // post-DataStore frame (avoid the brand → dynamic flash on
-             // Android 12+ devices with non-neutral wallpapers).
+            // post-DataStore frame (avoid the brand → dynamic flash on
+            // Android 12+ devices with non-neutral wallpapers).
             val resolvedDynamicColor = appearance?.dynamicColor ?: false
 
             AppManagerTechTheme(

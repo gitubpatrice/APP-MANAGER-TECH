@@ -164,18 +164,25 @@ private fun ClusterCard(
             // Header — shared badge (or singleton count) + total size.
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    color = if (cluster.isShared) BrandBlue.copy(alpha = 0.16f)
-                            else MaterialTheme.colorScheme.outline.copy(alpha = 0.14f),
+                    color = if (cluster.isShared) {
+                        BrandBlue.copy(alpha = 0.16f)
+                    } else {
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
+                    },
                     shape = RoundedCornerShape(4.dp),
                 ) {
                     Text(
-                        text     = if (cluster.isShared)
+                        text     = if (cluster.isShared) {
                             stringResource(R.string.signatures_shared_badge, cluster.size)
-                        else
-                            stringResource(R.string.signatures_solo_badge),
+                        } else {
+                            stringResource(R.string.signatures_solo_badge)
+                        },
                         style    = MaterialTheme.typography.labelSmall,
-                        color    = if (cluster.isShared) BrandBlue
-                                   else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color    = if (cluster.isShared) {
+                            BrandBlue
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                     )
@@ -242,4 +249,3 @@ private fun AppRowInCluster(
         }
     }
 }
-

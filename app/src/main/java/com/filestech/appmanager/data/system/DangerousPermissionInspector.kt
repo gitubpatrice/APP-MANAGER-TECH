@@ -65,6 +65,9 @@ class DangerousPermissionInspector @Inject constructor(
      * @param includeSystemApps when true, also report on system apps (for power
      *   users that want full coverage). Default false.
      */
+    // One pass over every installed package; the branch count is the skip rules listed above, each a
+    // `continue` guard.
+    @Suppress("CyclomaticComplexMethod")
     fun observeAll(includeSystemApps: Boolean = false): List<Observation> {
         val installed = runCatching { allPackages() }.getOrElse { e ->
             Timber.w(e, "DangerousPermissionInspector: failed to list packages")

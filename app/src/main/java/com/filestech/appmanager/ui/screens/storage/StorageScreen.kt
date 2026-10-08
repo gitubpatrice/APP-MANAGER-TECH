@@ -1,7 +1,6 @@
 package com.filestech.appmanager.ui.screens.storage
 
 import android.text.format.Formatter
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -375,8 +374,11 @@ private fun TopAppRow(entry: StorageReport.AppFootprint, useCache: Boolean) {
         Text(
             text  = sizeLabel,
             style = MaterialTheme.typography.bodyMedium,
-            color = if (useCache) MaterialTheme.colorScheme.tertiary
-                    else MaterialTheme.colorScheme.primary,
+            color = if (useCache) {
+                MaterialTheme.colorScheme.tertiary
+            } else {
+                MaterialTheme.colorScheme.primary
+            },
         )
     }
 }

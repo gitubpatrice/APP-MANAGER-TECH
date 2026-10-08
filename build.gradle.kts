@@ -27,4 +27,25 @@ plugins {
     alias(libs.plugins.hilt)                apply false
     alias(libs.plugins.ksp)                 apply false
     alias(libs.plugins.room)                apply false
+    alias(libs.plugins.detekt)
+}
+
+// detekt, blocking: config/detekt/detekt.yml states which rules describe a behaviour (active) and which
+// a layout taste this code does not follow (off, with the reason). There is no baseline.
+allprojects {
+    apply(plugin = rootProject.libs.plugins.detekt.get().pluginId)
+
+    detekt {
+        config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+        buildUponDefaultConfig = true
+        // androidTest added explicitly: the plugin's default sources are src/{main,test}, which would
+        // leave the Room migration tests outside any static analysis.
+        source.setFrom(files("src/main/java", "src/test/java", "src/androidTest/java"))
+        autoCorrect = false
+        parallel = true
+    }
+
+    dependencies {
+        add("detektPlugins", rootProject.libs.detekt.formatting)
+    }
 }

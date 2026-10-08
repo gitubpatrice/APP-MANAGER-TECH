@@ -15,7 +15,6 @@ import com.filestech.appmanager.data.system.DangerousPermissionInspector
 import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.DiagnosticReport
-import com.filestech.appmanager.domain.model.FilterOptions
 import com.filestech.appmanager.domain.model.LifecycleEvent
 import com.filestech.appmanager.domain.model.LifecycleEventType
 import com.filestech.appmanager.domain.model.UninstallReason
@@ -118,7 +117,7 @@ class BuildDiagnosticReportUseCase @Inject constructor(
         val total = stat.blockCountLong * block
         val free  = stat.availableBlocksLong * block
         total to free
-    } catch (e: IllegalArgumentException) {
+    } catch (expected: IllegalArgumentException) {
         0L to 0L
     }
 

@@ -6,7 +6,6 @@ import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.isValidPackageName
 import com.filestech.appmanager.core.ext.oneShotEvents
-import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.data.system.CriticalAppDetector

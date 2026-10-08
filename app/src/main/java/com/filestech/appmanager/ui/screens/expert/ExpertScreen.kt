@@ -238,13 +238,19 @@ private fun IdentityCard(identity: ExpertReport.AppIdentity) {
         KvRow(stringResource(R.string.expert_field_last_update),        dateFormat.format(Date(identity.lastUpdateTime)))
         KvRow(
             stringResource(R.string.expert_field_app_type),
-            if (identity.isSystemApp) stringResource(R.string.expert_value_system_app)
-            else stringResource(R.string.expert_value_user_app),
+            if (identity.isSystemApp) {
+                stringResource(R.string.expert_value_system_app)
+            } else {
+                stringResource(R.string.expert_value_user_app)
+            },
         )
         KvRow(
             stringResource(R.string.expert_field_state),
-            if (identity.isEnabled) stringResource(R.string.expert_value_enabled)
-            else stringResource(R.string.expert_value_disabled),
+            if (identity.isEnabled) {
+                stringResource(R.string.expert_value_enabled)
+            } else {
+                stringResource(R.string.expert_value_disabled)
+            },
         )
     }
 }

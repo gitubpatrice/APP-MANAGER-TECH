@@ -200,8 +200,11 @@ private fun StatementCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         colors   = CardDefaults.cardColors(
-            containerColor = if (highlight) tint.copy(alpha = 0.08f)
-                             else MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = if (highlight) {
+                tint.copy(alpha = 0.08f)
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerLow
+            },
         ),
     ) {
         androidx.compose.foundation.layout.Row(

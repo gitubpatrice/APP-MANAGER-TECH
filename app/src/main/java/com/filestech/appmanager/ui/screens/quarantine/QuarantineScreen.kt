@@ -2,7 +2,6 @@ package com.filestech.appmanager.ui.screens.quarantine
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -278,13 +277,19 @@ private fun QuarantineRow(
                 )
                 Text(
                     text  = stringResource(
-                        if (expired) R.string.quarantine_row_expired_on
-                        else R.string.quarantine_row_restore_on,
+                        if (expired) {
+                            R.string.quarantine_row_expired_on
+                        } else {
+                            R.string.quarantine_row_restore_on
+                        },
                         restoreLabel,
                     ),
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (expired) BrandDanger
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (expired) {
+                        BrandDanger
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
             ModeBadge(mode = entry.mode, expired = expired)

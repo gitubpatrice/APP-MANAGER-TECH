@@ -37,6 +37,8 @@ class GetSmartSuggestionsUseCase @Inject constructor(
     private val ignoreList: IgnoreListRepository,
 ) {
 
+    // The suggestion rules documented above, applied in one pass over the catalogue.
+    @Suppress("LongMethod")
     suspend operator fun invoke(
         unusedThresholdDays: Int = 30,
         neverOpenedGraceDays: Int = 7,

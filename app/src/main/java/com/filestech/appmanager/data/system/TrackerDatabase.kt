@@ -38,6 +38,9 @@ class TrackerDatabase @Inject constructor(
         all.flatMap { tracker -> tracker.signatures.map { sig -> sig to tracker } }
     }
 
+    // A bundled asset that fails to load or parse must leave the app usable without tracker data,
+    // whatever the failure (I/O, JSON, a missing field): logged, then an empty list.
+    @Suppress("TooGenericExceptionCaught")
     private fun load(): List<Tracker> = try {
         val text = context.assets.open(ASSET_NAME).bufferedReader().use { it.readText() }
         val array = JSONArray(text)

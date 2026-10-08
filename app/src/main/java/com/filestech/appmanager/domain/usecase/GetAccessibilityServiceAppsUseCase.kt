@@ -36,7 +36,8 @@ class GetAccessibilityServiceAppsUseCase @Inject constructor(
                     AccessibilityManager::class.java,
                 ) ?: return@withContext emptyList()
                 am.getEnabledAccessibilityServiceList(
-                    /* feedbackTypeFlags = */ android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK,
+                    /* feedbackTypeFlags = */
+                    android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK,
                 )
                     .mapNotNull { it.resolveInfo?.serviceInfo?.packageName }
                     .distinct()

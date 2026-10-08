@@ -59,8 +59,8 @@ class RecordAmtActionUseCase @Inject constructor(
                     timestamp     = timestamp,
                 )) {
                     is Outcome.Success -> out.value
-                    is Outcome.Failure -> throw IllegalStateException(out.error.toString())
-                    Outcome.Loading    -> throw IllegalStateException(
+                    is Outcome.Failure -> error(out.error.toString())
+                    Outcome.Loading    -> error(
                         "AmtActionRepository.insert returned Loading — contract violation",
                     )
                 }

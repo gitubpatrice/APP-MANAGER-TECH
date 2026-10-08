@@ -51,8 +51,11 @@ class ObservePermissionDriftsUseCase @Inject constructor(
                         packageName = row.packageName,
                         appLabel    = labels[row.packageName],
                         permission  = row.permission,
-                        change      = if (row.granted) PermissionDrift.Change.GAINED
-                                      else PermissionDrift.Change.LOST,
+                        change      = if (row.granted) {
+                            PermissionDrift.Change.GAINED
+                        } else {
+                            PermissionDrift.Change.LOST
+                        },
                         whenMs      = row.capturedAt,
                     )
                 }

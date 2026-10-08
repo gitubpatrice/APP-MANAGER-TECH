@@ -11,6 +11,7 @@ import com.filestech.appmanager.domain.model.QuarantineEntry
 import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.repository.QuarantineRepository
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -90,6 +91,12 @@ class QuarantineAppUseCase @Inject constructor(
         }
     }
 
+    // doHard and doSoft catch everything on purpose: Room reports a failed write through several
+    // unrelated exception types, and the user must get a message, not a crash. Cancellation is
+    // rethrown first — `repository.upsert` suspends, and swallowing it would report a cancelled
+    // coroutine as a failed quarantine. LongParameterList: the entry's fields, passed through from
+    // invoke one by one.
+    @Suppress("TooGenericExceptionCaught", "LongParameterList")
     private suspend fun doHard(
         packageName: String,
         label: String,
@@ -124,12 +131,15 @@ class QuarantineAppUseCase @Inject constructor(
             )
             Timber.i("Quarantine HARD: %s persisted, backup at %s", packageName, backupUri)
             Result.HardReady(uninstallIntent = intents.uninstallIntent(packageName))
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
             Timber.e(e, "Quarantine HARD: persist failed for %s", packageName)
             Result.Failure("Failed to persist quarantine entry: ${e.message}")
         }
     }
 
+    @Suppress("TooGenericExceptionCaught", "LongParameterList") // Same reasons as doHard.
     private suspend fun doSoft(
         packageName: String,
         label: String,
@@ -155,6 +165,8 @@ class QuarantineAppUseCase @Inject constructor(
             )
             Timber.i("Quarantine SOFT: %s persisted, restoreAt=%d", packageName, restoreAt)
             Result.SoftReady(appDetailsIntent = intents.appDetailsSettingsIntent(packageName))
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
             Timber.e(e, "Quarantine SOFT: persist failed for %s", packageName)
             Result.Failure("Failed to persist quarantine entry: ${e.message}")

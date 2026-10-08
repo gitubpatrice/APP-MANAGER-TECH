@@ -8,7 +8,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -48,12 +47,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -172,8 +169,11 @@ fun AppListScreen(
                     allSelected    = allSelected,
                     onClose        = viewModel::clearSelection,
                     onToggleSelectAll = {
-                        if (allSelected) viewModel.clearSelection()
-                        else viewModel.selectAll(visibleApps)
+                        if (allSelected) {
+                            viewModel.clearSelection()
+                        } else {
+                            viewModel.selectAll(visibleApps)
+                        }
                     },
                     onUninstall    = { batchDialog = BatchActionIntent.Uninstall(state.selectionCount) },
                     onClearCache   = { batchDialog = BatchActionIntent.ClearCache(state.selectionCount) },
@@ -198,8 +198,11 @@ fun AppListScreen(
             innerPadding      = innerPadding,
             listState         = listState,
             onItemClick       = { app ->
-                if (state.isInSelectionMode) viewModel.toggleSelection(app.packageName)
-                else onNavigateToDetail(app.packageName)
+                if (state.isInSelectionMode) {
+                    viewModel.toggleSelection(app.packageName)
+                } else {
+                    onNavigateToDetail(app.packageName)
+                }
             },
             onItemLongClick   = { app -> viewModel.toggleSelection(app.packageName) },
             onRetry           = {
@@ -332,8 +335,11 @@ private fun MainTopBar(
                             // the text doesn't shift horizontally on toggle
                             // and the disabled state is also visible.
                             Icon(
-                                imageVector = if (includeSystemApps) Icons.Outlined.CheckBox
-                                              else Icons.Outlined.CheckBoxOutlineBlank,
+                                imageVector = if (includeSystemApps) {
+                                    Icons.Outlined.CheckBox
+                                } else {
+                                    Icons.Outlined.CheckBoxOutlineBlank
+                                },
                                 contentDescription = null,
                             )
                         },
@@ -393,11 +399,17 @@ private fun SelectionTopBar(
             // (tap to select all visible).
             IconButton(onClick = onToggleSelectAll) {
                 Icon(
-                    imageVector        = if (allSelected) Icons.Outlined.Deselect
-                                          else Icons.Outlined.SelectAll,
+                    imageVector        = if (allSelected) {
+                        Icons.Outlined.Deselect
+                    } else {
+                        Icons.Outlined.SelectAll
+                    },
                     contentDescription = stringResource(
-                        if (allSelected) R.string.action_unselect_all
-                        else R.string.action_select_all,
+                        if (allSelected) {
+                            R.string.action_unselect_all
+                        } else {
+                            R.string.action_select_all
+                        },
                     ),
                 )
             }

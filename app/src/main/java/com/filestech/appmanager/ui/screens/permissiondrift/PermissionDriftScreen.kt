@@ -154,12 +154,18 @@ fun PermissionDriftScreen(
                 EmptyState(
                     icon  = Icons.Outlined.History,
                     title = stringResource(
-                        if (stats.isEmpty) R.string.drift_empty_title
-                        else R.string.drift_empty_title_after_capture,
+                        if (stats.isEmpty) {
+                            R.string.drift_empty_title
+                        } else {
+                            R.string.drift_empty_title_after_capture
+                        },
                     ),
                     body  = stringResource(
-                        if (stats.isEmpty) R.string.drift_empty_body
-                        else R.string.drift_empty_body_after_capture,
+                        if (stats.isEmpty) {
+                            R.string.drift_empty_body
+                        } else {
+                            R.string.drift_empty_body_after_capture
+                        },
                     ),
                 )
             } else {
@@ -173,7 +179,6 @@ fun PermissionDriftScreen(
             }
         }
     }
-
 }
 
 @Composable
@@ -199,16 +204,22 @@ private fun MonitoringStatusCard(
                 Icon(
                     imageVector        = Icons.Outlined.CheckCircle,
                     contentDescription = null,
-                    tint               = if (stats.isEmpty) MaterialTheme.colorScheme.onSurfaceVariant
-                                         else MaterialTheme.colorScheme.primary,
+                    tint               = if (stats.isEmpty) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
                     modifier           = Modifier.size(28.dp),
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text       = stringResource(
-                            if (stats.isEmpty) R.string.drift_status_inactive
-                            else R.string.drift_status_active,
+                            if (stats.isEmpty) {
+                                R.string.drift_status_inactive
+                            } else {
+                                R.string.drift_status_active
+                            },
                         ),
                         style      = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
@@ -265,8 +276,11 @@ private fun MonitoringStatusCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(
-                        if (stats.isEmpty) R.string.drift_action_capture_first
-                        else R.string.drift_action_capture_now,
+                        if (stats.isEmpty) {
+                            R.string.drift_action_capture_first
+                        } else {
+                            R.string.drift_action_capture_now
+                        },
                     ),
                 )
             }

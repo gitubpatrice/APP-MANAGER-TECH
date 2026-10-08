@@ -117,8 +117,11 @@ fun PrivacyDataPanel(
                         Text(
                             text  = "• $label",
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (granted) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (granted) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                         )
                     }
                 }

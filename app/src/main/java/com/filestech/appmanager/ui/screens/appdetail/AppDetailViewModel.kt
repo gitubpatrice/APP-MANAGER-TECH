@@ -113,9 +113,12 @@ class AppDetailViewModel @Inject constructor(
     val lifecycleEvents: StateFlow<List<LifecycleEvent>> = _state
         .map { it.packageName }
         .flatMapLatest { pkg ->
-            if (pkg.isEmpty()) emptyFlow()
-            else lifecycleRepository.observeByPackage(pkg)
-                .map { outcome -> outcome.getOrNull().orEmpty() }
+            if (pkg.isEmpty()) {
+                emptyFlow()
+            } else {
+                lifecycleRepository.observeByPackage(pkg)
+                    .map { outcome -> outcome.getOrNull().orEmpty() }
+            }
         }
         .stateIn(
             scope        = viewModelScope,
@@ -133,8 +136,11 @@ class AppDetailViewModel @Inject constructor(
     val currentTags: StateFlow<Set<AppTag>> = _state
         .map { it.packageName }
         .flatMapLatest { pkg ->
-            if (pkg.isEmpty()) emptyFlow()
-            else settings.flow.map { snapshot -> snapshot.appTags[pkg].orEmpty() }
+            if (pkg.isEmpty()) {
+                emptyFlow()
+            } else {
+                settings.flow.map { snapshot -> snapshot.appTags[pkg].orEmpty() }
+            }
         }
         .stateIn(
             scope        = viewModelScope,
@@ -162,6 +168,9 @@ class AppDetailViewModel @Inject constructor(
     // Load — parallel fan-out for detail + privacy + trackers + isIgnored
     // -----------------------------------------------------------------------
 
+    // DestructuringDeclarationWithTooManyEntries: the four parallel loads below are awaited together
+    // and named one by one. (On the function: ktlint misreads an annotated local destructuring.)
+    @Suppress("DestructuringDeclarationWithTooManyEntries")
     fun load(packageName: String) {
         _state.update {
             it.copy(
@@ -440,7 +449,9 @@ class AppDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val backupTreeUri = if (mode == QuarantineMode.HARD_UNINSTALL) {
                 settings.flow.first().quarantine.backupTreeUri?.let { Uri.parse(it) }
-            } else null
+            } else {
+                null
+            }
 
             if (mode == QuarantineMode.HARD_UNINSTALL && backupTreeUri == null) {
                 _events.trySend(Event.NeedsBackupFolder)
@@ -453,10 +464,11 @@ class AppDetailViewModel @Inject constructor(
                 durationDays  = durationDays,
                 backupTreeUri = backupTreeUri,
             )
-            val journalType = if (mode == QuarantineMode.HARD_UNINSTALL)
+            val journalType = if (mode == QuarantineMode.HARD_UNINSTALL) {
                 AmtActionType.QUARANTINE_HARD
-            else
+            } else {
                 AmtActionType.QUARANTINE_SOFT
+            }
             when (result) {
                 is QuarantineAppUseCase.Result.HardReady -> {
                     logAction(journalType, AmtActionResult.INTENT_REQUESTED)

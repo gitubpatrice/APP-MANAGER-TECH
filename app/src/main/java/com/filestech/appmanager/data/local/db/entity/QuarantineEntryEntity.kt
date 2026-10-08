@@ -73,7 +73,10 @@ data class QuarantineEntryEntity(
     @ColumnInfo(name = "auto_restore_enabled", defaultValue = "1")
     val autoRestoreEnabled: Boolean = true,
 
-    /** Set once by the [com.filestech.appmanager.data.system.workers.QuarantineRestoreWorker] to avoid re-firing the expiry notification. */
+    /**
+     * Set once by the [com.filestech.appmanager.data.system.workers.QuarantineRestoreWorker] to
+     * avoid re-firing the expiry notification.
+     */
     @ColumnInfo(name = "notified", defaultValue = "0")
     val notified: Boolean = false,
 )
