@@ -8,9 +8,11 @@ import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.system.AmtActionLogger
+import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.IntentFactory
 import com.filestech.appmanager.domain.model.AmtActionResult
 import com.filestech.appmanager.domain.model.AmtActionType
+import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.usecase.GetAccessibilityServiceAppsUseCase
 import com.filestech.appmanager.domain.usecase.GetDeviceAdminAppsUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
@@ -57,6 +59,7 @@ class SecurityAuditViewModel @Inject constructor(
      * forensic coverage gap documented in `RecordAmtActionUseCase`.
      */
     private val actionLogger: AmtActionLogger,
+    private val criticalDetector: CriticalAppDetector,
 ) : ViewModel() {
 
     // v0.1.3 audit L-2 fix — init with isLoading=true so the very first
@@ -132,8 +135,23 @@ class SecurityAuditViewModel @Inject constructor(
         _events.trySend(Event.LaunchIntent(intents.accessibilitySettingsIntent()))
     }
 
-    /** Launches the OS uninstall flow for [packageName]. */
-    fun uninstall(packageName: String) {
+    /**
+     * Launches the OS uninstall flow for [packageName].
+     *
+     * v0.5.1 — Safety Guardrails, as on every other uninstall path: this one
+     * skipped [criticalDetector], so a protected app (2FA, password manager,
+     * banking, the user's own list…) went to the system dialog without the
+     * hold-3s warning. A critical package now emits
+     * [Event.RequiresCriticalConfirmation]; the screen re-invokes with
+     * [bypassCriticalCheck] = true on confirm.
+     */
+    fun uninstall(packageName: String, bypassCriticalCheck: Boolean = false) {
+        if (!bypassCriticalCheck) {
+            criticalDetector.classify(packageName)?.let { classification ->
+                _events.trySend(Event.RequiresCriticalConfirmation(classification))
+                return
+            }
+        }
         val intent = uninstallApp(packageName).getOrNull()
         // v0.4.0 audit D2 fix — record into the AMT action journal.
         // Label is null here because this VM exposes only package names
@@ -157,6 +175,13 @@ class SecurityAuditViewModel @Inject constructor(
     sealed interface Event {
         data class LaunchIntent(val intent: Intent) : Event
         data class RefreshDone(val adminCount: Int, val a11yCount: Int) : Event
+        /**
+         * v0.5.1 — the app to uninstall is protected. The screen surfaces
+         * [com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog]
+         * and re-invokes `uninstall(pkg, bypassCriticalCheck = true)` on
+         * hold-3s confirm; the package is [CriticalClassification.packageName].
+         */
+        data class RequiresCriticalConfirmation(val classification: CriticalClassification) : Event
     }
 
     companion object {

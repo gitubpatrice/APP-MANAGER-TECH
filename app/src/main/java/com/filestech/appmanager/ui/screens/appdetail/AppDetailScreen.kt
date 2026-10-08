@@ -129,6 +129,7 @@ fun AppDetailScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val lifecycleEvents by viewModel.lifecycleEvents.collectAsStateWithLifecycle()
     val currentTags by viewModel.currentTags.collectAsStateWithLifecycle()
+    val confirmClearCache by viewModel.confirmClearCache.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -241,9 +242,15 @@ fun AppDetailScreen(
                 )
             },
             onClearCache  = {
-                confirmDialog = ConfirmIntent.ClearCache(
-                    label = (state.detailOutcome as? Outcome.Success)?.value?.info?.label ?: packageName,
-                )
+                // v0.5.1 — Settings → "Confirm before deleting" off: no dialog, the
+                // action only opens Android's app-info page anyway.
+                if (confirmClearCache) {
+                    confirmDialog = ConfirmIntent.ClearCache(
+                        label = (state.detailOutcome as? Outcome.Success)?.value?.info?.label ?: packageName,
+                    )
+                } else {
+                    viewModel.clearCache()
+                }
             },
             onForceStop   = {
                 confirmDialog = ConfirmIntent.ForceStop(
@@ -251,7 +258,10 @@ fun AppDetailScreen(
                 )
             },
             onToggleEnabled = { newEnabled ->
-                confirmDialog = if (newEnabled) ConfirmIntent.Enable else ConfirmIntent.Disable
+                // v0.5.1 — titled with the app label, like every other action dialog
+                // here (it showed the package name).
+                val label = (state.detailOutcome as? Outcome.Success)?.value?.info?.label ?: packageName
+                confirmDialog = if (newEnabled) ConfirmIntent.Enable(label) else ConfirmIntent.Disable(label)
             },
             onQuarantine             = { quarantineDialogOpen = true },
             onOpenPermissionsSettings = viewModel::openAppPermissionsSettings,
@@ -293,8 +303,8 @@ fun AppDetailScreen(
             },
             onDismiss = { confirmDialog = null },
         )
-        ConfirmIntent.Disable -> DestructiveDialog(
-            title     = stringResource(R.string.dialog_disable_title, packageName),
+        is ConfirmIntent.Disable -> DestructiveDialog(
+            title     = stringResource(R.string.dialog_disable_title, d.label),
             body      = stringResource(R.string.dialog_disable_body),
             onConfirm = {
                 viewModel.disable()
@@ -302,8 +312,8 @@ fun AppDetailScreen(
             },
             onDismiss = { confirmDialog = null },
         )
-        ConfirmIntent.Enable -> ConfirmDialog(
-            title     = stringResource(R.string.dialog_enable_title, packageName),
+        is ConfirmIntent.Enable -> ConfirmDialog(
+            title     = stringResource(R.string.dialog_enable_title, d.label),
             body      = stringResource(R.string.dialog_enable_body),
             onConfirm = {
                 viewModel.enable()
@@ -1117,8 +1127,8 @@ private sealed interface ConfirmIntent : java.io.Serializable {
     data class Uninstall(val label: String) : ConfirmIntent
     data class ClearCache(val label: String) : ConfirmIntent
     data class ForceStop(val label: String) : ConfirmIntent
-    data object Disable : ConfirmIntent
-    data object Enable : ConfirmIntent
+    data class Disable(val label: String) : ConfirmIntent
+    data class Enable(val label: String) : ConfirmIntent
 }
 
 // ---------------------------------------------------------------------------

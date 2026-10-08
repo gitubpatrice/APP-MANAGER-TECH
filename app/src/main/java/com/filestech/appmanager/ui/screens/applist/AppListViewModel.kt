@@ -10,7 +10,9 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
 import com.filestech.appmanager.core.result.map
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.data.local.datastore.confirmBeforeDelete
 import com.filestech.appmanager.data.system.AmtActionLogger
+import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.AmtActionResult
 import com.filestech.appmanager.domain.model.AmtActionType
@@ -20,6 +22,7 @@ import com.filestech.appmanager.domain.model.AppAction
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.AppTag
 import com.filestech.appmanager.domain.model.BatchActionResult
+import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.model.FilterOptions
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.BatchActionUseCase
@@ -38,6 +41,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -91,6 +95,12 @@ class AppListViewModel @Inject constructor(
      */
     private val actionLogger: AmtActionLogger,
     /**
+     * v0.5.1 — "Uninstall selected" skipped the protected-apps check that
+     * every single-app uninstall path runs: a 2FA or banking app went
+     * through on the plain batch dialog, without the hold-3s confirmation.
+     */
+    private val criticalDetector: CriticalAppDetector,
+    /**
      * v0.4.0 audit PERF-H1 + KOTLIN-M3 fix — IO dispatcher injected so
      * the `hasUsageStatsAccess()` AppOps IPC probe runs off the main
      * thread both at init time AND in `onResumed()` (was previously
@@ -105,8 +115,16 @@ class AppListViewModel @Inject constructor(
     // -----------------------------------------------------------------------
 
     private val _searchQuery = MutableStateFlow("")
-    private val _sortOrder = MutableStateFlow(AppSortOrder.NAME_ASC)
-    private val _filterOptions = MutableStateFlow(FilterOptions.DEFAULT)
+    /**
+     * v0.5.1 — `null` until the saved defaults are read (Settings → "Default
+     * sort order" and "Include system apps", which only the Settings screen
+     * used to read: the list always opened on NAME_ASC, user apps only). The
+     * [pipeline] waits for both, so the list never opens on a hard-coded
+     * order and then jumps. They are seeded, then followed, from `init`; an
+     * in-screen change stays for the session — the latest choice wins.
+     */
+    private val _sortOrder = MutableStateFlow<AppSortOrder?>(null)
+    private val _filterOptions = MutableStateFlow<FilterOptions?>(null)
     private val _selectedPackages = MutableStateFlow<Set<String>>(emptySet())
     private val _isRefreshing = MutableStateFlow(false)
     /**
@@ -144,17 +162,20 @@ class AppListViewModel @Inject constructor(
         val tagFilter: Set<AppTag>,
     )
 
-    private val pipeline: StateFlow<Pipeline> = combine(
+    // v0.5.1 — no hard-coded initial Pipeline any more: it was handed to
+    // getInstalledApps before the saved defaults arrived (see [_sortOrder]).
+    private val pipeline: Flow<Pipeline> = combine(
         _searchQuery,
-        _sortOrder,
-        _filterOptions,
+        _sortOrder.filterNotNull(),
+        _filterOptions.filterNotNull(),
         _tagFilter,
     ) { query, sort, filter, tagFilter -> Pipeline(query, sort, filter, tagFilter) }
         .stateIn(
             scope        = viewModelScope,
             started      = SharingStarted.WhileSubscribed(STATEFLOW_STOP_TIMEOUT_MS),
-            initialValue = Pipeline("", AppSortOrder.NAME_ASC, FilterOptions.DEFAULT, emptySet()),
+            initialValue = null,
         )
+        .filterNotNull()
 
     /**
      * v0.3.4 — Hot stream of the persisted tag assignments
@@ -221,6 +242,18 @@ class AppListViewModel @Inject constructor(
         initialValue = UiState(),
     )
 
+    /**
+     * v0.5.1 — Settings → "Confirm before deleting". Off: "Clear cache for
+     * selected" opens the app-info pages straight away, without its dialog.
+     * `true` until DataStore answers — asking once too often is the safe side.
+     */
+    val confirmClearCache: StateFlow<Boolean> = settings.confirmBeforeDelete
+        .stateIn(
+            scope        = viewModelScope,
+            started      = SharingStarted.WhileSubscribed(STATEFLOW_STOP_TIMEOUT_MS),
+            initialValue = true,
+        )
+
     // -----------------------------------------------------------------------
     // One-shot events
     // -----------------------------------------------------------------------
@@ -246,7 +279,7 @@ class AppListViewModel @Inject constructor(
 
     /** Convenience for the common "toggle include system apps" switch. */
     fun onToggleSystemApps(include: Boolean) {
-        _filterOptions.update { it.copy(includeSystemApps = include) }
+        _filterOptions.update { it.withSystemApps(include) }
     }
 
     /**
@@ -292,10 +325,29 @@ class AppListViewModel @Inject constructor(
      * Builds one Uninstall Intent per selected package and emits them as a
      * single one-shot event. The UI launches them sequentially — the OS
      * shows its own confirmation dialog per package.
+     *
+     * v0.5.1 — same Safety Guardrails as the Trash "Empty trash" batch: if AT
+     * LEAST ONE selected app is classified critical, nothing is launched or
+     * journalled; [Event.RequiresCriticalConfirmation] carries the count +
+     * the first classification, the screen shows ONE hold-3s warning for the
+     * whole batch and re-invokes with [bypassCriticalCheck] = true. The
+     * selection is kept, so a cancel lets the user unselect the protected app.
      */
-    fun batchUninstall() = viewModelScope.launch {
+    fun batchUninstall(bypassCriticalCheck: Boolean = false) = viewModelScope.launch {
         val selection = _selectedPackages.value
         if (selection.isEmpty()) return@launch
+        if (!bypassCriticalCheck) {
+            val criticals = selection.mapNotNull { criticalDetector.classify(it) }
+            if (criticals.isNotEmpty()) {
+                _events.trySend(
+                    Event.RequiresCriticalConfirmation(
+                        classification = criticals.first(),
+                        criticalCount  = criticals.size,
+                    ),
+                )
+                return@launch
+            }
+        }
         val list = selection.mapNotNull { pkg ->
             val intent = uninstallApp(pkg).getOrNull()
             val result = if (intent != null) AmtActionResult.INTENT_REQUESTED else AmtActionResult.FAILED
@@ -490,6 +542,17 @@ class AppListViewModel @Inject constructor(
         data class LaunchIntent(val intent: Intent) : Event
         data class LaunchIntentsSequentially(val intents: List<Intent>) : Event
         data class BatchDone(val result: BatchActionResult) : Event
+        /**
+         * v0.5.1 — the uninstall selection holds [criticalCount] protected
+         * app(s). The screen surfaces the hold-3s
+         * [com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog]
+         * (copy from [classification], the first one found) and re-invokes
+         * `batchUninstall(bypassCriticalCheck = true)` on confirm.
+         */
+        data class RequiresCriticalConfirmation(
+            val classification: CriticalClassification,
+            val criticalCount: Int,
+        ) : Event
     }
 
     // VIII C7 fix: STOP_TIMEOUT_MS factored to core.ext.STATEFLOW_STOP_TIMEOUT_MS
@@ -504,5 +567,28 @@ class AppListViewModel @Inject constructor(
         viewModelScope.launch {
             _usageStatsGranted.value = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
         }
+        // v0.5.1 — seed the list from the saved defaults, then follow them, so
+        // a change made in Settings shows on return. One collector per setting:
+        // changing the default sort must not undo an in-screen system-apps
+        // toggle, and the reverse.
+        viewModelScope.launch {
+            settings.flow
+                .map { it.appearance.appSortOrder }
+                .distinctUntilChanged()
+                .collect { _sortOrder.value = it }
+        }
+        viewModelScope.launch {
+            settings.flow
+                .map { it.scanner.includeSystemApps }
+                .distinctUntilChanged()
+                .collect { include -> _filterOptions.update { it.withSystemApps(include) } }
+        }
     }
 }
+
+/**
+ * v0.5.1 — [FilterOptions.DEFAULT] until the list has a filter, so the saved
+ * system-apps default and the in-screen toggle both only touch their own field.
+ */
+internal fun FilterOptions?.withSystemApps(include: Boolean): FilterOptions =
+    (this ?: FilterOptions.DEFAULT).copy(includeSystemApps = include)

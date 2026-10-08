@@ -79,10 +79,12 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.model.AppSortOrder
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.AppTag
+import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
 import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
+import com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog
 import com.filestech.appmanager.ui.components.dialogs.DestructiveDialog
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
 import com.filestech.appmanager.ui.components.dialogs.appTagLabelRes
@@ -116,6 +118,7 @@ fun AppListScreen(
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val confirmClearCache by viewModel.confirmClearCache.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -123,6 +126,10 @@ fun AppListScreen(
 
     var showSortDialog by rememberSaveable { mutableStateOf(false) }
     var batchDialog by rememberSaveable { mutableStateOf<BatchActionIntent?>(null) }
+    // v0.5.1 — hold-3s confirmation for a batch uninstall holding a protected
+    // app. `remember` (not Saveable), as on the Trash screen: a config change
+    // drops the dialog, the selection survives and the user taps again.
+    var criticalConfirm by remember { mutableStateOf<BatchCriticalConfirm?>(null) }
 
     // One-shot events → side effects.
     LaunchedEffect(viewModel) {
@@ -143,6 +150,14 @@ fun AppListScreen(
                     )
                 }
                 is AppListViewModel.Event.NavigateToDetail -> onNavigateToDetail(event.packageName)
+                is AppListViewModel.Event.RequiresCriticalConfirmation ->
+                    criticalConfirm = BatchCriticalConfirm(
+                        classification = event.classification,
+                        // The first protected app found names the warning, as for "Empty trash".
+                        appLabel       = (state.listOutcome as? Outcome.Success)?.value
+                            ?.firstOrNull { it.packageName == event.classification.packageName }
+                            ?.label ?: event.classification.packageName,
+                    )
             }
         }
     }
@@ -182,7 +197,14 @@ fun AppListScreen(
                         }
                     },
                     onUninstall    = { batchDialog = BatchActionIntent.Uninstall(state.selectionCount) },
-                    onClearCache   = { batchDialog = BatchActionIntent.ClearCache(state.selectionCount) },
+                    onClearCache   = {
+                        // v0.5.1 — Settings → "Confirm before deleting" off: no dialog.
+                        if (confirmClearCache) {
+                            batchDialog = BatchActionIntent.ClearCache(state.selectionCount)
+                        } else {
+                            viewModel.batchClearCache()
+                        }
+                    },
                     onForceStop    = { batchDialog = BatchActionIntent.ForceStop(state.selectionCount) },
                 )
             } else {
@@ -266,6 +288,21 @@ fun AppListScreen(
         )
         null -> Unit
     }
+
+    // v0.5.1 — Safety Guardrails for "Uninstall selected": one hold-3s warning
+    // for the whole batch, surfaced by the ViewModel after the batch dialog.
+    criticalConfirm?.let { confirm ->
+        CriticalWarningDialog(
+            appLabel    = confirm.appLabel,
+            actionLabel = stringResource(R.string.critical_action_uninstall),
+            category    = confirm.classification.category,
+            onConfirm   = {
+                viewModel.batchUninstall(bypassCriticalCheck = true)
+                criticalConfirm = null
+            },
+            onCancel    = { criticalConfirm = null },
+        )
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -277,6 +314,11 @@ private sealed interface BatchActionIntent : java.io.Serializable {
     data class ClearCache(val count: Int) : BatchActionIntent
     data class ForceStop(val count: Int) : BatchActionIntent
 }
+
+private data class BatchCriticalConfirm(
+    val classification: CriticalClassification,
+    val appLabel: String,
+)
 
 // ---------------------------------------------------------------------------
 // TopAppBars
