@@ -1,9 +1,10 @@
 import java.io.FileInputStream
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    // No `org.jetbrains.kotlin.android`: AGP 9 compiles Kotlin itself.
     alias(libs.plugins.kotlin.compose)   // Compose compiler plugin (Kotlin 2.x, NOT composeOptions)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
@@ -34,7 +35,9 @@ android {
         includeInBundle = false
     }
     namespace   = "com.filestech.appmanager"
-    compileSdk  = 35
+    // compileSdk 37 as in Agenda Tech: the AndroidX releases built for AGP 9 require it. targetSdk
+    // stays 35, so the app's runtime behaviour on the device does not change with this upgrade.
+    compileSdk  = 37
 
     defaultConfig {
         applicationId = "com.filestech.appmanager"
@@ -55,13 +58,6 @@ android {
         manifestPlaceholders["appLabel"] = "App Manager Tech"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        // Strip locales other than en/fr from the resource bundle.
-        // resourceConfigurations is deprecated in AGP 8.13+ (replaced by
-        // androidResources.localeFilters) but is still supported on AGP 8.7.
-        // To realign with the Files Tech portfolio, bump AGP 8.13.2 in Phase VIII.
-        @Suppress("DEPRECATION")
-        resourceConfigurations += listOf("en", "fr")
 
         vectorDrawables {
             useSupportLibrary = true
@@ -115,8 +111,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    // Strip locales other than en/fr from the resource bundle. `localeFilters` replaces
+    // `resourceConfigurations`, which AGP 9 no longer offers. The list must keep matching the
+    // translated `values-*` folders: a language missing here is removed from the APK without error.
+    androidResources {
+        localeFilters += listOf("en", "fr")
     }
 
     // ---------------------------------------------------------------------------
@@ -152,6 +151,13 @@ android {
     }
 }
 
+// Kotlin 2.3+: the `compilerOptions` DSL replaces `kotlinOptions`, which is gone.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Room schema export — the dedicated plugin owns room.schemaLocation; do NOT
 // also pass it through `ksp { arg(...) }` (would trigger a conflict error).
@@ -171,7 +177,7 @@ room {
 // declared: a new database version's schema must be committed before its migration test can pass.
 // Forgetting it fails either way - the asset merge ran before KSP in the builds measured, so the test
 // misses the file; in the other order, Gradle rejects the undeclared dependency on the copy's output.
-android.sourceSets.getByName("androidTest").assets.srcDir("$projectDir/../schemas")
+android.sourceSets.getByName("androidTest").assets.directories.add("$projectDir/../schemas")
 
 dependencies {
     // --- Core ---
