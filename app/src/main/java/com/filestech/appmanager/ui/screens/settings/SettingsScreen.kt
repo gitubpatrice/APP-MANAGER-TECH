@@ -54,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -693,7 +694,7 @@ private fun TagStatsSection(appTags: Map<String, Set<AppTag>>) {
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text  = stringResource(R.string.settings_tag_stats_total, appTags.size),
+                text  = pluralStringResource(R.plurals.settings_tag_stats_total, appTags.size, appTags.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

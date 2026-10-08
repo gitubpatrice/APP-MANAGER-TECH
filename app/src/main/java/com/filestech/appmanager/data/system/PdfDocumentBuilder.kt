@@ -157,16 +157,16 @@ class PdfDocumentBuilder @Inject constructor(
             return
         }
         if (issues.zombiesCount > 0) {
-            p.drawBody(context.getString(R.string.pdf_issue_zombies, issues.zombiesCount))
+            p.drawBody(context.resources.getQuantityString(R.plurals.pdf_issue_zombies, issues.zombiesCount, issues.zombiesCount))
         }
         if (issues.rarelyUsedCount > 0) {
-            p.drawBody(context.getString(R.string.pdf_issue_rarely_used, issues.rarelyUsedCount))
+            p.drawBody(context.resources.getQuantityString(R.plurals.pdf_issue_rarely_used, issues.rarelyUsedCount, issues.rarelyUsedCount))
         }
         if (issues.oversizedCount > 0) {
-            p.drawBody(context.getString(R.string.pdf_issue_oversized, issues.oversizedCount))
+            p.drawBody(context.resources.getQuantityString(R.plurals.pdf_issue_oversized, issues.oversizedCount, issues.oversizedCount))
         }
         if (issues.sideloadedCount > 0) {
-            p.drawBody(context.getString(R.string.pdf_issue_sideloaded, issues.sideloadedCount))
+            p.drawBody(context.resources.getQuantityString(R.plurals.pdf_issue_sideloaded, issues.sideloadedCount, issues.sideloadedCount))
         }
     }
 

@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -155,8 +156,8 @@ fun PrivacyDataPanel(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text       = stringResource(
-                            R.string.appdetail_privacy_panel_trackers_count,
+                        text       = pluralStringResource(
+                            R.plurals.appdetail_privacy_panel_trackers_count, trackerReport.detectedTrackers.size,
                             trackerReport.detectedTrackers.size,
                         ),
                         style      = MaterialTheme.typography.bodyMedium,

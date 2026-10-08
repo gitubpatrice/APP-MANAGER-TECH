@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -225,7 +226,7 @@ private fun StatsCard(events: List<LifecycleEvent>) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text       = stringResource(R.string.lifecycle_stats_title, events.size),
+                text       = pluralStringResource(R.plurals.lifecycle_stats_title, events.size, events.size),
                 style      = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -448,8 +449,8 @@ private fun EventCard(
                     shape = RoundedCornerShape(4.dp),
                 ) {
                     Text(
-                        text     = stringResource(
-                            R.string.lifecycle_row_perms_gained,
+                        text     = pluralStringResource(
+                            R.plurals.lifecycle_row_perms_gained, delta.gained.size,
                             delta.gained.size,
                             delta.gained.joinToString(", ") { it.substringAfterLast('.') },
                         ),

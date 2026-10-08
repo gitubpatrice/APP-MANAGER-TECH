@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -217,7 +218,7 @@ private fun StorageReportContent(
         SectionCard {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text     = stringResource(R.string.storage_subtitle, report.totalAppCount),
+                    text     = pluralStringResource(R.plurals.storage_subtitle, report.totalAppCount, report.totalAppCount),
                     style    = MaterialTheme.typography.titleMedium,
                     color    = MaterialTheme.colorScheme.primary,
                 )

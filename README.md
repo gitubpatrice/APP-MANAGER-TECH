@@ -4,7 +4,8 @@ A local-only Android app manager / cleaner inspired by SD Maid, for non-root
 devices. Inspect, batch-act on, and audit every installed app — without
 sending a single byte off the device.
 
-**F-Droid only. No Google Mobile Services, no Firebase, no Internet permission.**
+**No Google Mobile Services, no Firebase, no Internet permission.** Distributed as signed APKs on
+[GitHub Releases](https://github.com/gitubpatrice/APP-MANAGER-TECH/releases).
 
 ---
 
@@ -131,8 +132,8 @@ See [FDROID.md](FDROID.md) for the full distribution policy. Summary:
 - **Reproducible builds** — pinned AGP / Kotlin / Gradle / JDK; no
   `BuildConfig.BUILD_TIME` baked into the APK.
 
-The build is signed by F-Droid; we publish unsigned APKs in GitHub releases
-for users who want to sideload with our own signature.
+The app is not on F-Droid. The APKs on GitHub Releases are signed with the project key, certificate
+SHA-256 `76e8772e09951369405f58e70c4afffd41c4687553c6cfa03d08145ff60ff1cf`, unchanged since v0.1.0.
 
 ---
 

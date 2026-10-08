@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -99,7 +100,7 @@ fun ZombiesScreen(
             when (event) {
                 is ZombiesViewModel.Event.RefreshDone ->
                     snackbarHostState.showSnackbar(
-                        resources.getString(R.string.zombies_refresh_done, event.count),
+                        resources.getQuantityString(R.plurals.zombies_refresh_done, event.count, event.count),
                     )
                 is ZombiesViewModel.Event.LaunchIntent -> {
                     runCatching {
@@ -280,7 +281,8 @@ private fun ReasonBadge(zombie: ZombieApp) {
         ZombieApp.Reason.NEVER_OPENED ->
             BrandDanger to stringResource(R.string.zombie_reason_never_opened)
         ZombieApp.Reason.UNUSED_SINCE ->
-            MaterialTheme.colorScheme.tertiary to stringResource(R.string.zombie_reason_unused_since, zombie.unusedDays)
+            MaterialTheme.colorScheme.tertiary to
+                pluralStringResource(R.plurals.zombie_reason_unused_since, zombie.unusedDays, zombie.unusedDays)
     }
     Surface(
         shape        = RoundedCornerShape(50),

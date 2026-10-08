@@ -105,8 +105,8 @@ fun SmartCleanerScreen(
                 }
                 is SmartCleanerViewModel.Event.AnalyzeDone ->
                     snackbarHostState.showSnackbar(
-                        resources.getString(
-                            R.string.smart_cleaner_refresh_done,
+                        resources.getQuantityString(
+                            R.plurals.smart_cleaner_refresh_done, event.suggestionsCount,
                             event.suggestionsCount,
                         ),
                     )
@@ -282,8 +282,8 @@ private fun SmartCleanerList(
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        text  = stringResource(
-                            R.string.smart_cleaner_subtitle,
+                        text  = pluralStringResource(
+                            R.plurals.smart_cleaner_subtitle, state.report.suggestions.size,
                             totalLabel,
                             state.report.suggestions.size,
                         ),

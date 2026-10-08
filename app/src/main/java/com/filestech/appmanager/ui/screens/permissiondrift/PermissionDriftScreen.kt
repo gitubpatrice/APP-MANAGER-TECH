@@ -99,7 +99,7 @@ fun PermissionDriftScreen(
                 is PermissionDriftViewModel.Event.CaptureDone -> {
                     val msg = when {
                         event.drifts > 0 ->
-                            resources.getString(R.string.drift_capture_changes, event.drifts)
+                            resources.getQuantityString(R.plurals.drift_capture_changes, event.drifts, event.drifts)
                         event.baselines > 0 ->
                             resources.getString(R.string.drift_capture_baseline, event.baselines)
                         else ->

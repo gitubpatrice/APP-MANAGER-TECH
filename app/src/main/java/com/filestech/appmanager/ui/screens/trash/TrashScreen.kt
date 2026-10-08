@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -108,7 +109,7 @@ fun TrashScreen(
                 is TrashViewModel.Event.LaunchIntents -> {
                     event.intents.forEach { launchIntent(context, it) }
                     snackbarHostState.showSnackbar(
-                        resources.getString(R.string.trash_emptied_snackbar, event.total),
+                        resources.getQuantityString(R.plurals.trash_emptied_snackbar, event.total, event.total),
                     )
                 }
                 is TrashViewModel.Event.Restored -> {
@@ -257,7 +258,7 @@ private fun TrashBody(
         } else {
             Column(modifier = Modifier.fillMaxSize()) {
                 Text(
-                    text     = stringResource(R.string.trash_subtitle, items.size, totalLabel),
+                    text     = pluralStringResource(R.plurals.trash_subtitle, items.size, items.size, totalLabel),
                     style    = MaterialTheme.typography.bodyMedium,
                     color    = BrandDanger,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

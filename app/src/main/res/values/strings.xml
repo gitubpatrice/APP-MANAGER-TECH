@@ -4,39 +4,25 @@
     <!-- ================================================================ -->
     <!-- App identity                                                     -->
     <!-- ================================================================ -->
-    <string name="app_name">App Manager Tech</string>
+    <string name="app_name" translatable="false">App Manager Tech</string>
 
     <!-- ================================================================ -->
     <!-- Common actions / dialog labels                                   -->
     <!-- ================================================================ -->
-    <string name="action_back">Back</string>
-    <string name="action_refresh">Refresh</string>
-    <string name="action_search">Search</string>
     <string name="action_clear">Clear</string>
     <string name="action_settings">Settings</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_confirm">Confirm</string>
-    <string name="action_delete">Delete</string>
-    <string name="action_clear_cache">Clear cache</string>
     <string name="action_retry">Retry</string>
     <string name="action_select_all">Select all</string>
     <string name="action_unselect_all">Unselect all</string>
-    <string name="action_open_settings">Open app settings</string>
-    <string name="action_open_usage_access">Open Usage access</string>
-    <string name="action_rescan">Rescan</string>
 
     <string name="dialog_confirm">Confirm</string>
     <string name="dialog_cancel">Cancel</string>
-    <string name="dialog_close">Close</string>
-    <string name="dialog_ok">OK</string>
-    <string name="dialog_yes">Yes</string>
-    <string name="dialog_no">No</string>
 
     <!-- ================================================================ -->
     <!-- Screen titles                                                    -->
     <!-- ================================================================ -->
-    <string name="screen_app_list_placeholder">App list — coming soon</string>
-    <string name="screen_settings_placeholder">Settings — coming soon</string>
     <string name="screen_app_list_title">Installed apps</string>
     <string name="screen_app_detail_title">App details</string>
     <string name="screen_storage_title">Storage</string>
@@ -82,24 +68,19 @@
     <string name="installer_f_droid">F-Droid</string>
     <string name="installer_aurora">Aurora Store</string>
     <string name="installer_sideload">Sideload</string>
-    <string name="installer_other">Other store</string>
-    <string name="installer_unknown">Unknown</string>
 
     <!-- ================================================================ -->
     <!-- App list screen                                                   -->
     <!-- ================================================================ -->
-    <string name="app_list_title">Installed apps</string>
     <string name="app_list_search_placeholder">Search apps…</string>
-    <string name="app_list_empty">No apps found.</string>
     <string name="app_list_empty_title">No apps to show</string>
     <string name="app_list_empty_body">Adjust filters or pull down to refresh the catalogue.</string>
-    <string name="app_list_loading">Loading apps…</string>
-    <string name="app_list_error">Could not load apps.</string>
-    <string name="app_list_count_one">%d app</string>
-    <string name="app_list_count_other">%d apps</string>
     <string name="app_list_system_badge">System</string>
     <string name="app_list_disabled_badge">Disabled</string>
-    <string name="app_list_selection_count">%d selected</string>
+    <plurals name="app_list_selection_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
     <string name="app_list_action_uninstall_selected">Uninstall selected</string>
     <string name="app_list_action_clear_cache_selected">Clear cache for selected</string>
     <string name="app_list_action_force_stop_selected">Force stop selected</string>
@@ -107,7 +88,6 @@
     <!-- ================================================================ -->
     <!-- App detail screen                                                 -->
     <!-- ================================================================ -->
-    <string name="app_detail_title">App details</string>
     <string name="app_detail_version">Version %1$s (%2$d)</string>
     <string name="app_detail_section_storage">Storage</string>
     <string name="app_detail_section_permissions">Permissions</string>
@@ -122,12 +102,10 @@
     <string name="app_detail_last_used">Last used</string>
     <string name="app_detail_never_used">Never used</string>
     <string name="app_detail_installer">Installed from</string>
-    <string name="app_detail_signature">Signature SHA-256</string>
     <string name="app_detail_perms_granted">Granted (%d)</string>
     <string name="app_detail_perms_requested">Declared (%d)</string>
     <string name="app_detail_action_uninstall">Uninstall</string>
     <string name="app_detail_action_clear_cache">Clear cache</string>
-    <string name="app_detail_action_clear_data">Clear data</string>
     <string name="app_detail_action_force_stop">Force stop</string>
     <string name="app_detail_action_disable">Disable</string>
     <string name="app_detail_action_enable">Enable</string>
@@ -169,9 +147,10 @@
     <!-- ================================================================ -->
     <!-- Storage screen                                                    -->
     <!-- ================================================================ -->
-    <string name="storage_title">Storage</string>
-    <string name="storage_subtitle">%d apps cached</string>
-    <string name="storage_total_apps">Apps</string>
+    <plurals name="storage_subtitle">
+        <item quantity="one">%d app cached</item>
+        <item quantity="other">%d apps cached</item>
+    </plurals>
     <string name="storage_total_install">Install</string>
     <string name="storage_total_data">Data</string>
     <string name="storage_total_cache">Cache</string>
@@ -186,7 +165,6 @@
     <!-- ================================================================ -->
     <!-- Settings screen                                                   -->
     <!-- ================================================================ -->
-    <string name="settings_title">Settings</string>
     <string name="settings_appearance_title">Appearance</string>
     <string name="settings_dynamic_color_title">Dynamic colour (Material You)</string>
     <string name="settings_dynamic_color_desc">Follow your wallpaper colours (Android 12+)</string>
@@ -203,7 +181,7 @@
     <string name="settings_confirm_delete_title">Confirm before deleting</string>
     <string name="settings_confirm_delete_desc">Ask for confirmation before clearing cache</string>
     <string name="settings_about_title">About App Manager Tech</string>
-    <string name="settings_about_desc">Version, licence, source code, F-Droid</string>
+    <string name="settings_about_desc">Version, licence, source code</string>
 
     <!-- ================================================================ -->
     <!-- About screen                                                      -->
@@ -216,7 +194,6 @@
     <string name="about_section_permissions">Permissions</string>
     <string name="about_description">App Manager Tech is a free and open-source app that helps you inspect, clean and manage every Android application installed on your device. It never sends any data off-device.</string>
     <string name="about_link_source_code">Source code (GitHub)</string>
-    <string name="about_link_fdroid">F-Droid page</string>
     <string name="about_link_report_issue">Report an issue</string>
     <string name="about_licence_text">Released under the Apache 2.0 licence. See LICENCE in the source repository.</string>
     <string name="about_permissions_text">App Manager Tech only requests permissions required for its core function: enumerating installed apps, reading their storage sizes and last-used timestamps. It never asks for the Internet.</string>
@@ -231,8 +208,6 @@
     <!-- ================================================================ -->
     <!-- Confirmation dialogs                                              -->
     <!-- ================================================================ -->
-    <string name="dialog_uninstall_title">Uninstall %1$s?</string>
-    <string name="dialog_uninstall_body">The system will ask for confirmation. The app and its data will be removed.</string>
     <string name="dialog_clear_cache_title">Clear cache for %1$s?</string>
     <string name="dialog_clear_cache_body">Android requires the user to tap "Clear cache" themselves. The next screen will open the app info page.</string>
     <string name="dialog_force_stop_title">Force stop %1$s?</string>
@@ -241,11 +216,20 @@
     <string name="dialog_disable_body">Disabling requires privileged permissions. The next screen will open the app info page so you can disable it manually.</string>
     <string name="dialog_enable_title">Enable %1$s?</string>
     <string name="dialog_enable_body">Enabling requires privileged permissions. The next screen will open the app info page so you can enable it manually.</string>
-    <string name="dialog_batch_uninstall_title">Uninstall %1$d apps?</string>
+    <plurals name="dialog_batch_uninstall_title">
+        <item quantity="one">Uninstall %1$d app?</item>
+        <item quantity="other">Uninstall %1$d apps?</item>
+    </plurals>
     <string name="dialog_batch_uninstall_body">The system will show a confirmation dialog for each app, one after another.</string>
-    <string name="dialog_batch_clear_cache_title">Clear cache for %1$d apps?</string>
+    <plurals name="dialog_batch_clear_cache_title">
+        <item quantity="one">Clear cache for %1$d app?</item>
+        <item quantity="other">Clear cache for %1$d apps?</item>
+    </plurals>
     <string name="dialog_batch_clear_cache_body">The app info page will open once per app — tap "Clear cache" each time.</string>
-    <string name="dialog_batch_force_stop_title">Force stop %1$d apps?</string>
+    <plurals name="dialog_batch_force_stop_title">
+        <item quantity="one">Force stop %1$d app?</item>
+        <item quantity="other">Force stop %1$d apps?</item>
+    </plurals>
     <string name="dialog_batch_force_stop_body">Background processes will be killed silently for each app.</string>
 
     <!-- ================================================================ -->
@@ -266,7 +250,10 @@
     <string name="export_format_json">JSON</string>
     <string name="export_format_csv">CSV</string>
     <string name="zombie_reason_never_opened">Never opened</string>
-    <string name="zombie_reason_unused_since">Unused for %1$d days</string>
+    <plurals name="zombie_reason_unused_since">
+        <item quantity="one">Unused for %1$d day</item>
+        <item quantity="other">Unused for %1$d days</item>
+    </plurals>
 
     <!-- ================================================================ -->
     <!-- Phase VIII.B — dedicated screens                                   -->
@@ -300,8 +287,10 @@
     <string name="screen_export_title">Export storage report</string>
     <string name="export_description">Choose a format and a destination. The report contains every installed app with its sizes, install date, and source store.</string>
     <string name="export_action">Export now</string>
-    <string name="export_success">%1$d apps exported (%2$s)</string>
-    <string name="export_no_handler">No app on this device can handle the requested format. Install a file manager that supports SAF document creation.</string>
+    <plurals name="export_success">
+        <item quantity="one">%1$d app exported (%2$s)</item>
+        <item quantity="other">%1$d apps exported (%2$s)</item>
+    </plurals>
 
     <!-- Security audit -->
     <string name="screen_security_audit_title">Security audit</string>
@@ -325,16 +314,18 @@
 
     <!-- v0.1.3 — refresh feedback snackbars (so the user knows the button worked
          even when the underlying data hasn't visibly changed). -->
-    <string name="smart_cleaner_refresh_done">Analysis done — %1$d suggestion(s)</string>
-    <string name="security_audit_refresh_done">Refreshed — %1$d admin(s) · %2$d accessibility service(s)</string>
+    <plurals name="smart_cleaner_refresh_done">
+        <item quantity="one">Analysis done — %1$d suggestion</item>
+        <item quantity="other">Analysis done — %1$d suggestions</item>
+    </plurals>
+    <string name="security_audit_refresh_done">Refreshed — device admins: %1$d · accessibility services: %2$d</string>
 
     <!-- v0.1.3 — batch action result snackbar -->
-    <string name="batch_done_result">%1$d / %2$d succeeded</string>
+    <string name="batch_done_result">Succeeded: %1$d / %2$d</string>
 
     <!-- About links (Phase VIII.B Intent.ACTION_VIEW wired) -->
-    <string name="about_url_source_code">https://github.com/gitubpatrice/APP-MANAGER-TECH</string>
-    <string name="about_url_fdroid">https://f-droid.org/packages/com.filestech.appmanager/</string>
-    <string name="about_url_report_issue">https://github.com/gitubpatrice/APP-MANAGER-TECH/issues</string>
+    <string name="about_url_source_code" translatable="false">https://github.com/gitubpatrice/APP-MANAGER-TECH</string>
+    <string name="about_url_report_issue" translatable="false">https://github.com/gitubpatrice/APP-MANAGER-TECH/issues</string>
 
     <!-- ================================================================ -->
     <!-- Phase IX — Trackers screen (innovation : Exodus-style local scan) -->
@@ -343,9 +334,12 @@
     <string name="trackers_scanning">Scanning installed apps for trackers…</string>
     <string name="trackers_empty_title">Nothing to scan</string>
     <string name="trackers_empty_body">No installed apps were found.</string>
-    <string name="trackers_scan_done">Scanned %1$d apps · %2$d tracker(s) detected</string>
+    <string name="trackers_scan_done">Apps scanned: %1$d · trackers detected: %2$d</string>
     <string name="trackers_summary_contamination">apps with trackers</string>
-    <string name="trackers_summary_subtitle">%1$d of %2$d apps contain trackers · %3$d total detections</string>
+    <plurals name="trackers_summary_subtitle">
+        <item quantity="one">%1$d of %2$d apps contains trackers · detections: %3$d</item>
+        <item quantity="other">%1$d of %2$d apps contain trackers · detections: %3$d</item>
+    </plurals>
     <string name="trackers_summary_categories">By category</string>
     <string name="trackers_section_with_trackers">Apps with trackers (%1$d)</string>
     <string name="trackers_section_clean">Clean apps (%1$d)</string>
@@ -359,7 +353,10 @@
 
     <!-- Smart Cleaner -->
     <string name="screen_smart_cleaner_title">Smart cleaner</string>
-    <string name="smart_cleaner_subtitle">%1$s reclaimable across %2$d suggestion(s)</string>
+    <plurals name="smart_cleaner_subtitle">
+        <item quantity="one">%1$s reclaimable across %2$d suggestion</item>
+        <item quantity="other">%1$s reclaimable across %2$d suggestions</item>
+    </plurals>
     <string name="smart_cleaner_empty_title">Nothing to clean</string>
     <string name="smart_cleaner_empty_body">Your installed apps are all in good shape. Re-run the analyser after installing or using new apps.</string>
     <string name="smart_cleaner_action_uninstall">Uninstall</string>
@@ -395,7 +392,10 @@
     <string name="appdetail_privacy_panel_title">What this app does</string>
     <string name="appdetail_privacy_panel_no_dangerous">No dangerous permissions granted.</string>
     <string name="appdetail_privacy_panel_trackers_clean">No known tracker detected in declared components.</string>
-    <string name="appdetail_privacy_panel_trackers_count">%1$d tracker(s) detected</string>
+    <plurals name="appdetail_privacy_panel_trackers_count">
+        <item quantity="one">%1$d tracker detected</item>
+        <item quantity="other">%1$d trackers detected</item>
+    </plurals>
     <string name="appdetail_privacy_panel_can">This app can:</string>
 
     <!-- Permission groups in plain language -->
@@ -447,14 +447,16 @@
 
     <!-- v0.1.2 — Home overview card -->
     <string name="home_overview_title">At a glance</string>
-    <string name="home_overview_apps_count">%1$d apps</string>
+    <plurals name="home_overview_apps_count">
+        <item quantity="one">%1$d app</item>
+        <item quantity="other">%1$d apps</item>
+    </plurals>
     <string name="home_overview_total_size">%1$s used</string>
     <string name="home_overview_cache_size">%1$s of cache to clean</string>
     <string name="home_section_apps">Installed apps</string>
 
     <!-- v0.1.1 — Manual refresh + pull-to-refresh -->
     <string name="action_refresh_apps">Refresh apps</string>
-    <string name="action_refresh_refreshing">Refreshing…</string>
 
     <!-- ================================================================ -->
     <!-- Phase X.B — Rarely-used screen                                    -->
@@ -470,7 +472,10 @@
     <string name="screen_zombies_title">Zombie apps</string>
     <string name="zombies_empty_title">No zombie apps</string>
     <string name="zombies_empty_body">No installed app is sitting unused. Apps installed more than 7 days ago and never opened, or apps unused for more than 30 days, would appear here.</string>
-    <string name="zombies_refresh_done">Refreshed — %1$d zombie app(s) found</string>
+    <plurals name="zombies_refresh_done">
+        <item quantity="one">Refreshed — %1$d zombie app found</item>
+        <item quantity="other">Refreshed — %1$d zombie apps found</item>
+    </plurals>
 
     <!-- ================================================================ -->
     <!-- Phase X.B — Permission-filter screen                              -->
@@ -486,17 +491,22 @@
     <!-- Phase X — Trash (Corbeille) — soft-delete staging area            -->
     <!-- ================================================================ -->
     <string name="screen_trash_title">Trash</string>
-    <string name="trash_subtitle">%1$d app(s) staged for uninstall · %2$s</string>
+    <plurals name="trash_subtitle">
+        <item quantity="one">%1$d app staged for uninstall · %2$s</item>
+        <item quantity="other">%1$d apps staged for uninstall · %2$s</item>
+    </plurals>
     <string name="trash_empty_title">Trash is empty</string>
     <string name="trash_empty_body">Apps moved to the trash sit here until you uninstall them for real or restore them. They are NOT uninstalled until you tap "Uninstall now".</string>
     <string name="trash_action_restore">Restore</string>
     <string name="trash_action_uninstall_now">Uninstall now</string>
-    <string name="trash_action_restore_all">Restore all</string>
     <string name="trash_action_empty_all">Empty trash (uninstall everything)</string>
     <string name="trash_added_on">Added %1$s</string>
     <string name="trash_moved_snackbar">%1$s moved to trash</string>
     <string name="trash_restored_snackbar">%1$s restored</string>
-    <string name="trash_emptied_snackbar">Uninstalling %1$d app(s)…</string>
+    <plurals name="trash_emptied_snackbar">
+        <item quantity="one">Uninstalling %1$d app…</item>
+        <item quantity="other">Uninstalling %1$d apps…</item>
+    </plurals>
 
     <!-- Trash confirmation dialogs -->
     <string name="dialog_trash_choice_title">Uninstall %1$s?</string>
@@ -531,13 +541,9 @@
     <!-- ================================================================ -->
     <!-- Content descriptions (accessibility)                              -->
     <!-- ================================================================ -->
-    <string name="cd_app_icon">%1$s app icon</string>
     <string name="cd_back">Navigate back</string>
     <string name="cd_search">Search</string>
     <string name="cd_refresh">Refresh list</string>
-    <string name="cd_settings">Open settings</string>
-    <string name="cd_filter">Filter</string>
-    <string name="cd_sort">Sort</string>
     <string name="cd_more_options">More options</string>
     <string name="cd_close">Close</string>
     <string name="cd_app_logo">App Manager Tech logo</string>
@@ -565,7 +571,10 @@
     <string name="drift_status_last_capture">Last capture: %1$s</string>
     <string name="drift_action_capture_first">Start monitoring</string>
     <string name="drift_capture_no_change">No changes detected — change a permission in Android Settings then tap Capture again</string>
-    <string name="drift_capture_changes">%1$d change(s) detected</string>
+    <plurals name="drift_capture_changes">
+        <item quantity="one">%1$d change detected</item>
+        <item quantity="other">%1$d changes detected</item>
+    </plurals>
     <string name="drift_capture_baseline">Reference snapshot saved (%1$d permissions). Change a permission in Android Settings, then tap Capture again to see the difference here.</string>
     <plurals name="notif_drift_body">
         <item quantity="one">%d permission changed since the last snapshot. Tap to review.</item>
@@ -588,7 +597,10 @@
     <string name="quarantine_config_title">Quarantine %1$s</string>
     <string name="quarantine_config_mode_section">Mode</string>
     <string name="quarantine_config_duration_section">Review in</string>
-    <string name="quarantine_config_duration_value">%1$d days</string>
+    <plurals name="quarantine_config_duration_value">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
     <string name="quarantine_config_confirm">Quarantine</string>
     <string name="quarantine_mode_soft">Reminder only</string>
     <string name="quarantine_mode_soft_desc">Disable the app yourself in Android Settings; we just remember to remind you.</string>
@@ -615,7 +627,10 @@
 
     <!-- SOFT-mode post-confirm explanation dialog (v0.2.0 UX fix) -->
     <string name="quarantine_soft_action_title">%1$s saved in quarantine</string>
-    <string name="quarantine_soft_action_body_summary">We will remind you in %1$d day(s). To make the quarantine effective, you must disable the app yourself in Android Settings — App Manager Tech cannot do it for you (Android security restriction).</string>
+    <plurals name="quarantine_soft_action_body_summary">
+        <item quantity="one">We will remind you in %1$d day. To make the quarantine effective, you must disable the app yourself in Android Settings — App Manager Tech cannot do it for you (Android security restriction).</item>
+        <item quantity="other">We will remind you in %1$d days. To make the quarantine effective, you must disable the app yourself in Android Settings — App Manager Tech cannot do it for you (Android security restriction).</item>
+    </plurals>
     <string name="quarantine_soft_action_body_step1">1. Tap "Open Settings" below.</string>
     <string name="quarantine_soft_action_body_step2">2. On the App-info page that opens, tap DISABLE (or ARCHIVE if available — Android 14+).</string>
     <string name="quarantine_soft_action_body_step3">3. Done — the app is paused until the review date.</string>
@@ -708,7 +723,7 @@
     <string name="expert_chip_internal">Internal</string>
     <string name="expert_chip_disabled">Disabled</string>
     <string name="expert_chip_gated">Permission-gated</string>
-    <string name="expert_chip_grant_uri">grantUriPermissions</string>
+    <string name="expert_chip_grant_uri" translatable="false">grantUriPermissions</string>
     <string name="expert_provider_authority">Authority: %1$s</string>
     <string name="expert_provider_read_perm">Read permission: %1$s</string>
     <string name="expert_provider_write_perm">Write permission: %1$s</string>
@@ -731,7 +746,7 @@
     <string name="pdf_generated_at">Generated %1$s</string>
     <string name="pdf_page_footer">Page %1$d</string>
     <string name="pdf_section_device">Device</string>
-    <string name="pdf_section_amt">App Manager Tech</string>
+    <string name="pdf_section_amt" translatable="false">App Manager Tech</string>
     <string name="pdf_section_inventory">User-installed apps</string>
     <string name="pdf_section_dangerous_perms">Apps with dangerous permissions granted</string>
     <string name="pdf_section_sideloaded">Apps installed outside known stores</string>
@@ -747,10 +762,22 @@
     <string name="pdf_label_amt_signature">Signature SHA-256</string>
     <string name="pdf_label_amt_apps_tracked">Apps tracked</string>
     <string name="pdf_inventory_header">Label · Package · Version · Installer · Total</string>
-    <string name="pdf_issue_zombies">%1$d disabled / never-used app(s)</string>
-    <string name="pdf_issue_rarely_used">%1$d rarely-used app(s) (≥ 60 days)</string>
-    <string name="pdf_issue_oversized">%1$d app(s) over 200 MB</string>
-    <string name="pdf_issue_sideloaded">%1$d app(s) installed outside known stores</string>
+    <plurals name="pdf_issue_zombies">
+        <item quantity="one">%1$d disabled / never-used app</item>
+        <item quantity="other">%1$d disabled / never-used apps</item>
+    </plurals>
+    <plurals name="pdf_issue_rarely_used">
+        <item quantity="one">%1$d rarely-used app (≥ 60 days)</item>
+        <item quantity="other">%1$d rarely-used apps (≥ 60 days)</item>
+    </plurals>
+    <plurals name="pdf_issue_oversized">
+        <item quantity="one">%1$d app over 200 MB</item>
+        <item quantity="other">%1$d apps over 200 MB</item>
+    </plurals>
+    <plurals name="pdf_issue_sideloaded">
+        <item quantity="one">%1$d app installed outside known stores</item>
+        <item quantity="other">%1$d apps installed outside known stores</item>
+    </plurals>
     <string name="pdf_issue_none">No issue detected.</string>
     <string name="pdf_no_apps">No app to report.</string>
 
@@ -829,7 +856,10 @@
     <!-- v0.3.1 — Lifecycle polish (inline AppDetail, stats, search)      -->
     <!-- ================================================================ -->
     <string name="app_detail_section_lifecycle">Recent lifecycle events</string>
-    <string name="lifecycle_stats_title">%1$d events in the selected window</string>
+    <plurals name="lifecycle_stats_title">
+        <item quantity="one">%1$d event in the selected window</item>
+        <item quantity="other">%1$d events in the selected window</item>
+    </plurals>
     <string name="lifecycle_stats_top_reasons">Top uninstall reasons</string>
     <string name="lifecycle_stats_reason_row">• %1$s · %2$d</string>
 
@@ -857,7 +887,10 @@
     <!-- ================================================================ -->
     <!-- v0.3.2 — Permission delta on REPLACED events                     -->
     <!-- ================================================================ -->
-    <string name="lifecycle_row_perms_gained">+%1$d dangerous permission(s) gained: %2$s</string>
+    <plurals name="lifecycle_row_perms_gained">
+        <item quantity="one">+%1$d dangerous permission gained: %2$s</item>
+        <item quantity="other">+%1$d dangerous permissions gained: %2$s</item>
+    </plurals>
 
     <!-- ================================================================ -->
     <!-- v0.3.2 — PDF Diagnostic: Lifecycle journal section               -->
@@ -897,7 +930,10 @@
     <string name="settings_tag_stats_title">Tag distribution</string>
     <string name="settings_tag_stats_empty">No tag assigned yet. Open any app and tap “Add a tag”.</string>
     <string name="settings_tag_stats_row">%1$s · %2$d</string>
-    <string name="settings_tag_stats_total">%1$d tagged apps</string>
+    <plurals name="settings_tag_stats_total">
+        <item quantity="one">%1$d tagged app</item>
+        <item quantity="other">%1$d tagged apps</item>
+    </plurals>
 
     <!-- ================================================================ -->
     <!-- v0.3.4 — Lifecycle APK SHA-256 tamper alert                      -->
@@ -947,7 +983,7 @@
     <string name="quarantine_error_entry_not_found">No quarantine entry for %1$s.</string>
     <string name="quarantine_error_invalid_duration">The duration must be between %1$d and %2$d days.</string>
     <string name="quarantine_error_app_list_loading">The app list is still loading. Try again in a moment.</string>
-    <string name="quarantine_error_apk_unreadable">The app's APK cannot be read, so it cannot be backed up.</string>
+    <string name="quarantine_error_apk_unreadable">The app\'s APK cannot be read, so it cannot be backed up.</string>
     <string name="quarantine_error_backup_folder_unavailable">The backup folder cannot be written to. Pick it again in Settings.</string>
     <string name="quarantine_error_backup_folder_revoked">Access to the backup folder was withdrawn. Pick it again in Settings.</string>
     <string name="quarantine_error_backup_failed">The APK backup failed.</string>

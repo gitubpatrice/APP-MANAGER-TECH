@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.Shop
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,7 +44,7 @@ import com.filestech.appmanager.ui.components.settings.SectionHeader
  * name + version + description + links + licence + permissions narrative.
  *
  * All links are non-clickable placeholders for Phase V; Phase VIII can wire
- * them to actual URLs (GitHub repo, F-Droid page) via `Intent.ACTION_VIEW`
+ * them to actual URLs (GitHub repo, issue tracker) via `Intent.ACTION_VIEW`
  * once the public URLs are confirmed.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,7 +83,6 @@ fun AboutScreen(
 private fun AboutBody(innerPadding: PaddingValues) {
     val context = LocalContext.current
     val sourceUrl = stringResource(R.string.about_url_source_code)
-    val fdroidUrl = stringResource(R.string.about_url_fdroid)
     val issueUrl  = stringResource(R.string.about_url_report_issue)
 
     val openUrl: (String) -> Unit = { url ->
@@ -156,11 +154,6 @@ private fun AboutBody(innerPadding: PaddingValues) {
                 title       = stringResource(R.string.about_link_source_code),
                 leadingIcon = Icons.Outlined.Code,
                 onClick     = { openUrl(sourceUrl) },
-            )
-            NavigationRow(
-                title       = stringResource(R.string.about_link_fdroid),
-                leadingIcon = Icons.Outlined.Shop,
-                onClick     = { openUrl(fdroidUrl) },
             )
             NavigationRow(
                 title       = stringResource(R.string.about_link_report_issue),

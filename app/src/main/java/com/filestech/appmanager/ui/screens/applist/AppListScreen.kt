@@ -60,6 +60,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.pluralStringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.ui.Alignment
@@ -237,7 +238,7 @@ fun AppListScreen(
     // app-info one-by-one, the user still taps "Clear cache" themselves).
     when (val d = batchDialog) {
         is BatchActionIntent.Uninstall -> DestructiveDialog(
-            title     = stringResource(R.string.dialog_batch_uninstall_title, d.count),
+            title     = pluralStringResource(R.plurals.dialog_batch_uninstall_title, d.count, d.count),
             body      = stringResource(R.string.dialog_batch_uninstall_body),
             onConfirm = {
                 viewModel.batchUninstall()
@@ -246,7 +247,7 @@ fun AppListScreen(
             onDismiss = { batchDialog = null },
         )
         is BatchActionIntent.ClearCache -> ConfirmDialog(
-            title     = stringResource(R.string.dialog_batch_clear_cache_title, d.count),
+            title     = pluralStringResource(R.plurals.dialog_batch_clear_cache_title, d.count, d.count),
             body      = stringResource(R.string.dialog_batch_clear_cache_body),
             onConfirm = {
                 viewModel.batchClearCache()
@@ -255,7 +256,7 @@ fun AppListScreen(
             onDismiss = { batchDialog = null },
         )
         is BatchActionIntent.ForceStop -> DestructiveDialog(
-            title     = stringResource(R.string.dialog_batch_force_stop_title, d.count),
+            title     = pluralStringResource(R.plurals.dialog_batch_force_stop_title, d.count, d.count),
             body      = stringResource(R.string.dialog_batch_force_stop_body),
             onConfirm = {
                 viewModel.batchForceStop()
@@ -395,7 +396,7 @@ private fun SelectionTopBar(
             }
         },
         title = {
-            Text(stringResource(R.string.app_list_selection_count, count))
+            Text(pluralStringResource(R.plurals.app_list_selection_count, count, count))
         },
         actions = {
             // v0.1.2 — single toggle button that swaps Select-all / Unselect-all
@@ -570,7 +571,7 @@ private fun OverviewCard(apps: List<AppInfo>) {
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text       = stringResource(R.string.home_overview_apps_count, apps.size),
+                text       = pluralStringResource(R.plurals.home_overview_apps_count, apps.size, apps.size),
                 style      = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color      = MaterialTheme.colorScheme.primary,

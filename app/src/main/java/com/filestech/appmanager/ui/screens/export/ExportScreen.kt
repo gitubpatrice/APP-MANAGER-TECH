@@ -96,8 +96,8 @@ fun ExportScreen(
             when (event) {
                 is ExportViewModel.Event.Done ->
                     snackbarHostState.showSnackbar(
-                        resources.getString(
-                            R.string.export_success,
+                        resources.getQuantityString(
+                            R.plurals.export_success, event.report.appCount,
                             event.report.appCount,
                             Formatter.formatShortFileSize(context, event.report.bytesWritten),
                         ),
