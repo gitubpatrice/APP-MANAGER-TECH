@@ -169,6 +169,7 @@
     <string name="settings_appearance_title">Aspetto</string>
     <string name="settings_dynamic_color_title">Colori dinamici (Material You)</string>
     <string name="settings_dynamic_color_desc">Segue i colori dello sfondo (Android 12+)</string>
+    <string name="settings_backup_folder_refused">Android ha negato l\'accesso permanente a questa cartella. Ne scelga un\'altra.</string>
     <string name="settings_language">Lingua dell\'app</string>
     <string name="settings_language_sub">Apre la schermata Android della lingua di questa app. App Manager Tech segue la lingua del telefono, a meno che non ne scelga una lì.</string>
     <string name="settings_theme_mode_title">Tema</string>
@@ -748,7 +749,7 @@
     <string name="expert_permissions_none_declared">Nessuna autorizzazione dichiarata.</string>
     <string name="expert_permission_dangerous">Pericolosa (richiesta in fase di esecuzione)</string>
 
-    <string name="expert_app_ops_intro">Selezione ristretta di AppOps. Su Android standard la maggior parte delle operazioni è protetta da GET_APP_OPS_STATS (signature) e viene indicata come «Predefinito» quando il sistema ce le nasconde.</string>
+    <string name="expert_app_ops_intro">Una selezione di AppOps, letta insieme alle autorizzazioni dell\'app: se l\'app non dichiara l\'autorizzazione di un\'operazione, o non le è stata concessa, viene indicato; altrimenti si mostra la modalità riportata da Android.</string>
     <string name="expert_app_ops_limited">Visibilità limitata — il sistema mostra solo le app-ops che l\'app chiamante può interrogare senza root.</string>
 
     <!-- ================================================================ -->
@@ -1045,6 +1046,8 @@
     <string name="notif_channel_quarantine_name">Promemoria della quarantena</string>
     <string name="notif_channel_quarantine_desc">Quando la data di revisione di un\'app in quarantena è passata.</string>
 
+    <string name="expert_appop_not_declared">Autorizzazione non dichiarata</string>
+    <string name="expert_appop_not_granted">Autorizzazione non concessa</string>
     <string name="expert_appop_mode_allowed">Consentito</string>
     <string name="expert_appop_mode_foreground">Solo in primo piano</string>
     <string name="expert_appop_mode_ignored">Ignorato</string>

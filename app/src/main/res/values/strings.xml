@@ -168,6 +168,7 @@
     <string name="settings_appearance_title">Appearance</string>
     <string name="settings_dynamic_color_title">Dynamic colour (Material You)</string>
     <string name="settings_dynamic_color_desc">Follow your wallpaper colours (Android 12+)</string>
+    <string name="settings_backup_folder_refused">Android refused lasting access to this folder. Pick another one.</string>
     <string name="settings_language">App language</string>
     <string name="settings_language_sub">Opens the Android language screen for this app. App Manager Tech follows your phone\'s language unless you pick one there.</string>
     <string name="settings_theme_mode_title">Theme</string>
@@ -733,7 +734,7 @@
     <string name="expert_permissions_none_declared">No permissions declared.</string>
     <string name="expert_permission_dangerous">Dangerous (runtime prompt)</string>
 
-    <string name="expert_app_ops_intro">Curated subset of AppOps. Most ops are gated by GET_APP_OPS_STATS (signature) on stock Android and are reported as “Default” when the OS hides them from us.</string>
+    <string name="expert_app_ops_intro">A selection of AppOps, read together with the app\'s permissions: an operation whose permission the app does not declare, or has not been granted, is shown as such; otherwise its mode is the one Android reports.</string>
     <string name="expert_app_ops_limited">Limited visibility — the OS only surfaces app-ops the caller is allowed to query without root.</string>
 
     <!-- ================================================================ -->
@@ -1022,6 +1023,8 @@
     <string name="notif_channel_quarantine_name">Quarantine reminders</string>
     <string name="notif_channel_quarantine_desc">When the review date of a quarantined app has passed.</string>
 
+    <string name="expert_appop_not_declared">Permission not declared</string>
+    <string name="expert_appop_not_granted">Permission not granted</string>
     <string name="expert_appop_mode_allowed">Allowed</string>
     <string name="expert_appop_mode_foreground">Foreground only</string>
     <string name="expert_appop_mode_ignored">Ignored</string>

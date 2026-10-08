@@ -151,5 +151,9 @@ data class ExpertReport(
         val state: AppOpState,
     )
 
-    enum class AppOpState { ALLOWED, FOREGROUND, IGNORED, DENIED, DEFAULT, UNKNOWN }
+    /**
+     * NOT_DECLARED / NOT_GRANTED come first: an app-op left at its default mode says nothing when the
+     * app does not hold the permission behind it ("Allowed" for the camera of an app without CAMERA).
+     */
+    enum class AppOpState { NOT_DECLARED, NOT_GRANTED, ALLOWED, FOREGROUND, IGNORED, DENIED, DEFAULT, UNKNOWN }
 }

@@ -51,6 +51,10 @@ permissions to the built APK: `WAKE_LOCK`, `FOREGROUND_SERVICE`, `RECEIVE_BOOT_C
 the schedule after a reboot) and `ACCESS_NETWORK_STATE` (it can read whether a network is present;
 without `INTERNET` it cannot use one). None of them gives access to your data.
 
+AndroidX also adds `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, a
+signature permission that only this app holds: it keeps the receivers the app registers at run
+time closed to every other app. It gives access to nothing.
+
 **Never requested:** `INTERNET`, location, contacts, SMS, calendar, microphone,
 camera, `MANAGE_EXTERNAL_STORAGE`.
 

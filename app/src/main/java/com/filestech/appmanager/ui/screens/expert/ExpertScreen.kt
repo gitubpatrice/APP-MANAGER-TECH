@@ -702,6 +702,8 @@ private fun SectionCard(
 
 @Composable
 private fun appOpStateLabel(state: ExpertReport.AppOpState): String = when (state) {
+    ExpertReport.AppOpState.NOT_DECLARED -> stringResource(R.string.expert_appop_not_declared)
+    ExpertReport.AppOpState.NOT_GRANTED -> stringResource(R.string.expert_appop_not_granted)
     ExpertReport.AppOpState.ALLOWED -> stringResource(R.string.expert_appop_mode_allowed)
     ExpertReport.AppOpState.FOREGROUND -> stringResource(R.string.expert_appop_mode_foreground)
     ExpertReport.AppOpState.IGNORED -> stringResource(R.string.expert_appop_mode_ignored)

@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -118,9 +119,8 @@ class ApkBackupManager @Inject constructor(
             val backupDoc = tree.createFile(MIME_APK, fileName)
                 ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "Failed to create backup file")
 
-            val bytes = context.contentResolver.openOutputStream(backupDoc.uri)?.use { out ->
-                FileInputStream(sourceFile).use { input -> input.copyTo(out) }
-            } ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "Failed to open backup output stream")
+            val bytes = copyInto(backupDoc, sourceFile)
+                ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "Failed to open backup output stream")
 
             Timber.i("ApkBackupManager: backed up %s (%d bytes) to %s", packageName, bytes, backupDoc.uri)
             Result.Success(backupDoc.uri.toString())
@@ -135,6 +135,19 @@ class ApkBackupManager @Inject constructor(
             Timber.e(e, "ApkBackupManager: backup failed for %s", packageName)
             Result.Failure(Reason.FAILED, "Backup failed: ${e.message}", e)
         }
+    }
+
+    /**
+     * Copies [source] into [target]; null when the provider gives no output stream. A copy that fails
+     * midway deletes [target]: a half-written APK must not stay in the folder looking like a backup.
+     */
+    private fun copyInto(target: DocumentFile, source: File): Long? = try {
+        context.contentResolver.openOutputStream(target.uri)?.use { out ->
+            FileInputStream(source).use { input -> input.copyTo(out) }
+        }
+    } catch (e: IOException) {
+        target.delete()
+        throw e
     }
 
     /**

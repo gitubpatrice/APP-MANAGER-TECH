@@ -1,6 +1,7 @@
 package com.filestech.appmanager.data.repository
 
 import android.app.ActivityManager
+import android.Manifest
 import android.app.AppOpsManager
 import android.app.usage.StorageStatsManager
 import android.app.usage.UsageStatsManager
@@ -373,7 +374,7 @@ class AppInfoRepositoryImpl @Inject constructor(
             providers  = pkg.providers?.map { providerEntry(it) }?.sortedBy { it.className }.orEmpty(),
         )
         val permissions = collectExpertPermissions(pkg)
-        val appOps = collectAppOpsSnapshot(packageName, ai.uid)
+        val appOps = collectAppOpsSnapshot(packageName, ai.uid, permissions)
         return ExpertReport(
             identity   = identity,
             sdkInfo    = sdkInfo,
@@ -455,11 +456,15 @@ class AppInfoRepositoryImpl @Inject constructor(
      * inspector audience: location, mic, camera, contacts/SMS, body sensors,
      * draw-over-other-apps, modify settings, usage stats, schedule exact alarm.
      *
-     * `unsafeCheckOpNoThrow` returns `MODE_DEFAULT` when the caller is not
-     * allowed to peek at the op for that UID; we surface that as "—" so the user
-     * understands the OS hides it, rather than mistakenly thinking it's denied.
+     * Each op is read together with the permission it stands for ([permissionGate]): an op at its
+     * default mode would otherwise read "Allowed" for an app that never asked for the permission.
+     * A refused read (SecurityException, unknown op) is [APP_OP_MODE_UNAVAILABLE], shown as "—".
      */
-    private fun collectAppOpsSnapshot(packageName: String, uid: Int): ExpertReport.AppOpsSnapshot {
+    private fun collectAppOpsSnapshot(
+        packageName: String,
+        uid: Int,
+        permissions: ExpertReport.ExpertPermissions,
+    ): ExpertReport.AppOpsSnapshot {
         val ops = appOps ?: return ExpertReport.AppOpsSnapshot(emptyList(), isFullyAccessible = false)
         val curated = listOf(
             AppOpsManager.OPSTR_FINE_LOCATION,
@@ -495,10 +500,23 @@ class AppInfoRepositoryImpl @Inject constructor(
             ExpertReport.AppOpEntry(
                 op        = op,
                 mode      = mode,
-                state     = appOpState(mode),
+                state     = permissionGate(op, permissions) ?: appOpState(mode),
             )
         }
         return ExpertReport.AppOpsSnapshot(entries = entries, isFullyAccessible = anyAccessible)
+    }
+
+    /**
+     * The permission each curated op stands for, and whether it is a runtime permission. A mode read
+     * alone misleads: an op at its default mode reads "Allowed" for an app that never asked for the
+     * permission. For the special-access ones (overlay, write settings, usage stats) the app-op IS the
+     * grant, so only "declared" is checked.
+     */
+    private fun permissionGate(op: String, permissions: ExpertReport.ExpertPermissions): ExpertReport.AppOpState? {
+        val (permission, runtime) = OP_PERMISSION[op] ?: return null
+        val declared = permissions.declared.firstOrNull { it.name == permission }
+            ?: return ExpertReport.AppOpState.NOT_DECLARED
+        return if (runtime && !declared.granted) ExpertReport.AppOpState.NOT_GRANTED else null
     }
 
     private fun appOpState(mode: Int): ExpertReport.AppOpState = when (mode) {
@@ -848,6 +866,22 @@ class AppInfoRepositoryImpl @Inject constructor(
     }
 
     companion object {
+        /** Curated app-op -> (permission it stands for, is it a runtime permission). */
+        private val OP_PERMISSION: Map<String, Pair<String, Boolean>> = mapOf(
+            AppOpsManager.OPSTR_FINE_LOCATION       to (Manifest.permission.ACCESS_FINE_LOCATION to true),
+            AppOpsManager.OPSTR_COARSE_LOCATION     to (Manifest.permission.ACCESS_COARSE_LOCATION to true),
+            AppOpsManager.OPSTR_CAMERA              to (Manifest.permission.CAMERA to true),
+            AppOpsManager.OPSTR_RECORD_AUDIO        to (Manifest.permission.RECORD_AUDIO to true),
+            AppOpsManager.OPSTR_READ_CONTACTS       to (Manifest.permission.READ_CONTACTS to true),
+            AppOpsManager.OPSTR_WRITE_CONTACTS      to (Manifest.permission.WRITE_CONTACTS to true),
+            AppOpsManager.OPSTR_READ_SMS            to (Manifest.permission.READ_SMS to true),
+            AppOpsManager.OPSTR_SEND_SMS            to (Manifest.permission.SEND_SMS to true),
+            AppOpsManager.OPSTR_BODY_SENSORS        to (Manifest.permission.BODY_SENSORS to true),
+            AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW to (Manifest.permission.SYSTEM_ALERT_WINDOW to false),
+            AppOpsManager.OPSTR_WRITE_SETTINGS      to (Manifest.permission.WRITE_SETTINGS to false),
+            AppOpsManager.OPSTR_GET_USAGE_STATS     to (Manifest.permission.PACKAGE_USAGE_STATS to false),
+        )
+
         /** Look back 30 days when aggregating UsageStats — enough for "rarely used" detection. */
         private const val USAGE_LOOKBACK_MS: Long = 30L * 24 * 60 * 60 * 1000
         // MS_PER_DAY now imported from core.ext.TimeConstants (VII C1 fix — single source).

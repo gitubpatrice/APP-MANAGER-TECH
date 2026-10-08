@@ -169,6 +169,7 @@
     <string name="settings_appearance_title">Apparence</string>
     <string name="settings_dynamic_color_title">Couleur dynamique (Material You)</string>
     <string name="settings_dynamic_color_desc">Suivre les couleurs du fond d\'écran (Android 12+)</string>
+    <string name="settings_backup_folder_refused">Android a refusé l\'accès durable à ce dossier. Choisissez-en un autre.</string>
     <string name="settings_language">Langue de l\'application</string>
     <string name="settings_language_sub">Ouvre l\'écran Android de langue de cette application. App Manager Tech suit la langue de votre téléphone tant que vous n\'en choisissez pas une.</string>
     <string name="settings_theme_mode_title">Thème</string>
@@ -741,7 +742,7 @@
     <string name="expert_permissions_none_declared">Aucune permission déclarée.</string>
     <string name="expert_permission_dangerous">Dangereuse (demande runtime)</string>
 
-    <string name="expert_app_ops_intro">Sous-ensemble sélectionné d\'AppOps. La plupart des ops sont protégées par GET_APP_OPS_STATS (signature) sur Android standard et apparaissent comme « Par défaut » quand l\'OS les masque.</string>
+    <string name="expert_app_ops_intro">Une sélection d\'AppOps, lue avec les permissions de l\'app : une opération dont l\'app ne déclare pas la permission, ou ne l\'a pas reçue, est indiquée comme telle ; sinon, son mode est celui que rapporte Android.</string>
     <string name="expert_app_ops_limited">Visibilité limitée — l\'OS n\'expose que les app-ops que l\'appelant peut interroger sans root.</string>
 
     <!-- ================================================================ -->
@@ -1038,6 +1039,8 @@
     <string name="notif_channel_quarantine_name">Rappels de quarantaine</string>
     <string name="notif_channel_quarantine_desc">Lorsque la date de réexamen d\'une application en quarantaine est passée.</string>
 
+    <string name="expert_appop_not_declared">Permission non déclarée</string>
+    <string name="expert_appop_not_granted">Permission non accordée</string>
     <string name="expert_appop_mode_allowed">Autorisé</string>
     <string name="expert_appop_mode_foreground">Premier plan uniquement</string>
     <string name="expert_appop_mode_ignored">Ignoré</string>

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -128,15 +130,22 @@ fun SettingsScreen(
     // OPEN_DOCUMENT_TREE returns a content:// tree URI; we take a persistable
     // read+write grant so subsequent process restarts can still write into it
     // without re-prompting the user.
+    val resources = LocalResources.current
     val backupFolderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree(),
     ) { uri ->
         if (uri != null) {
             val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            runCatching {
+            // Without the lasting grant the folder works until the next restart, then every backup
+            // fails as "access withdrawn": refuse it now, where the user can still pick another.
+            val granted = runCatching {
                 context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+            }.isSuccess
+            if (granted) {
+                viewModel.setQuarantineBackupTreeUri(uri.toString())
+            } else {
+                Toast.makeText(context, resources.getString(R.string.settings_backup_folder_refused), Toast.LENGTH_LONG).show()
             }
-            viewModel.setQuarantineBackupTreeUri(uri.toString())
         }
     }
 

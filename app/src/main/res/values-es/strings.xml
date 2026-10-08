@@ -169,6 +169,7 @@
     <string name="settings_appearance_title">Apariencia</string>
     <string name="settings_dynamic_color_title">Color dinámico (Material You)</string>
     <string name="settings_dynamic_color_desc">Seguir los colores de su fondo de pantalla (Android 12+)</string>
+    <string name="settings_backup_folder_refused">Android ha denegado el acceso permanente a esta carpeta. Elija otra.</string>
     <string name="settings_language">Idioma de la app</string>
     <string name="settings_language_sub">Abre la pantalla de Android del idioma de esta app. App Manager Tech sigue el idioma de su teléfono mientras no elija otro allí.</string>
     <string name="settings_theme_mode_title">Tema</string>
@@ -748,7 +749,7 @@
     <string name="expert_permissions_none_declared">No se ha declarado ningún permiso.</string>
     <string name="expert_permission_dangerous">Peligroso (solicitud en tiempo de ejecución)</string>
 
-    <string name="expert_app_ops_intro">Subconjunto seleccionado de AppOps. En Android estándar, la mayoría de las ops están protegidas por GET_APP_OPS_STATS (signature) y se muestran como «Predeterminado» cuando el sistema nos las oculta.</string>
+    <string name="expert_app_ops_intro">Una selección de AppOps, leída junto con los permisos de la app: si la app no declara el permiso de una operación, o no le ha sido concedido, se indica; si no, se muestra el modo que informa Android.</string>
     <string name="expert_app_ops_limited">Visibilidad limitada — el sistema solo muestra las app-ops que quien llama puede consultar sin root.</string>
 
     <!-- ================================================================ -->
@@ -1045,6 +1046,8 @@
     <string name="notif_channel_quarantine_name">Recordatorios de cuarentena</string>
     <string name="notif_channel_quarantine_desc">Cuando ha pasado la fecha de revisión de una app en cuarentena.</string>
 
+    <string name="expert_appop_not_declared">Permiso no declarado</string>
+    <string name="expert_appop_not_granted">Permiso no concedido</string>
     <string name="expert_appop_mode_allowed">Permitido</string>
     <string name="expert_appop_mode_foreground">Solo en primer plano</string>
     <string name="expert_appop_mode_ignored">Ignorado</string>

@@ -167,6 +167,7 @@
     <string name="settings_appearance_title">Darstellung</string>
     <string name="settings_dynamic_color_title">Dynamische Farben (Material You)</string>
     <string name="settings_dynamic_color_desc">Farben Ihres Hintergrundbilds übernehmen (Android 12+)</string>
+    <string name="settings_backup_folder_refused">Android hat den dauerhaften Zugriff auf diesen Ordner verweigert. Wählen Sie einen anderen.</string>
     <string name="settings_language">App-Sprache</string>
     <string name="settings_language_sub">Öffnet den Android-Bildschirm für die Sprache dieser App. App Manager Tech folgt der Sprache Ihres Telefons, solange Sie dort keine wählen.</string>
     <string name="settings_theme_mode_title">Design</string>
@@ -729,7 +730,7 @@
     <string name="expert_permissions_none_declared">Keine Berechtigungen deklariert.</string>
     <string name="expert_permission_dangerous">Gefährlich (Abfrage zur Laufzeit)</string>
 
-    <string name="expert_app_ops_intro">Ausgewählte Teilmenge der AppOps. Die meisten Ops sind unter Standard-Android durch GET_APP_OPS_STATS (signature) geschützt und werden als „Standard“ angezeigt, wenn das System sie vor uns verbirgt.</string>
+    <string name="expert_app_ops_intro">Eine Auswahl von AppOps, zusammen mit den Berechtigungen der App gelesen: Deklariert die App die Berechtigung eines Vorgangs nicht oder wurde sie nicht erteilt, wird das angezeigt; sonst der Modus, den Android meldet.</string>
     <string name="expert_app_ops_limited">Eingeschränkte Sicht — das System gibt nur die App-Ops preis, die der Aufrufer ohne Root abfragen darf.</string>
 
     <!-- ================================================================ -->
@@ -1017,6 +1018,8 @@
     <string name="notif_channel_quarantine_name">Quarantäne-Erinnerungen</string>
     <string name="notif_channel_quarantine_desc">Wenn der Prüftermin einer App in Quarantäne verstrichen ist.</string>
 
+    <string name="expert_appop_not_declared">Berechtigung nicht deklariert</string>
+    <string name="expert_appop_not_granted">Berechtigung nicht erteilt</string>
     <string name="expert_appop_mode_allowed">Erlaubt</string>
     <string name="expert_appop_mode_foreground">Nur im Vordergrund</string>
     <string name="expert_appop_mode_ignored">Ignoriert</string>
