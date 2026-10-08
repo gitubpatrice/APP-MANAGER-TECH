@@ -16,10 +16,14 @@ import javax.inject.Inject
  * enough to surface "what changed last quarter" but young enough that the
  * table stays small (a few hundred rows even on a busy device).
  *
- * Trade-off: dropping the oldest snapshot for a (pkg, perm) pair can break
- * the "predecessor" invariant used by the drift query. The next capture tick
- * re-establishes a baseline naturally — the only cost is that the next drift
- * event for that pair is one tick late. Acceptable given the 24h cadence.
+ * v0.5.1 — for each (pkg, perm) pair the newest row older than the cutoff is
+ * kept: it is the predecessor the drift query needs for the changes recorded
+ * after it. This KDoc said the next capture tick re-established a baseline:
+ * not when a younger change survives the purge — that change is then the
+ * latest row, the capture inserts only on change, and nothing ever comes
+ * before it again — so a change still inside the retention disappeared from
+ * the feed with its baseline. See
+ * [com.filestech.appmanager.data.local.db.dao.PermissionSnapshotDao.purgeOlderThan].
  */
 class PurgeOldPermissionSnapshotsUseCase @Inject constructor(
     private val repository: PermissionSnapshotRepository,

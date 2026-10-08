@@ -44,7 +44,9 @@ interface PermissionSnapshotRepository {
     fun observeStats(): Flow<SnapshotStats>
 
     /**
-     * Deletes rows older than [cutoffMs]. Returns the number of rows deleted.
+     * Deletes rows older than [cutoffMs], keeping for each (package, permission)
+     * pair the newest of them — the baseline the drift feed needs to show the
+     * changes recorded after the cutoff. Returns the number of rows deleted.
      * Idempotent — running it twice in a row deletes the second-run subset
      * (zero new rows aged into the cutoff in between).
      */

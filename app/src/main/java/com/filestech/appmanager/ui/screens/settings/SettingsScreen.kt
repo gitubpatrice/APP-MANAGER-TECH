@@ -42,6 +42,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -67,10 +69,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
+import com.filestech.appmanager.data.system.NotificationChannels
 import com.filestech.appmanager.domain.model.AppSortOrder
 import com.filestech.appmanager.domain.model.AppTag
 import com.filestech.appmanager.domain.model.ThemeMode
 import com.filestech.appmanager.ui.components.BrandedTitle
+import com.filestech.appmanager.ui.components.rememberNotificationPermissionRequest
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
 import com.filestech.appmanager.ui.components.dialogs.appTagLabelRes
 import com.filestech.appmanager.ui.components.settings.NavigationRow
@@ -149,7 +153,13 @@ fun SettingsScreen(
         }
     }
 
+    // v0.5.1 — the permission-change alerts and the review reminders post notifications, which
+    // Android 13+ drops until POST_NOTIFICATIONS is granted: asked for when one of them is switched on.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val requestNotifications = rememberNotificationPermissionRequest(snackbarHostState)
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 navigationIcon = {
@@ -174,14 +184,26 @@ fun SettingsScreen(
             onAutoScanChange     = viewModel::setAutoScanOnLaunch,
             onFlagSecureChange   = viewModel::setFlagSecure,
             onConfirmDeleteChange = viewModel::setConfirmBeforeDelete,
-            // v0.2.0 — Privacy monitor
-            onPermissionDriftEnabledChange = viewModel::setPermissionDriftEnabled,
+            // v0.2.0 — Privacy monitor. v0.5.1 — "Notify on changes" defaults to on, so turning the
+            // tracking on is what usually starts the alerts: both switches ask for the permission.
+            onPermissionDriftEnabledChange = { enabled ->
+                viewModel.setPermissionDriftEnabled(enabled)
+                if (enabled && settings.privacyMonitor.permissionDriftNotify) {
+                    requestNotifications(NotificationChannels.DRIFT_CHANNEL_ID)
+                }
+            },
             onPermissionDriftRetentionClick = { retentionDialog = true },
             onPermissionDriftIncludeSystemChange = viewModel::setPermissionDriftIncludeSystemApps,
-            onPermissionDriftNotifyChange = viewModel::setPermissionDriftNotify,
+            onPermissionDriftNotifyChange = { enabled ->
+                viewModel.setPermissionDriftNotify(enabled)
+                if (enabled) requestNotifications(NotificationChannels.DRIFT_CHANNEL_ID)
+            },
             // v0.2.0 — Quarantine
             onPickBackupFolderClick = { backupFolderLauncher.launch(null) },
-            onQuarantineReminderChange = viewModel::setQuarantineRestoreReminderEnabled,
+            onQuarantineReminderChange = { enabled ->
+                viewModel.setQuarantineRestoreReminderEnabled(enabled)
+                if (enabled) requestNotifications(NotificationChannels.QUARANTINE_CHANNEL_ID)
+            },
             // v0.3.0 — Lifecycle History
             onLifecycleEnabledChange       = viewModel::setLifecycleEnabled,
             onLifecycleRetentionClick      = { lifecycleRetentionDialog = true },
