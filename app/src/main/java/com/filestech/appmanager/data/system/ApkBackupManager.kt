@@ -162,6 +162,12 @@ class ApkBackupManager @Inject constructor(
      * Includes `FLAG_GRANT_READ_URI_PERMISSION` so PackageInstaller can read
      * the document; the URI is passed across the binder, so no FileProvider
      * setup is needed for SAF document URIs.
+     *
+     * v0.5.1 — pinned to the SYSTEM installer: any app may declare a VIEW filter for APKs, and an
+     * implicit intent would offer it this document and its read grant. Pinned only when exactly
+     * one system package handles it (resolveActivity would return the system chooser, package
+     * "android", if there were several); otherwise left implicit, so the pinning itself never makes
+     * a restore impossible.
      */
     @Suppress("TooGenericExceptionCaught") // Same SAF boundary as backupApk.
     fun restoreIntent(apkBackupUri: String): Intent? {
@@ -173,6 +179,12 @@ class ApkBackupManager @Inject constructor(
                 setDataAndType(uri, MIME_APK)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                context.packageManager
+                    .queryIntentActivities(this, PackageManager.MATCH_SYSTEM_ONLY)
+                    .map { it.activityInfo.packageName }
+                    .distinct()
+                    .singleOrNull()
+                    ?.let { setPackage(it) }
             }
         } catch (e: Exception) {
             Timber.w(e, "ApkBackupManager: restoreIntent failed for %s", apkBackupUri)
