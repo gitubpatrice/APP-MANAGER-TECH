@@ -500,7 +500,7 @@ class AppInfoRepositoryImpl @Inject constructor(
             ExpertReport.AppOpEntry(
                 op        = op,
                 mode      = mode,
-                state     = permissionGate(op, permissions) ?: appOpState(mode),
+                state     = permissionGate(op, mode, permissions) ?: appOpState(mode),
             )
         }
         return ExpertReport.AppOpsSnapshot(entries = entries, isFullyAccessible = anyAccessible)
@@ -509,14 +509,24 @@ class AppInfoRepositoryImpl @Inject constructor(
     /**
      * The permission each curated op stands for, and whether it is a runtime permission. A mode read
      * alone misleads: an op at its default mode reads "Allowed" for an app that never asked for the
-     * permission. For the special-access ones (overlay, write settings, usage stats) the app-op IS the
-     * grant, so only "declared" is checked.
+     * permission. For the special-access ones (overlay, write settings, usage stats) the app-op is the
+     * grant, except at its default mode, where Android defers to the permission's own grant state.
      */
-    private fun permissionGate(op: String, permissions: ExpertReport.ExpertPermissions): ExpertReport.AppOpState? {
+    private fun permissionGate(
+        op: String,
+        mode: Int,
+        permissions: ExpertReport.ExpertPermissions,
+    ): ExpertReport.AppOpState? {
         val (permission, runtime) = OP_PERMISSION[op] ?: return null
         val declared = permissions.declared.firstOrNull { it.name == permission }
             ?: return ExpertReport.AppOpState.NOT_DECLARED
-        return if (runtime && !declared.granted) ExpertReport.AppOpState.NOT_GRANTED else null
+        return when {
+            runtime && !declared.granted -> ExpertReport.AppOpState.NOT_GRANTED
+            // A special-access op left at its default mode defers to the permission's own grant.
+            !runtime && mode == AppOpsManager.MODE_DEFAULT ->
+                if (declared.granted) ExpertReport.AppOpState.ALLOWED else ExpertReport.AppOpState.NOT_GRANTED
+            else -> null
+        }
     }
 
     private fun appOpState(mode: Int): ExpertReport.AppOpState = when (mode) {

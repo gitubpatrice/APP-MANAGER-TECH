@@ -12,7 +12,6 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -138,16 +137,20 @@ class ApkBackupManager @Inject constructor(
     }
 
     /**
-     * Copies [source] into [target]; null when the provider gives no output stream. A copy that fails
-     * midway deletes [target]: a half-written APK must not stay in the folder looking like a backup.
+     * Copies [source] into [target]; null when the provider gives no output stream. Whatever stops the
+     * copy — no stream, an IOException, a provider's undocumented runtime exception — deletes
+     * [target]: an empty or half-written APK must not stay in the folder looking like a backup.
      */
-    private fun copyInto(target: DocumentFile, source: File): Long? = try {
-        context.contentResolver.openOutputStream(target.uri)?.use { out ->
-            FileInputStream(source).use { input -> input.copyTo(out) }
+    private fun copyInto(target: DocumentFile, source: File): Long? {
+        var copied: Long? = null
+        try {
+            copied = context.contentResolver.openOutputStream(target.uri)?.use { out ->
+                FileInputStream(source).use { input -> input.copyTo(out) }
+            }
+            return copied
+        } finally {
+            if (copied == null) target.delete()
         }
-    } catch (e: IOException) {
-        target.delete()
-        throw e
     }
 
     /**
