@@ -162,7 +162,7 @@ class ExportReportUseCase @Inject constructor(
             '\r' -> append("\\r")
             '\t' -> append("\\t")
             '\b' -> append("\\b")
-            else -> if (c.code < 0x20) {
+            else -> if (c.code < FIRST_NON_CONTROL_CHAR) {
                 append("\\u").append("%04X".format(c.code))
             } else {
                 append(c)
@@ -194,3 +194,6 @@ class ExportReportUseCase @Inject constructor(
             s
         }
 }
+
+// JSON requires the control characters U+0000..U+001F to be escaped.
+private const val FIRST_NON_CONTROL_CHAR = 0x20

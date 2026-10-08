@@ -8,6 +8,12 @@
 #
 # Same structure as Agenda Tech's policy. The thresholds are NOT copied from it: each one below was
 # measured on this code, and says how far it sits from detekt's default.
+#
+# LIMIT, measured: under AGP 9, detekt 1.23.8 registers no per-variant task (only `detekt`,
+# `detektBaseline` and `detektGenerateConfig` exist), so the rules that need type resolution — among
+# them RedundantSuspendModifier and SuspendFunSwallowedCancellation — never run, and "zero findings"
+# does not cover them. The swallowed-cancellation defect is caught instead by TooGenericExceptionCaught
+# below, which makes every catch-all carry its reason. Agenda Tech runs the same plain task.
 
 build:
   maxIssues: 0
@@ -35,8 +41,6 @@ complexity:
   CyclomaticComplexMethod:
     active: true
     ignoreAnnotated: ['Composable']
-    # A `when` that maps each value to a result is a lookup table, not branching logic.
-    ignoreSimpleWhenEntries: true
   TooManyFunctions:
     active: true
     # Private composables split a screen file into readable pieces, and a repository implements the
@@ -54,6 +58,14 @@ complexity:
 
 exceptions:
   active: true
+  TooGenericExceptionCaught:
+    active: true
+    # By default, naming the variable `ignored` or `expected` exempts a catch-all — the same names that
+    # mark a deliberately swallowed narrow exception for SwallowedException. Measured: a
+    # `catch (ignored: Exception)` around a suspending write passed detekt, which is exactly the
+    # swallowed-cancellation defect fixed by hand in three places. A catch-all must always carry a
+    # targeted @Suppress with its reason, whatever its variable is called.
+    allowedExceptionNameRegex: '^$'
 
 naming:
   active: true
@@ -64,12 +76,16 @@ naming:
 
 style:
   active: true
-  # 149 findings, none of them a hidden business rule: colour literals (ui/theme/Color.kt alone: 40),
-  # dp and alpha values in ui/ (91 in total), coordinates of the PDF layout (17) and SQL text in the
-  # Room migrations (11). Naming each one would add constants without making anything checkable.
-  # Same choice as Agenda Tech.
   MagicNumber:
-    active: false
+    active: true
+    # Excluded where a number is a layout or storage literal, not a rule: ui/ (91 findings — dp, alpha,
+    # colour literals; ui/theme/Color.kt alone: 40), the PDF layout coordinates (17) and the SQL text of
+    # the Room migrations (11). Everywhere else it stays active, and that is where it mattered: the
+    # weights of the privacy score were bare numbers, written twice (deduction and label). They are
+    # named now, pinned by GetPrivacyScoreUseCaseTest.
+    excludes: ['**/ui/**', '**/PdfDocumentBuilder.kt', '**/Migrations.kt', '**/test/**', '**/androidTest/**']
+    # An enum entry's argument is already named by the entry (`ORANGE(30)`, `LAST_90(90)`).
+    ignoreEnums: true
   MaxLineLength:
     active: true
     maxLineLength: 140

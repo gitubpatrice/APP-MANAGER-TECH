@@ -75,7 +75,7 @@ class DangerousPermissionInspector @Inject constructor(
         }
 
         val ourPackage = context.packageName
-        val result = ArrayList<Observation>(installed.size * 4)
+        val result = ArrayList<Observation>(installed.size * EXPECTED_OBSERVATIONS_PER_APP)
 
         for (pi in installed) {
             val pkg = pi.packageName ?: continue
@@ -144,3 +144,6 @@ class DangerousPermissionInspector @Inject constructor(
         return dangerous
     }
 }
+
+// Initial capacity hint only: a few dangerous permissions per app on average.
+private const val EXPECTED_OBSERVATIONS_PER_APP = 4

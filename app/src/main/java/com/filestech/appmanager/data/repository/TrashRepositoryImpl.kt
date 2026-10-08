@@ -66,9 +66,6 @@ class TrashRepositoryImpl @Inject constructor(
      * Runs on [Dispatchers.IO] because PM lookups are IPC + the per-row
      * `deleteByPackage` writes hit Room IO.
      */
-    // The per-row probe catches everything on purpose (see the comment in it): a transient binder
-    // failure must keep the row, not abort the sweep. No suspension point inside that `try`.
-    @Suppress("TooGenericExceptionCaught")
     override suspend fun purgeOrphaned(): Int = withContext(io) {
         val pm = context.packageManager
         val snapshot = dao.getAll()
@@ -77,6 +74,9 @@ class TrashRepositoryImpl @Inject constructor(
         // that's noticeable jank on slow devices. Collect orphans first, then
         // delete in a single transaction via the new `deleteByPackages` query.
         val orphaned = snapshot.mapNotNull { row ->
+            // Catch-all on purpose (see below): a transient binder failure must keep the row, not
+            // abort the sweep. No suspension point inside this `try`.
+            @Suppress("TooGenericExceptionCaught")
             val stillInstalled = try {
                 pm.getPackageInfo(row.packageName, 0)
                 true

@@ -7,6 +7,9 @@ package com.filestech.appmanager.core.ext
  * compiled once at top-level — never instantiated inside hot paths.
  */
 
+// Android caps a package name at 255 characters.
+private const val MAX_PACKAGE_NAME_LENGTH = 255
+
 /**
  * Package-name validator pattern. Compiled once for reuse across all calls.
  *
@@ -37,6 +40,6 @@ fun String.packageNameToLabel(): String =
 
 /** Returns true if this string is a syntactically plausible Android package name. */
 fun String.isValidPackageName(): Boolean {
-    if (length > 255 || isBlank()) return false
+    if (length > MAX_PACKAGE_NAME_LENGTH || isBlank()) return false
     return PACKAGE_NAME_REGEX.matches(this)
 }
