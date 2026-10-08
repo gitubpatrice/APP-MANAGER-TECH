@@ -1,0 +1,121 @@
+name: CI
+
+# Until this workflow, CodeQL was the only workflow of App Manager Tech. It compiles the debug variant
+# for the analyser and nothing else: no unit test, no lint, no R8, and nothing checking the public
+# "no Internet permission" promise. A Dependabot PR could therefore turn every check green without a
+# single test having run.
+#
+# `fix/**` and `feat/**` are triggers on purpose: a work branch must not pile up commits with nothing
+# ever running on them (measured on a sibling app: 25 commits, a blocking check failing since the
+# morning, unreported).
+#
+# No instrumented-test job yet: the androidTest APK does not build (two copies of META-INF/LICENSE.md,
+# from junit-jupiter-api on the classpath of tests written for JUnit 4). Fixed separately, and the job
+# added once the two tests are seen passing on an emulator.
+on:
+  push:
+    branches: [main, 'fix/**', 'feat/**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # A newer push to the same ref cancels the previous run: its result is already stale.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Gate (build · unit tests · lint · R8)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      # Before any compilation, and in seconds: the two guards below must prove they can go red, and
+      # for the right reason, before their green is believed.
+      - name: Negative control of the CI guards
+        run: python3 tools/check-guards-negative-control.py
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # One command, the same as the local gate, so CI and a developer's machine can never disagree
+      # about what "green" means.
+      - name: Gate
+        run: ./gradlew --no-daemon :app:assembleDebug testDebugUnitTest :app:lintDebug
+
+      # A green test task does not prove a test ran: when the JUnit Platform stops discovering the
+      # tests (seen after a JUnit 6 bump on a sibling app), Gradle reports success on an empty run.
+      # The script also writes the number of executed tests to the job summary, so two runs can be
+      # compared.
+      - name: Unit tests were actually executed
+        run: python3 tools/check-test-results.py
+
+      # `isMinifyEnabled` and `isShrinkResources` run in no other job: CodeQL and the gate build debug
+      # only. Without keystore.properties (absent from the repository, on purpose) the release build
+      # falls back to the debug signing config: what is checked here is that R8 keeps what the code
+      # needs, not the signature.
+      - name: Release build (exercises R8)
+        run: ./gradlew --no-daemon :app:assembleRelease
+
+      # The zero-network job reads the merged manifest, an intermediate: anything wired after it in
+      # the build would escape it. This reads the manifest of the release APK itself, the artefact
+      # that ships, through the same guard and its negative control. apkanalyzer prints it as XML,
+      # every element across several lines - the shape a grep would miss.
+      - name: Assert the permissions of the release APK
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" manifest print \
+            app/build/outputs/apk/release/app-universal-release.apk > "$RUNNER_TEMP/apk-manifest.xml"
+          python3 tools/check-guards-negative-control.py --real-manifest "$RUNNER_TEMP/apk-manifest.xml"
+          python3 tools/check-manifest-permissions.py "$RUNNER_TEMP/apk-manifest.xml"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gate-reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  zero-network:
+    name: Zero-network promise
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # Only the manifest merge, not a full release build: it needs neither keystore nor R8, and it is
+      # the artefact that decides which permissions the published APK carries. Libraries add theirs
+      # here: the source manifest declares six permissions, the merged one carries eleven.
+      - name: Merge the release manifest
+        run: ./gradlew --no-daemon :app:processReleaseMainManifest
+
+      # Against the REAL merged manifest as well as fixtures: it must pass as built, and fail once
+      # INTERNET is injected into a copy of it.
+      - name: Negative control against the merged manifest
+        run: >-
+          python3 tools/check-guards-negative-control.py --real-manifest
+          app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
+
+      # A script rather than an inline grep: it parses the manifest as XML (a line-based grep misses
+      # a <uses-permission> written across several lines), it runs the same on a developer machine,
+      # and its failure paths are exercised by the step above instead of being assumed.
+      - name: Assert the permissions of the merged release manifest
+        run: python3 tools/check-manifest-permissions.py
