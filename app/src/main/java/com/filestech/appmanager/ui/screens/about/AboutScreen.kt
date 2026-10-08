@@ -16,6 +16,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.SystemUpdateAlt
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,10 +31,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import timber.log.Timber
 import com.filestech.appmanager.BuildConfig
@@ -82,6 +87,7 @@ fun AboutScreen(
 @Composable
 private fun AboutBody(innerPadding: PaddingValues) {
     val context = LocalContext.current
+    val releasesUrl = stringResource(R.string.about_url_releases)
     val sourceUrl = stringResource(R.string.about_url_source_code)
     val issueUrl  = stringResource(R.string.about_url_report_issue)
 
@@ -130,6 +136,27 @@ private fun AboutBody(innerPadding: PaddingValues) {
                 text  = "${stringResource(R.string.about_version_label)} ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            // The app has no INTERNET permission (asserted by CI on the release APK): it cannot look for
+            // a new version itself. The button opens the releases page in the browser, which is what
+            // the line below it says.
+            Button(
+                onClick  = { openUrl(releasesUrl) },
+                colors   = ButtonDefaults.buttonColors(containerColor = LogoBlue, contentColor = Color.White),
+                modifier = Modifier.padding(top = 16.dp),
+            ) {
+                Icon(Icons.Outlined.SystemUpdateAlt, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(
+                    text     = stringResource(R.string.about_check_updates),
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+            Text(
+                text      = stringResource(R.string.about_check_updates_hint),
+                style     = MaterialTheme.typography.bodySmall,
+                color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier  = Modifier.padding(top = 8.dp, bottom = 12.dp, start = 24.dp, end = 24.dp),
             )
             Text(
                 text  = stringResource(R.string.about_subtitle),
@@ -191,6 +218,10 @@ private fun AboutBody(innerPadding: PaddingValues) {
         )
     }
 }
+
+
+/** The blue of the logo's checkerboard (`drawable/ic_app_logo`), for the update button. */
+private val LogoBlue = Color(0xFF0D6EFD)
 
 @Composable
 private fun AboutCard(content: @Composable () -> Unit) {

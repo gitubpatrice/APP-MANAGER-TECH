@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -37,42 +38,36 @@ import com.filestech.appmanager.R
  */
 @Composable
 fun BrandedTitle(screenTitle: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_app_logo),
-            contentDescription = null,
-            modifier = Modifier.size(28.dp),
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Column {
-            // v0.1.3 — Hiérarchie inversée : le titre de l'écran (bold,
-            // bodyMedium) est plus proéminent que le nom de l'app
-            // (labelSmall, discret). Sur les TopAppBar chargés en actions
-            // (AppList = 5 actions), c'est l'identité de l'écran qui doit
-            // sauter aux yeux ; "App Manager Tech" sert juste de signature
-            // discrète du publisher.
-            Text(
-                text     = stringResource(R.string.app_name),
-                style    = MaterialTheme.typography.labelSmall,
-                color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+    // v0.5.0 — the logo and the app name on one line, as in Notes Tech and Agenda Tech, and the
+    // screen's title below both, aligned under the logo. (v0.1.3 stacked the two texts beside it.)
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_app_logo),
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
             )
-            // v0.1.3 audit M-3 fix — text kept in its natural casing so
-            // TalkBack reads it as words, not letter-by-letter. The visual
-            // "caps" effect is achieved by `letterSpacing` (which doesn't
-            // touch semantics) and `FontWeight.Bold`. The previous
-            // `screenTitle.uppercase()` made TalkBack epell every title on
-            // 16 screens ("A-P-P-L-I-C-A-T-I-O-N-S…").
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text       = screenTitle,
-                style      = MaterialTheme.typography.bodyMedium.copy(
-                    letterSpacing = 0.08.sp,
-                ),
+                text       = stringResource(R.string.app_name),
+                style      = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines   = 1,
                 overflow   = TextOverflow.Ellipsis,
             )
         }
+        // v0.1.3 audit M-3 fix — text kept in its natural casing so TalkBack reads it as words, not
+        // letter by letter (`uppercase()` made it spell every title on 16 screens).
+        Text(
+            text       = screenTitle,
+            style      = MaterialTheme.typography.bodyMedium.copy(
+                letterSpacing = 0.08.sp,
+            ),
+            fontWeight = FontWeight.SemiBold,
+            color      = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines   = 1,
+            overflow   = TextOverflow.Ellipsis,
+            modifier   = Modifier.padding(top = 6.dp),
+        )
     }
 }

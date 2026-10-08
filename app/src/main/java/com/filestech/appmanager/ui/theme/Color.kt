@@ -34,6 +34,13 @@ internal val BrandDanger   = Color(0xFFC62828)
 internal val SnackbarBg = BrandBlue
 internal val SnackbarOn = Color.White
 
+/**
+ * Pale blue-grey for the light theme's container surfaces — bottom bar, menus, dialogs, cards — as in
+ * Agenda Tech. Left unset, Material 3 derives them as a lavender wash that matches nothing in the brand.
+ * Kept a touch off the page background so a card or a menu still reads as a raised panel.
+ */
+private val LightContainer = Color(0xFFF0F5FB)
+
 private val LightPalette = lightColorScheme(
     primary               = BrandBlue,
     onPrimary             = Color.White,
@@ -59,6 +66,11 @@ private val LightPalette = lightColorScheme(
     onSurfaceVariant      = Color(0xFF44464F),
     outline               = Color(0xFF74777F),
     outlineVariant        = Color(0xFFC4C6D0),
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow   = LightContainer,
+    surfaceContainer      = LightContainer,
+    surfaceContainerHigh  = LightContainer,
+    surfaceContainerHighest = LightContainer,
     scrim                 = Color.Black,
     inverseSurface        = SnackbarBg,
     inverseOnSurface      = SnackbarOn,

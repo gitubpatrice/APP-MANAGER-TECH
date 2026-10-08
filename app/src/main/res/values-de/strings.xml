@@ -195,6 +195,8 @@
     <string name="about_section_licence">Lizenz</string>
     <string name="about_section_permissions">Berechtigungen</string>
     <string name="about_description">App Manager Tech ist eine freie Open-Source-App, mit der Sie jede auf Ihrem Gerät installierte Android-App untersuchen, bereinigen und verwalten können. Sie sendet keinerlei Daten vom Gerät weg.</string>
+    <string name="about_check_updates">Nach Updates suchen</string>
+    <string name="about_check_updates_hint">Öffnet die Seite der Releases auf GitHub in Ihrem Browser – die App selbst verbindet sich nie mit dem Internet.</string>
     <string name="about_link_source_code">Quellcode (GitHub)</string>
     <string name="about_link_report_issue">Ein Problem melden</string>
     <string name="about_licence_text">Veröffentlicht unter der Apache-2.0-Lizenz. Siehe die Datei LICENSE im Quellcode-Repository.</string>
