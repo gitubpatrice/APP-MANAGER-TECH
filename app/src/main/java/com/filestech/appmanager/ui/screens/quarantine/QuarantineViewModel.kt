@@ -74,7 +74,9 @@ class QuarantineViewModel @Inject constructor(
             try {
                 val backupTreeUri = if (mode == QuarantineMode.HARD_UNINSTALL) {
                     settings.flow.first().quarantine.backupTreeUri?.let { Uri.parse(it) }
-                } else null
+                } else {
+                    null
+                }
 
                 if (mode == QuarantineMode.HARD_UNINSTALL && backupTreeUri == null) {
                     _events.trySend(Event.NeedsBackupFolder)

@@ -79,8 +79,8 @@ class RecordLifecycleEventUseCase @Inject constructor(
                 )
                 when (insertOutcome) {
                     is Outcome.Success -> insertOutcome.value
-                    is Outcome.Failure -> throw IllegalStateException(insertOutcome.error.toString())
-                    Outcome.Loading    -> throw IllegalStateException("Unexpected Loading")
+                    is Outcome.Failure -> error(insertOutcome.error.toString())
+                    Outcome.Loading    -> error("Unexpected Loading")
                 }
             }
         }
@@ -174,6 +174,7 @@ class RecordLifecycleEventUseCase @Inject constructor(
      *
      * Streamed at 64 KB so we don't materialise the full APK in memory.
      */
+    @Suppress("ReturnCount") // Each `return null` is one of the refusal cases listed above.
     private fun computeApkSha256(sourceDir: String?): String? {
         if (sourceDir.isNullOrBlank()) return null
         // Resolve symlinks BEFORE the read-checks so a hostile link is
@@ -218,9 +219,9 @@ class RecordLifecycleEventUseCase @Inject constructor(
         } else {
             pm.getInstallerPackageName(packageName)
         }
-    } catch (e: PackageManager.NameNotFoundException) {
+    } catch (expected: PackageManager.NameNotFoundException) {
         null
-    } catch (e: IllegalArgumentException) {
+    } catch (expected: IllegalArgumentException) {
         null
     }
 

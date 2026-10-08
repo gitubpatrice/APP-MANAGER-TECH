@@ -75,6 +75,7 @@ object HashUtils {
      * invoking this helper (this function only owns the hashing
      * mechanic, not the security policy around it).
      */
+    @Suppress("NestedBlockDepth") // try / use / read loop: the streaming read itself, no nested logic.
     fun sha256FileToHexLower(file: File): String? {
         if (!file.isFile || !file.canRead()) return null
         return try {
@@ -88,9 +89,9 @@ object HashUtils {
                 }
             }
             digest.digest().joinToString(separator = "") { byte -> "%02x".format(byte) }
-        } catch (e: IOException) {
+        } catch (expected: IOException) {
             null
-        } catch (e: SecurityException) {
+        } catch (expected: SecurityException) {
             null
         } catch (e: NoSuchAlgorithmException) {
             throw IllegalStateException("SHA-256 algorithm unavailable", e)

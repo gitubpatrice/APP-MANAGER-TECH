@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -183,6 +182,9 @@ class AppListViewModel @Inject constructor(
         queriedOutcome.applyTagFilter(p.tagFilter, allTags)
     }
 
+    // Six flows is past combine's typed overloads: the numbers are the positional slots of its array,
+    // each named by the val it is read into.
+    @Suppress("MagicNumber")
     val state: StateFlow<UiState> = combine(
         listFlow,
         _selectedPackages,

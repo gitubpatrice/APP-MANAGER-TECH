@@ -105,6 +105,7 @@ fun ToolsScreen(
     // v0.1.3: Settings + À propos removed from this grid per user feedback —
     // both stay reachable via the bottom-nav "À propos" tab + the home
     // toolbar overflow menu ("Paramètres").
+    @Suppress("MaxLineLength") // One row per tool, aligned in columns: a table, read across.
     val tools = listOf(
         ToolEntry(R.string.screen_smart_cleaner_title,       R.string.tool_subtitle_smart_cleaner,    Icons.Outlined.AutoFixHigh,        ToolColors.Purple,    onSmartCleaner),
         ToolEntry(R.string.screen_trackers_title,            R.string.tool_subtitle_trackers,         Icons.Outlined.VisibilityOff,      ToolColors.Teal,      onTrackers),
@@ -112,10 +113,10 @@ fun ToolsScreen(
         ToolEntry(R.string.screen_storage_title,             R.string.tool_subtitle_storage,          Icons.Outlined.Apps,               ToolColors.Blue,      onStorage),
         ToolEntry(R.string.settings_tools_rarely_used,       R.string.tool_subtitle_rarely_used,      Icons.Outlined.AccessTime,         ToolColors.Amber,     onRarelyUsed),
         ToolEntry(R.string.settings_tools_zombies,           R.string.tool_subtitle_zombies,          Icons.Outlined.SentimentSatisfied, ToolColors.Brown,     onZombies),
-        ToolEntry(R.string.settings_tools_permission_filter, R.string.tool_subtitle_permission_filter,Icons.Outlined.FilterAlt,          ToolColors.Indigo,    onPermissionFilter),
+        ToolEntry(R.string.settings_tools_permission_filter, R.string.tool_subtitle_permission_filter, Icons.Outlined.FilterAlt,          ToolColors.Indigo,    onPermissionFilter),
         ToolEntry(R.string.screen_cleaner_title,             R.string.tool_subtitle_cleaner,          Icons.Outlined.CleaningServices,   ToolColors.Green,     onCleaner),
-        ToolEntry(R.string.screen_ignore_list_title,         R.string.tool_subtitle_ignore_list,      Icons.Outlined.Block,              ToolColors.SoftPurple,onIgnoreList),
-        ToolEntry(R.string.screen_export_title,              R.string.tool_subtitle_export,           Icons.Outlined.FileDownload,       ToolColors.DeepPurple,onExport),
+        ToolEntry(R.string.screen_ignore_list_title,         R.string.tool_subtitle_ignore_list,      Icons.Outlined.Block,              ToolColors.SoftPurple, onIgnoreList),
+        ToolEntry(R.string.screen_export_title,              R.string.tool_subtitle_export,           Icons.Outlined.FileDownload,       ToolColors.DeepPurple, onExport),
         ToolEntry(R.string.screen_transparency_title,        R.string.tool_subtitle_transparency,     Icons.Outlined.VerifiedUser,       ToolColors.Cyan,      onTransparency),
         ToolEntry(R.string.settings_tools_trash,             R.string.tool_subtitle_trash,            Icons.Outlined.Delete,             BrandDanger,          onTrash),
         // v0.2.0 — Permission Drift Tracker + App Quarantine (two new
@@ -271,7 +272,8 @@ private object ToolColors {
     val Teal       = Color(0xFF00897B) // Material Teal 600 — AA on light + dark
     val Coral      = Color(0xFFD32F2F) // Material Red 700 — AA both, "danger-soft"
     val Blue       = Color(0xFF1976D2) // Material Blue 700
-    val Amber      = Color(0xFFE65100) // Material Deep Orange 900 — 4.59:1 light, 7.2:1 dark (audit M-4 fix; was 0xFFFFB300 = 1.79:1 light fail)
+    // Amber: audit M-4 fix, was 0xFFFFB300 = 1.79:1 light fail.
+    val Amber      = Color(0xFFE65100) // Material Deep Orange 900 — 4.59:1 light, 7.2:1 dark
     val Brown      = Color(0xFF8D6E63) // Material Brown 400 — 4.05:1 light, 3.9:1 dark (audit L-5 fix; was 0xFF6D4C41 = 2.49:1 dark fail)
     val Indigo     = Color(0xFF3949AB) // Material Indigo 600 — AA both
     val Green      = Color(0xFF388E3C) // Material Green 700
@@ -299,4 +301,3 @@ private object ToolColors {
     // surfaceContainerLow — passes WCAG AAA on light, AA on dark.
     val Steel      = Color(0xFF37474F) // Material Blue Grey 800
 }
-

@@ -55,6 +55,9 @@ import javax.inject.Singleton
  * - [AppInfoDao] — Room cache.
  * - [AppOpsManager] — UsageStats permission probe.
  */
+// LargeClass: 623 lines for a limit of 600 — debt, said plainly. The repository wraps the five system
+// services listed above; splitting it is a refactor of its own, not part of adding detekt.
+@Suppress("LargeClass")
 @Singleton
 class AppInfoRepositoryImpl @Inject constructor(
     @ApplicationContext private val appContext: Context,
@@ -176,7 +179,7 @@ class AppInfoRepositoryImpl @Inject constructor(
         return runCatchingOutcome(::mapError) {
             withContext(io) {
                 val am = activityManager
-                    ?: throw IllegalStateException("ActivityManager unavailable")
+                    ?: error("ActivityManager unavailable")
                 am.killBackgroundProcesses(packageName)
                 Timber.d("killBackgroundProcesses(%s) requested", packageName)
             }
@@ -297,7 +300,7 @@ class AppInfoRepositoryImpl @Inject constructor(
         return runCatchingOutcome(::mapError) {
             withContext(io) {
                 val sig = firstSignature(packageName)
-                    ?: throw IllegalStateException("No signature for $packageName")
+                    ?: error("No signature for $packageName")
                 hashSha256Hex(sig.toByteArray())
             }
         }
@@ -318,7 +321,8 @@ class AppInfoRepositoryImpl @Inject constructor(
         }
     }
 
-    @Suppress("DEPRECATION")
+    // LongMethod: reads every PackageManager section the expert report shows, in one call.
+    @Suppress("DEPRECATION", "LongMethod")
     private fun buildExpertReport(packageName: String): ExpertReport {
         val flags = (PackageManager.GET_ACTIVITIES
             or PackageManager.GET_SERVICES
@@ -348,7 +352,9 @@ class AppInfoRepositoryImpl @Inject constructor(
             targetSdk  = ai.targetSdkVersion,
             compileSdk = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 ai.compileSdkVersion.takeIf { it > 0 }
-            } else null,
+            } else {
+                null
+            },
         )
         val nativeInfo = ExpertReport.NativeInfo(
             primaryAbi       = readPrimaryAbi(ai),
@@ -440,7 +446,7 @@ class AppInfoRepositoryImpl @Inject constructor(
             info.protectionLevel and android.content.pm.PermissionInfo.PROTECTION_MASK_BASE
         }
         level == android.content.pm.PermissionInfo.PROTECTION_DANGEROUS
-    } catch (e: PackageManager.NameNotFoundException) {
+    } catch (expected: PackageManager.NameNotFoundException) {
         false
     }
 
@@ -478,9 +484,9 @@ class AppInfoRepositoryImpl @Inject constructor(
                     @Suppress("DEPRECATION")
                     ops.checkOpNoThrow(op, uid, packageName)
                 }
-            } catch (e: SecurityException) {
+            } catch (expected: SecurityException) {
                 APP_OP_MODE_UNAVAILABLE
-            } catch (e: IllegalArgumentException) {
+            } catch (expected: IllegalArgumentException) {
                 APP_OP_MODE_UNAVAILABLE
             }
             if (mode != APP_OP_MODE_UNAVAILABLE && mode != AppOpsManager.MODE_DEFAULT) {
@@ -513,11 +519,11 @@ class AppInfoRepositoryImpl @Inject constructor(
         val field = ApplicationInfo::class.java.getDeclaredField("primaryCpuAbi")
         field.isAccessible = true
         (field.get(ai) as? String)?.takeIf { it.isNotBlank() }
-    } catch (e: NoSuchFieldException) {
+    } catch (expected: NoSuchFieldException) {
         null
-    } catch (e: SecurityException) {
+    } catch (expected: SecurityException) {
         null
-    } catch (e: IllegalAccessException) {
+    } catch (expected: IllegalAccessException) {
         null
     }
 
@@ -557,9 +563,9 @@ class AppInfoRepositoryImpl @Inject constructor(
             as? java.security.cert.X509Certificate
             ?: return false
         cert.subjectX500Principal.name.contains(DEBUG_SIGNER_DN_SUBSTRING, ignoreCase = true)
-    } catch (e: java.security.cert.CertificateException) {
+    } catch (expected: java.security.cert.CertificateException) {
         false
-    } catch (e: IllegalArgumentException) {
+    } catch (expected: IllegalArgumentException) {
         false
     }
 
@@ -590,6 +596,9 @@ class AppInfoRepositoryImpl @Inject constructor(
     // Filtering helpers
     // -----------------------------------------------------------------------
 
+    // One early `return false` per filter option: this function is the filter's specification, read
+    // top to bottom; splitting it would only scatter the options.
+    @Suppress("CyclomaticComplexMethod", "ReturnCount")
     private fun matchesFilter(app: AppInfo, filter: FilterOptions): Boolean {
         // System / user split
         if (app.isSystemApp && !filter.includeSystemApps) return false
@@ -707,9 +716,9 @@ class AppInfoRepositoryImpl @Inject constructor(
      */
     private fun queryIsHibernated(packageName: String): Boolean = try {
         usageStats?.isAppInactive(packageName) ?: false
-    } catch (e: SecurityException) {
+    } catch (expected: SecurityException) {
         false
-    } catch (e: IllegalArgumentException) {
+    } catch (expected: IllegalArgumentException) {
         false
     }
 
@@ -724,9 +733,9 @@ class AppInfoRepositoryImpl @Inject constructor(
             @Suppress("DEPRECATION")
             packageManager.getInstallerPackageName(packageName)
         }
-    } catch (e: PackageManager.NameNotFoundException) {
+    } catch (expected: PackageManager.NameNotFoundException) {
         null
-    } catch (e: IllegalArgumentException) {
+    } catch (expected: IllegalArgumentException) {
         null
     }
 
@@ -783,12 +792,12 @@ class AppInfoRepositoryImpl @Inject constructor(
                 cacheBytes = stats.cacheBytes,
                 dataBytes  = stats.dataBytes,
             )
-        } catch (e: SecurityException) {
+        } catch (expected: SecurityException) {
             Sizes.EMPTY
         } catch (e: IOException) {
             Timber.w(e, "queryStatsForUid IOException for %s", packageName)
             Sizes.EMPTY
-        } catch (e: IllegalStateException) {
+        } catch (expected: IllegalStateException) {
             Sizes.EMPTY
         }
     }
@@ -800,7 +809,7 @@ class AppInfoRepositoryImpl @Inject constructor(
             val start = end - USAGE_LOOKBACK_MS
             mgr.queryAndAggregateUsageStats(start, end)
                 .mapValues { it.value.lastTimeUsed }
-        } catch (e: SecurityException) {
+        } catch (expected: SecurityException) {
             emptyMap()
         }
     }

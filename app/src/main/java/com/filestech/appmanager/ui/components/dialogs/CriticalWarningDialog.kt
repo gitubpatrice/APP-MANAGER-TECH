@@ -180,13 +180,11 @@ private fun HoldToConfirmButton(
                         //  - finger drags beyond touchSlop (cancel — drag-out)
                         //  - the LaunchedEffect fires onHeld and flips isHolding
                         //    to false from outside.
-                        var cancelled = false
                         loop@ while (isHolding) {
                             val ev = awaitPointerEvent(PointerEventPass.Main)
                             val change = ev.changes.firstOrNull() ?: break@loop
                             val moved = (change.position - startPos).getDistance()
                             if (moved > touchSlop) {
-                                cancelled = true
                                 break@loop
                             }
                             if (change.changedToUpIgnoreConsumed()) {
@@ -196,7 +194,6 @@ private fun HoldToConfirmButton(
                         // Either way, end the hold session. The LaunchedEffect
                         // sees isHolding = false next tick and resets progress.
                         isHolding = false
-                        @Suppress("UNUSED_VARIABLE") val _c = cancelled
                     }
                 }
             },

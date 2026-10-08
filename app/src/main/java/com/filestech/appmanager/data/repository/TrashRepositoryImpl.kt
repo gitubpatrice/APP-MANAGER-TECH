@@ -74,10 +74,13 @@ class TrashRepositoryImpl @Inject constructor(
         // that's noticeable jank on slow devices. Collect orphans first, then
         // delete in a single transaction via the new `deleteByPackages` query.
         val orphaned = snapshot.mapNotNull { row ->
+            // Catch-all on purpose (see below): a transient binder failure must keep the row, not
+            // abort the sweep. No suspension point inside this `try`.
+            @Suppress("TooGenericExceptionCaught")
             val stillInstalled = try {
                 pm.getPackageInfo(row.packageName, 0)
                 true
-            } catch (e: PackageManager.NameNotFoundException) {
+            } catch (expected: PackageManager.NameNotFoundException) {
                 false
             } catch (e: Exception) {
                 // Any other PM failure (e.g. transient binder death) — leave

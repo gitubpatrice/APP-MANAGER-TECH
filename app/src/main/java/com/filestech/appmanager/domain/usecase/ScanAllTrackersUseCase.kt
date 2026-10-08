@@ -91,6 +91,8 @@ class ScanAllTrackersUseCase @Inject constructor(
     ) {
         /** % of scanned apps that have at least one tracker. */
         val contaminationPercent: Int
-            get() = if (totalAppCount == 0) 0 else (appsWithTrackers * 100 / totalAppCount)
+            get() = if (totalAppCount == 0) 0 else (appsWithTrackers * PERCENT / totalAppCount)
     }
 }
+
+private const val PERCENT = 100

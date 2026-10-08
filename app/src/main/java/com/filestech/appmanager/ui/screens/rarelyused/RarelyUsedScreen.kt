@@ -4,7 +4,6 @@ import android.text.format.Formatter
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -193,8 +192,9 @@ private fun RarelyUsedBody(
                     // on (list, query) so typing is responsive even on a
                     // large catalogue.
                     val filtered = remember(o.value, searchQuery) {
-                        if (searchQuery.isBlank()) o.value
-                        else {
+                        if (searchQuery.isBlank()) {
+                            o.value
+                        } else {
                             val q = searchQuery.trim().lowercase()
                             o.value.filter { app ->
                                 app.label.lowercase().contains(q) ||
@@ -232,8 +232,11 @@ private fun RarelyUsedBody(
 private fun RarelyUsedRow(app: AppInfo, now: Long, onClick: () -> Unit) {
     val context = LocalContext.current
     val daysLabel = remember(app.lastUsedTime, now) {
-        if (app.lastUsedTime == 0L) "—"
-        else "${((now - app.lastUsedTime) / MS_PER_DAY).toInt()} d"
+        if (app.lastUsedTime == 0L) {
+            "—"
+        } else {
+            "${((now - app.lastUsedTime) / MS_PER_DAY).toInt()} d"
+        }
     }
     val sizeLabel = remember(app.totalSizeBytes) {
         Formatter.formatShortFileSize(context, app.totalSizeBytes)

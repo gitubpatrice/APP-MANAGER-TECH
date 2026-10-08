@@ -38,6 +38,7 @@ interface AppLifecycleRepository {
      * `RecordLifecycleEventUseCase` populates it for INSTALLED / REPLACED
      * / BASELINE rows when reading the APK succeeds.
      */
+    @Suppress("LongParameterList") // One parameter per column of the event row: a snapshot.
     suspend fun insert(
         packageName: String,
         label: String?,

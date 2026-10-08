@@ -70,9 +70,13 @@ class PermissionSnapshotWorker @AssistedInject constructor(
                     Outcome.Loading    -> 0
                 }
 
-                // Retention — best-effort, never block on failure.
-                runCatching { purge(retentionDays = privacy.permissionDriftRetentionDays) }
-                    .onFailure { Timber.w(it, "Purge failed (non-fatal)") }
+                // Retention — best-effort, never block on failure. `purge` reports its failures as an
+                // Outcome and lets only cancellation through, which must propagate (same shape as
+                // LifecyclePurgeWorker and AmtActionJournalPurgeWorker).
+                when (val r = purge(retentionDays = privacy.permissionDriftRetentionDays)) {
+                    is Outcome.Failure -> Timber.w("Purge failed (non-fatal): %s", r.error)
+                    is Outcome.Success, Outcome.Loading -> Unit
+                }
 
                 // Only fire notif on real drifts — never on first-capture
                 // baselines (which would otherwise spam the user with a

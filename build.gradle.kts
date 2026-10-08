@@ -27,4 +27,26 @@ plugins {
     alias(libs.plugins.hilt)                apply false
     alias(libs.plugins.ksp)                 apply false
     alias(libs.plugins.room)                apply false
+    alias(libs.plugins.detekt)
+}
+
+// detekt, blocking: config/detekt/detekt.yml states which rules describe a behaviour (active) and which
+// a layout taste this code does not follow (off, with the reason). There is no baseline.
+allprojects {
+    apply(plugin = rootProject.libs.plugins.detekt.get().pluginId)
+
+    detekt {
+        config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+        buildUponDefaultConfig = true
+        // Every source set under src/: the plugin's default (src/{main,test}) would leave the Room
+        // migration tests outside any static analysis, and a fixed list of directories would miss the
+        // next one (src/debug, src/main/kotlin). detekt reads only .kt and .kts files.
+        source.setFrom(files("src"))
+        autoCorrect = false
+        parallel = true
+    }
+
+    dependencies {
+        add("detektPlugins", rootProject.libs.detekt.formatting)
+    }
 }

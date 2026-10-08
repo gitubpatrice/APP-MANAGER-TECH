@@ -7,6 +7,7 @@ import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.TrashItem
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.repository.TrashRepository
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 /**
@@ -40,6 +41,10 @@ class MoveAppToTrashUseCase @Inject constructor(
         return invoke(info)
     }
 
+    // Catch-all on purpose: Room reports a failed write through several unrelated exception types.
+    // Cancellation is rethrown first — `moveToTrash` suspends, and swallowing it here would turn a
+    // left screen into a "database error" instead of a cancelled coroutine.
+    @Suppress("TooGenericExceptionCaught")
     suspend operator fun invoke(info: AppInfo): Outcome<TrashItem> {
         val item = TrashItem(
             packageName    = info.packageName,
@@ -50,6 +55,8 @@ class MoveAppToTrashUseCase @Inject constructor(
         return try {
             trash.moveToTrash(item)
             Outcome.Success(item)
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
             // Room may throw SQLiteFullException / SQLiteAbortException etc.
             // Wrap so the UI gets a typed error instead of crashing viewModelScope.

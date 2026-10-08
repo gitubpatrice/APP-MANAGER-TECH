@@ -90,7 +90,7 @@ class WorkScheduler @Inject constructor(
             .build()
 
         val request = PeriodicWorkRequestBuilder<PermissionSnapshotWorker>(
-            24L,
+            DAILY_HOURS,
             TimeUnit.HOURS,
         )
             .setConstraints(constraints)
@@ -124,7 +124,7 @@ class WorkScheduler @Inject constructor(
             .build()
 
         val request = PeriodicWorkRequestBuilder<QuarantineRestoreWorker>(
-            24L,
+            DAILY_HOURS,
             TimeUnit.HOURS,
         )
             .setConstraints(constraints)
@@ -161,7 +161,7 @@ class WorkScheduler @Inject constructor(
             .build()
 
         val request = PeriodicWorkRequestBuilder<LifecyclePurgeWorker>(
-            24L,
+            DAILY_HOURS,
             TimeUnit.HOURS,
         )
             .setConstraints(constraints)
@@ -196,7 +196,7 @@ class WorkScheduler @Inject constructor(
             .build()
 
         val request = PeriodicWorkRequestBuilder<AmtActionJournalPurgeWorker>(
-            24L,
+            DAILY_HOURS,
             TimeUnit.HOURS,
         )
             .setConstraints(constraints)
@@ -216,5 +216,8 @@ class WorkScheduler @Inject constructor(
         const val UNIQUE_QUARANTINE       = "app_manager_tech_quarantine_restore"
         const val UNIQUE_LIFECYCLE        = "app_manager_tech_lifecycle_purge"
         const val UNIQUE_ACTION_JOURNAL   = "app_manager_tech_action_journal_purge"
+
+        // Period of the four daily background workers.
+        const val DAILY_HOURS = 24L
     }
 }

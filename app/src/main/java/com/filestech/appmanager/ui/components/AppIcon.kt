@@ -42,7 +42,7 @@ fun AppIcon(
                 .getApplicationIcon(packageName)
                 .toBitmap()
                 .asImageBitmap()
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (expected: PackageManager.NameNotFoundException) {
             null
         }
     }

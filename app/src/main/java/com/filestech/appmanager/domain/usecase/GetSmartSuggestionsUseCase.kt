@@ -37,11 +37,14 @@ class GetSmartSuggestionsUseCase @Inject constructor(
     private val ignoreList: IgnoreListRepository,
 ) {
 
+    // The suggestion rules documented above, applied in one pass over the catalogue: one branch per
+    // rule and per category, hence the length and the branch count.
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     suspend operator fun invoke(
         unusedThresholdDays: Int = 30,
         neverOpenedGraceDays: Int = 7,
-        cacheHogThresholdBytes: Long = 100L * 1024 * 1024, // 100 MB cache
-        oversizedThresholdBytes: Long = 100L * 1024 * 1024, // 100 MB install + data + cache
+        cacheHogThresholdBytes: Long = DEFAULT_CACHE_HOG_BYTES,
+        oversizedThresholdBytes: Long = DEFAULT_OVERSIZED_BYTES,
         includeSystemApps: Boolean = false,
     ): Outcome<SmartCleanerReport> = runCatchingOutcome(mapError = { AppError.Unknown(it) }) {
         val now = System.currentTimeMillis()
@@ -148,3 +151,9 @@ class GetSmartSuggestionsUseCase @Inject constructor(
         else -> null
     }
 }
+
+// 100 MB of cache.
+private const val DEFAULT_CACHE_HOG_BYTES = 100L * 1024 * 1024
+
+// 100 MB of install + data + cache.
+private const val DEFAULT_OVERSIZED_BYTES = 100L * 1024 * 1024

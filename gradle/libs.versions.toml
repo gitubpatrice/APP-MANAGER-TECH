@@ -63,6 +63,9 @@ androidxTestRunner      = "1.6.2"
 mockk                   = "1.14.11"
 turbine                 = "1.2.0"
 
+# --- Static analysis (same version as Agenda Tech and SMS Tech) ---
+detekt                  = "1.23.8"
+
 # --- Gradle test bridging ---
 junitVintage            = "5.11.3"
 
@@ -155,9 +158,13 @@ mockk                                   = { group = "io.mockk",                 
 # Tests — Turbine (StateFlow / Flow testing)
 turbine                                 = { group = "app.cash.turbine",                name = "turbine",                           version.ref = "turbine" }
 
+# Static analysis — the ktlint rule set, run by detekt
+detekt-formatting                       = { group = "io.gitlab.arturbosch.detekt",     name = "detekt-formatting",                 version.ref = "detekt" }
+
 [plugins]
 android-application    = { id = "com.android.application",                    version.ref = "agp" }
 kotlin-compose         = { id = "org.jetbrains.kotlin.plugin.compose",        version.ref = "kotlin" }
 hilt                   = { id = "com.google.dagger.hilt.android",             version.ref = "hilt" }
 ksp                    = { id = "com.google.devtools.ksp",                    version.ref = "ksp" }
 room                   = { id = "androidx.room",                              version.ref = "room" }
+detekt                 = { id = "io.gitlab.arturbosch.detekt",                version.ref = "detekt" }

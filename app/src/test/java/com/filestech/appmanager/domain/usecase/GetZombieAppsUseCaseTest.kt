@@ -7,7 +7,6 @@ import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.ZombieApp
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.google.common.truth.Truth.assertThat
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf

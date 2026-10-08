@@ -61,55 +61,41 @@ class GetPrivacyScoreUseCase @Inject constructor(
         var value = PrivacyScore.MAX_SCORE
         val deductions = mutableListOf<String>()
 
+        // Each weight is written once: the label shown to the user is built from the same constant as
+        // the deduction, so the two cannot drift apart.
+        fun deduct(points: Int, reason: String) {
+            value -= points
+            deductions += "−$points : $reason"
+        }
+
         // Count dangerous permissions
         val dangerousCount = perms.count { it in DANGEROUS_PERMISSIONS }
         if (dangerousCount > 0) {
-            val drop = dangerousCount * 5
-            value -= drop
-            deductions += "−$drop : $dangerousCount dangerous permission(s)"
+            deduct(dangerousCount * PENALTY_PER_DANGEROUS_PERMISSION, "$dangerousCount dangerous permission(s)")
         }
 
         // INTERNET — broad signal even though it's normal-level
-        if ("android.permission.INTERNET" in perms) {
-            value -= 10
-            deductions += "−10 : declares INTERNET"
-        }
+        if ("android.permission.INTERNET" in perms) deduct(PENALTY_INTERNET, "declares INTERNET")
         if ("android.permission.FOREGROUND_SERVICE" in perms) {
-            value -= 10
-            deductions += "−10 : runs foreground services"
+            deduct(PENALTY_FOREGROUND_SERVICE, "runs foreground services")
         }
-        if ("android.permission.SYSTEM_ALERT_WINDOW" in perms) {
-            value -= 15
-            deductions += "−15 : can draw over other apps"
-        }
-        if (perms.any { it in DEVICE_ADMIN_PERMS }) {
-            value -= 20
-            deductions += "−20 : device admin"
-        }
-        if (perms.any { it in ACCESSIBILITY_PERMS }) {
-            value -= 20
-            deductions += "−20 : accessibility service"
-        }
+        if ("android.permission.SYSTEM_ALERT_WINDOW" in perms) deduct(PENALTY_OVERLAY, "can draw over other apps")
+        if (perms.any { it in DEVICE_ADMIN_PERMS }) deduct(PENALTY_DEVICE_ADMIN, "device admin")
+        if (perms.any { it in ACCESSIBILITY_PERMS }) deduct(PENALTY_ACCESSIBILITY, "accessibility service")
 
         // Installer-based adjustments
         when (info.installerPackage) {
             "org.fdroid.fdroid", "org.fdroid.fdroid.privileged" -> {
-                value += 5 // vetted source bonus
-                deductions += "+5 : F-Droid (vetted)"
+                value += BONUS_VETTED_SOURCE
+                deductions += "+$BONUS_VETTED_SOURCE : F-Droid (vetted)"
             }
-            null -> {
-                value -= 10
-                deductions += "−10 : sideloaded (unknown origin)"
-            }
+            null -> deduct(PENALTY_SIDELOADED, "sideloaded (unknown origin)")
             "com.android.vending",
             "com.aurora.store",
             "com.aurora.services" -> {
                 // No adjustment — Play / Aurora are mainstream stores
             }
-            else -> {
-                value -= 15
-                deductions += "−15 : non-standard installer (${info.installerPackage})"
-            }
+            else -> deduct(PENALTY_NON_STANDARD_INSTALLER, "non-standard installer (${info.installerPackage})")
         }
 
         val clamped = value.coerceIn(PrivacyScore.MIN_SCORE, PrivacyScore.MAX_SCORE)
@@ -122,6 +108,17 @@ class GetPrivacyScoreUseCase @Inject constructor(
     }
 
     private companion object {
+        // The weights of the heuristic, out of PrivacyScore.MAX_SCORE.
+        const val PENALTY_PER_DANGEROUS_PERMISSION = 5
+        const val PENALTY_INTERNET = 10
+        const val PENALTY_FOREGROUND_SERVICE = 10
+        const val PENALTY_OVERLAY = 15
+        const val PENALTY_DEVICE_ADMIN = 20
+        const val PENALTY_ACCESSIBILITY = 20
+        const val BONUS_VETTED_SOURCE = 5
+        const val PENALTY_SIDELOADED = 10
+        const val PENALTY_NON_STANDARD_INSTALLER = 15
+
         // Most common dangerous permissions (Android 14). Used for the dangerousCount
         // signal. Not exhaustive but covers ~95% of typical app exposure.
         val DANGEROUS_PERMISSIONS: Set<String> = setOf(

@@ -22,7 +22,6 @@ import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Shield
@@ -419,8 +418,11 @@ private fun SettingsBody(
                 description    = backupUri ?: stringResource(R.string.settings_quarantine_backup_folder_none),
                 leadingIcon    = Icons.Outlined.Inventory2,
                 currentValue   = stringResource(
-                    if (backupUri == null) R.string.settings_quarantine_backup_folder_pick
-                    else R.string.settings_quarantine_backup_folder_change,
+                    if (backupUri == null) {
+                        R.string.settings_quarantine_backup_folder_pick
+                    } else {
+                        R.string.settings_quarantine_backup_folder_change
+                    },
                 ),
                 onClick        = onPickBackupFolderClick,
             )
@@ -725,4 +727,3 @@ private fun TagStatChip(label: String, count: Int) {
         }
     }
 }
-

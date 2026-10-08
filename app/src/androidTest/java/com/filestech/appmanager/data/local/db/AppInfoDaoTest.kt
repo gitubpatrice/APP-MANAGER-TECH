@@ -136,6 +136,8 @@ class AppInfoDaoTest {
 
     // ---------------------------------------------------------------------------
 
+    // Fixture builder: one parameter per field a test varies, each with a default.
+    @Suppress("LongParameterList")
     private fun sample(
         pkg: String,
         install: Long = 1_000L,

@@ -35,6 +35,8 @@ desktop.ini
 
 # === Kotlin / Java compiled ===
 out/
+# Kotlin 2.x compiler session and error files
+.kotlin/
 
 # === NDK ===
 obj/

@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -205,8 +204,11 @@ private fun scanIntervalLabel(interval: ScanInterval): String = stringResource(
 
 @Composable
 private fun thresholdLabel(mb: Int): String =
-    if (mb == 0) stringResource(R.string.cleaner_threshold_disabled)
-    else stringResource(R.string.cleaner_threshold_value, mb)
+    if (mb == 0) {
+        stringResource(R.string.cleaner_threshold_disabled)
+    } else {
+        stringResource(R.string.cleaner_threshold_value, mb)
+    }
 
 @Composable
 private fun rarelyLabel(days: Int): String =

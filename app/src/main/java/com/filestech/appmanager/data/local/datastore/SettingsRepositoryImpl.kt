@@ -104,6 +104,9 @@ class SettingsRepositoryImpl @Inject constructor(
     // Used by both [flow] (read path) and [update] (read-modify-write path).
     // Adding a setting here automatically covers both code paths.
     // ---------------------------------------------------------------------------
+    // One line per setting, each read with its default (`?:`): a flat mapping whose length and branch
+    // count grow with the number of settings, by design (single source of truth, see above).
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     private fun Preferences.toAppSettings(): AppSettings {
         val defaults = AppSettings()
         return AppSettings(

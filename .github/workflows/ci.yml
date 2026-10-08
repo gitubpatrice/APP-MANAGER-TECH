@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   gate:
-    name: Gate (build · unit tests · lint · R8)
+    name: Gate (build · unit tests · lint · detekt · R8)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -43,9 +43,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
 
       # One command, the same as the local gate, so CI and a developer's machine can never disagree
-      # about what "green" means.
+      # about what "green" means. detekt is blocking; config/detekt/detekt.yml states which rules
+      # describe a behaviour (blocking) and which state a layout preference (off, with reasons).
       - name: Gate
-        run: ./gradlew --no-daemon :app:assembleDebug testDebugUnitTest :app:lintDebug
+        run: ./gradlew --no-daemon :app:assembleDebug testDebugUnitTest :app:lintDebug detekt
 
       # A green test task does not prove a test ran: when the JUnit Platform stops discovering the
       # tests (seen after a JUnit 6 bump on a sibling app), Gradle reports success on an empty run.

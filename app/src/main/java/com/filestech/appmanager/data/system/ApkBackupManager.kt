@@ -69,6 +69,9 @@ class ApkBackupManager @Inject constructor(
      * @param packageName package whose APK to copy.
      * @param versionCode used in the filename for disambiguation.
      */
+    // SAF providers are third-party code and fail with undocumented runtime exceptions; the user must
+    // get a failed backup, not a crash. No suspension point inside the `try` (the copy is blocking).
+    @Suppress("TooGenericExceptionCaught")
     suspend fun backupApk(
         treeUri: Uri,
         packageName: String,
@@ -124,6 +127,7 @@ class ApkBackupManager @Inject constructor(
      * the document; the URI is passed across the binder, so no FileProvider
      * setup is needed for SAF document URIs.
      */
+    @Suppress("TooGenericExceptionCaught") // Same SAF boundary as backupApk.
     fun restoreIntent(apkBackupUri: String): Intent? {
         return try {
             val uri = Uri.parse(apkBackupUri)
@@ -145,12 +149,13 @@ class ApkBackupManager @Inject constructor(
      * still exists and we still have a persistable read grant on it. Used by
      * the UI to disable the "Restaurer" button when the backup is gone.
      */
+    @Suppress("TooGenericExceptionCaught") // Same SAF boundary: any failure means "not available".
     fun isBackupAvailable(apkBackupUri: String?): Boolean {
         if (apkBackupUri.isNullOrBlank()) return false
         return try {
             val uri = Uri.parse(apkBackupUri)
             DocumentFile.fromSingleUri(context, uri)?.exists() == true
-        } catch (e: Exception) {
+        } catch (ignored: Exception) {
             false
         }
     }

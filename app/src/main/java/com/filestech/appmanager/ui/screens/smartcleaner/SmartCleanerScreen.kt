@@ -174,8 +174,11 @@ fun SmartCleanerScreen(
                             text        = { Text(stringResource(R.string.filter_include_system_apps)) },
                             leadingIcon = {
                                 Icon(
-                                    imageVector = if (state.includeSystemApps) Icons.Outlined.CheckBox
-                                                  else Icons.Outlined.CheckBoxOutlineBlank,
+                                    imageVector = if (state.includeSystemApps) {
+                                        Icons.Outlined.CheckBox
+                                    } else {
+                                        Icons.Outlined.CheckBoxOutlineBlank
+                                    },
                                     contentDescription = null,
                                 )
                             },
@@ -401,6 +404,7 @@ private fun SuggestionRow(
     }
 }
 
+@Suppress("MaxLineLength") // One row per category, aligned in columns: a table, read across.
 @Composable
 private fun CategoryBadge(category: SmartSuggestion.Category) {
     val (color, label) = when (category) {

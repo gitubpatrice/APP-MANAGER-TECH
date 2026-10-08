@@ -61,8 +61,8 @@ class ExportReportUseCase @Inject constructor(
     ): ExportReport {
         val snapshot = when (val r = backup(includeSystemApps)) {
             is Outcome.Success -> r.value
-            is Outcome.Failure -> throw IllegalStateException(r.error.toString())
-            Outcome.Loading    -> throw IllegalStateException("Unexpected Loading")
+            is Outcome.Failure -> error(r.error.toString())
+            Outcome.Loading    -> error("Unexpected Loading")
         }
         val payload = when (format) {
             ExportFormat.JSON -> renderJson(snapshot).toByteArray(Charsets.UTF_8)
@@ -97,8 +97,8 @@ class ExportReportUseCase @Inject constructor(
     private suspend fun exportDiagnosticPdf(destination: Uri): ExportReport {
         val report = when (val r = buildDiagnostic()) {
             is Outcome.Success -> r.value
-            is Outcome.Failure -> throw IllegalStateException(r.error.toString())
-            Outcome.Loading    -> throw IllegalStateException("Unexpected Loading")
+            is Outcome.Failure -> error(r.error.toString())
+            Outcome.Loading    -> error("Unexpected Loading")
         }
         val displayPath = destination.lastPathSegment ?: destination.toString()
         val written = withContext(io) {
@@ -162,7 +162,7 @@ class ExportReportUseCase @Inject constructor(
             '\r' -> append("\\r")
             '\t' -> append("\\t")
             '\b' -> append("\\b")
-            else -> if (c.code < 0x20) {
+            else -> if (c.code < FIRST_NON_CONTROL_CHAR) {
                 append("\\u").append("%04X".format(c.code))
             } else {
                 append(c)
@@ -194,3 +194,6 @@ class ExportReportUseCase @Inject constructor(
             s
         }
 }
+
+// JSON requires the control characters U+0000..U+001F to be escaped.
+private const val FIRST_NON_CONTROL_CHAR = 0x20
