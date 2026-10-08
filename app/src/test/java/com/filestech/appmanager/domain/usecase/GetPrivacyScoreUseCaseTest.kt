@@ -26,7 +26,7 @@ class GetPrivacyScoreUseCaseTest {
         val s = score("com.android.vending")
         assertThat(s.value).isEqualTo(100)
         assertThat(s.deductions).isEmpty()
-        assertThat(s.tier).isEqualTo(PrivacyTier.of(100))
+        assertThat(s.tier).isEqualTo(PrivacyTier.GREEN)
     }
 
     @Test
@@ -78,7 +78,7 @@ class GetPrivacyScoreUseCaseTest {
         )
         // 100 - 3*5 - 10 - 10 - 15 - 20 - 20 - 10 = 0
         assertThat(s.value).isEqualTo(0)
-        assertThat(s.tier).isEqualTo(PrivacyTier.of(0))
+        assertThat(s.tier).isEqualTo(PrivacyTier.RED)
         assertThat(s.deductions)
             .containsExactly(
                 "−15 : 3 dangerous permission(s)",
@@ -103,12 +103,15 @@ class GetPrivacyScoreUseCaseTest {
             "android.permission.READ_CONTACTS",
             "android.permission.READ_SMS",
             "android.permission.READ_CALL_LOG",
+            "android.permission.READ_CALENDAR",
             "android.permission.SYSTEM_ALERT_WINDOW",
             "android.permission.BIND_DEVICE_ADMIN",
             "android.permission.BIND_ACCESSIBILITY_SERVICE",
         )
+        // 100 - 8*5 - 15 - 20 - 20 - 10 = -5: below the floor, so the clamp is what gives 0.
         assertThat(s.value).isEqualTo(0)
-        assertThat(s.deductions.first()).isEqualTo("−35 : 7 dangerous permission(s)")
+        assertThat(s.tier).isEqualTo(PrivacyTier.RED)
+        assertThat(s.deductions.first()).isEqualTo("−40 : 8 dangerous permission(s)")
     }
 
     private fun app(installer: String?) = AppInfo(

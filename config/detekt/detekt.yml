@@ -12,8 +12,12 @@
 # LIMIT, measured: under AGP 9, detekt 1.23.8 registers no per-variant task (only `detekt`,
 # `detektBaseline` and `detektGenerateConfig` exist), so the rules that need type resolution — among
 # them RedundantSuspendModifier and SuspendFunSwallowedCancellation — never run, and "zero findings"
-# does not cover them. The swallowed-cancellation defect is caught instead by TooGenericExceptionCaught
-# below, which makes every catch-all carry its reason. Agenda Tech runs the same plain task.
+# does not cover them. Agenda Tech runs the same plain task. TooGenericExceptionCaught below makes every
+# catch-all (Exception, Throwable, RuntimeException…) carry its reason, which covers the commonest
+# swallowed-cancellation shape — but not all of them: a `catch (e: IllegalStateException)` (the JVM
+# CancellationException extends it) or a `runCatching { }` around a suspending call passes. Those were
+# reviewed by hand on 2026-10-08: one runCatching wrapped a suspending call (PermissionSnapshotWorker,
+# fixed); the others wrap startActivity or valueOf.
 
 build:
   maxIssues: 0
@@ -30,14 +34,13 @@ complexity:
   LongMethod:
     active: true
     ignoreAnnotated: ['Composable']
-    # The Room migration tests replay one schema version per test, with its full fixture.
-    excludes: ['**/test/**', '**/androidTest/**']
+    # The Room migration tests replay one schema version per test, with its full fixture (measured: the
+    # only test functions over the limit, 4 of them). Every other test stays under the rule.
+    excludes: ['**/androidTest/**/AppDatabaseMigrationTest.kt']
   LongParameterList:
     active: true
     # `Inject`: a Hilt constructor's parameter list is its dependency list (AppDetailViewModel: 17).
     ignoreAnnotated: ['Composable', 'Inject']
-    # Test fixture builders take one parameter per field they let a test vary.
-    excludes: ['**/test/**', '**/androidTest/**']
   CyclomaticComplexMethod:
     active: true
     ignoreAnnotated: ['Composable']
@@ -78,12 +81,23 @@ style:
   active: true
   MagicNumber:
     active: true
-    # Excluded where a number is a layout or storage literal, not a rule: ui/ (91 findings — dp, alpha,
-    # colour literals; ui/theme/Color.kt alone: 40), the PDF layout coordinates (17) and the SQL text of
-    # the Room migrations (11). Everywhere else it stays active, and that is where it mattered: the
-    # weights of the privacy score were bare numbers, written twice (deduction and label). They are
-    # named now, pinned by GetPrivacyScoreUseCaseTest.
-    excludes: ['**/ui/**', '**/PdfDocumentBuilder.kt', '**/Migrations.kt', '**/test/**', '**/androidTest/**']
+    # Excluded where a number is a layout or storage literal, not a rule: the Compose files of ui/
+    # (theme colours — Color.kt alone: 40 —, shapes, palette tables, display limits), the PDF layout
+    # coordinates (17) and the SQL text of the Room migrations (11). ViewModels and the rest of ui/ stay
+    # covered. Where it mattered: the weights of the privacy score were bare numbers, written twice
+    # (deduction and label) — named now, pinned by GetPrivacyScoreUseCaseTest; and, found by lifting the
+    # ui/ exclusion once, the quarantine dialog restated the use case's day bounds (1, 365) — now read
+    # from it.
+    # Not covered, by detekt's design: a literal default value of a parameter (`days: Int = 30`) — the
+    # parameter's name is taken as the constant's name.
+    excludes:
+      - '**/ui/theme/**'
+      - '**/ui/**/*Screen.kt'
+      - '**/ui/components/**'
+      - '**/PdfDocumentBuilder.kt'
+      - '**/Migrations.kt'
+      - '**/test/**'
+      - '**/androidTest/**'
     # An enum entry's argument is already named by the entry (`ORANGE(30)`, `LAST_90(90)`).
     ignoreEnums: true
   MaxLineLength:

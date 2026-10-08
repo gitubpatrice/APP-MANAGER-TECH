@@ -38,9 +38,10 @@ allprojects {
     detekt {
         config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
         buildUponDefaultConfig = true
-        // androidTest added explicitly: the plugin's default sources are src/{main,test}, which would
-        // leave the Room migration tests outside any static analysis.
-        source.setFrom(files("src/main/java", "src/test/java", "src/androidTest/java"))
+        // Every source set under src/: the plugin's default (src/{main,test}) would leave the Room
+        // migration tests outside any static analysis, and a fixed list of directories would miss the
+        // next one (src/debug, src/main/kotlin). detekt reads only .kt and .kts files.
+        source.setFrom(files("src"))
         autoCorrect = false
         parallel = true
     }

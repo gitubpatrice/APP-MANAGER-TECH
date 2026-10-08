@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.QuarantineMode
+import com.filestech.appmanager.domain.usecase.QuarantineAppUseCase
 import com.filestech.appmanager.ui.theme.BrandDanger
 
 /**
@@ -62,7 +63,8 @@ fun QuarantineConfigDialog(
 ) {
     var mode by rememberSaveable { mutableStateOf(QuarantineMode.SOFT_REMINDER) }
     var days by rememberSaveable { mutableFloatStateOf(14f) }
-    val durationDays = days.toInt().coerceIn(1, 365)
+    // The bounds the use case enforces, read from it rather than written a second time.
+    val durationDays = days.toInt().coerceIn(QuarantineAppUseCase.MIN_DAYS, QuarantineAppUseCase.MAX_DAYS)
 
     AlertDialog(
         onDismissRequest = onDismiss,

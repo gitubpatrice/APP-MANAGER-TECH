@@ -182,6 +182,9 @@ class AppListViewModel @Inject constructor(
         queriedOutcome.applyTagFilter(p.tagFilter, allTags)
     }
 
+    // Six flows is past combine's typed overloads: the numbers are the positional slots of its array,
+    // each named by the val it is read into.
+    @Suppress("MagicNumber")
     val state: StateFlow<UiState> = combine(
         listFlow,
         _selectedPackages,
