@@ -35,6 +35,7 @@ import com.filestech.appmanager.domain.usecase.QuarantineAppUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
 import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.data.local.datastore.confirmBeforeDelete
 import com.filestech.appmanager.di.IoDispatcher
 import android.net.Uri
 import com.filestech.appmanager.ui.text.UiText
@@ -150,6 +151,18 @@ class AppDetailViewModel @Inject constructor(
             scope        = viewModelScope,
             started      = SharingStarted.WhileSubscribed(STATEFLOW_STOP_TIMEOUT_MS),
             initialValue = emptySet(),
+        )
+
+    /**
+     * v0.5.1 — Settings → "Confirm before deleting". Off: "Clear cache" opens
+     * the app-info page straight away, without its dialog. `true` until
+     * DataStore answers — asking once too often is the safe side.
+     */
+    val confirmClearCache: StateFlow<Boolean> = settings.confirmBeforeDelete
+        .stateIn(
+            scope        = viewModelScope,
+            started      = SharingStarted.WhileSubscribed(STATEFLOW_STOP_TIMEOUT_MS),
+            initialValue = true,
         )
 
     /**

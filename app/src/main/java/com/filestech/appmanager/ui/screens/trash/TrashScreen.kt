@@ -114,7 +114,7 @@ fun TrashScreen(
                 }
                 is TrashViewModel.Event.Restored -> {
                     snackbarHostState.showSnackbar(
-                        resources.getString(R.string.trash_restored_snackbar, event.packageName),
+                        resources.getString(R.string.trash_restored_snackbar, event.label),
                     )
                 }
                 is TrashViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.text.resolve(resources))

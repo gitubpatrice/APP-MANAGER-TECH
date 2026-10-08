@@ -42,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -60,6 +61,7 @@ import com.filestech.appmanager.domain.model.SmartSuggestion
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.UsageStatsAccessBanner
+import com.filestech.appmanager.ui.components.dialogs.ConfirmDialog
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.text.categoryLabel
 import com.filestech.appmanager.ui.text.resolve
@@ -92,6 +94,9 @@ fun SmartCleanerScreen(
     // uninstall. `remember` (not Saveable) because the classification carries
     // a non-Serializable enum value; a config change drops the dialog.
     var criticalConfirm by remember { mutableStateOf<SmartCleanerCriticalConfirm?>(null) }
+    val confirmClearCache by viewModel.confirmClearCache.collectAsStateWithLifecycle()
+    // v0.5.1 — package whose "Clear cache" waits for the confirm dialog.
+    var clearCachePending by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -203,8 +208,26 @@ fun SmartCleanerScreen(
             onGrantUsageStats = viewModel::requestUsageStatsPermission,
             onAppClick        = onAppClick,
             onUninstallClick  = viewModel::uninstall,
-            onClearCacheClick = viewModel::clearCache,
+            onClearCacheClick = { pkg ->
+                // v0.5.1 — Settings → "Confirm before deleting" (on by default).
+                if (confirmClearCache) clearCachePending = pkg else viewModel.clearCache(pkg)
+            },
             onIgnoreClick     = viewModel::ignore,
+        )
+    }
+
+    clearCachePending?.let { pkg ->
+        val label = state.report.suggestions
+            .firstOrNull { it.appInfo.packageName == pkg }
+            ?.appInfo?.label ?: pkg
+        ConfirmDialog(
+            title     = stringResource(R.string.dialog_clear_cache_title, label),
+            body      = stringResource(R.string.dialog_clear_cache_body),
+            onConfirm = {
+                viewModel.clearCache(pkg)
+                clearCachePending = null
+            },
+            onDismiss = { clearCachePending = null },
         )
     }
 }

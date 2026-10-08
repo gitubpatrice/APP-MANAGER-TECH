@@ -53,8 +53,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
+import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.ui.components.AppIcon
 import com.filestech.appmanager.ui.components.BrandedTitle
+import com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.text.UiText
 import com.filestech.appmanager.ui.text.asString
@@ -84,6 +86,9 @@ fun SecurityAuditScreen(
     val context = LocalContext.current
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
+    // v0.5.1 — pending hold-3s confirmation for a protected app. `remember`
+    // (not Saveable), as elsewhere: a config change drops the dialog.
+    var criticalConfirm by remember { mutableStateOf<CriticalClassification?>(null) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -97,8 +102,24 @@ fun SecurityAuditScreen(
                             event.a11yCount,
                         ),
                     )
+                is SecurityAuditViewModel.Event.RequiresCriticalConfirmation ->
+                    criticalConfirm = event.classification
             }
         }
+    }
+
+    // This screen lists package names only (no labels), so the warning names the package.
+    criticalConfirm?.let { classification ->
+        CriticalWarningDialog(
+            appLabel    = classification.packageName,
+            actionLabel = stringResource(R.string.critical_action_uninstall),
+            category    = classification.category,
+            onConfirm   = {
+                viewModel.uninstall(classification.packageName, bypassCriticalCheck = true)
+                criticalConfirm = null
+            },
+            onCancel    = { criticalConfirm = null },
+        )
     }
 
     Scaffold(
