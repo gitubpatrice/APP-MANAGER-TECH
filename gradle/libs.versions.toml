@@ -2,6 +2,8 @@
 # --- Kotlin ---
 # Capped below 2.4.20: CodeQL 2.27 refuses to compile from there ("Kotlin version 2.4.20 is too
 # recent", measured on Agenda Tech). 2.4.10 is the version Agenda Tech runs with CodeQL green.
+# This is the EXACT compiler version: the root build.gradle.kts pins the Kotlin Gradle Plugin to it
+# with `strictly`, since AGP 9 would otherwise bring its own.
 kotlin                  = "2.4.10"
 # KSP2: Room 2.8 does not run on the KSP 1.x of Kotlin 2.1 (internal compiler error, Dependabot #4).
 ksp                     = "2.3.12"
