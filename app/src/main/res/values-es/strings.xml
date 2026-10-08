@@ -339,7 +339,7 @@
     <string name="security_audit_refresh_done">Actualizado — administradores de dispositivos: %1$d · servicios de accesibilidad: %2$d</string>
 
     <!-- v0.1.3 — batch action result snackbar -->
-    <string name="batch_done_result">Con éxito: %1$d / %2$d</string>
+    <string name="batch_done_result">Detención solicitada: %1$d / %2$d (Android no detiene una app en primer plano)</string>
 
     <!-- About links (Phase VIII.B Intent.ACTION_VIEW wired) -->
 
@@ -648,6 +648,8 @@
     <string name="quarantine_restore_not_installed">%1$s no se ha reinstalado. Se conservan la entrada de cuarentena y la copia de seguridad.</string>
     <string name="quarantine_error_split_apks">%1$s está instalada como varios archivos APK (App Bundle): una copia de seguridad de su archivo principal por sí solo no podría reinstalarla. Use «Solo recordatorio».</string>
     <string name="quarantine_error_system_app">%1$s es una app del sistema: Android solo puede quitar sus actualizaciones, no la app en sí. Use «Solo recordatorio».</string>
+    <string name="notifications_blocked">Las notificaciones están bloqueadas: este aviso no aparecerá hasta que los ajustes de notificaciones de Android lo permitan.</string>
+    <string name="notifications_blocked_action">Ajustes</string>
     <string name="quarantine_dialog_restore_body_soft">Abra los Ajustes de Android para volver a activar la app. La entrada de cuarentena se eliminará.</string>
     <string name="quarantine_dialog_drop_title">¿Quitar %1$s de la lista?</string>
     <string name="quarantine_dialog_drop_body">Quita la entrada de la lista. Si la app está desinstalada en este momento (cuarentena real), el APK de la copia de seguridad se queda en el disco — restáurelo desde su gestor de archivos si lo necesita.</string>

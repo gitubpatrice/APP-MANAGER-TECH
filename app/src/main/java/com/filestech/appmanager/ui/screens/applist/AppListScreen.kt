@@ -233,10 +233,9 @@ fun AppListScreen(
                 }
             },
             onItemLongClick   = { app -> viewModel.toggleSelection(app.packageName) },
-            onRetry           = {
-                // Re-emit current sortOrder to re-trigger the flatMapLatest pipeline.
-                viewModel.onSortOrderChanged(state.sortOrder)
-            },
+            // v0.5.1 — a real rescan: re-emitting the current sort order emitted nothing (a
+            // MutableStateFlow ignores an equal value), so Retry did nothing.
+            onRetry           = viewModel::refresh,
             onRefresh         = viewModel::refresh,
             onGrantUsageStats = viewModel::requestUsageStatsPermission,
             onToggleTagFilter = viewModel::onToggleTagFilter,

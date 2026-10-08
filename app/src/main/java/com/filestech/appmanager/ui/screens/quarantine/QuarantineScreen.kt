@@ -110,10 +110,6 @@ fun QuarantineScreen(
                 is QuarantineViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is QuarantineViewModel.Event.ShowMessage -> snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is QuarantineViewModel.Event.BackupMissing -> dialog = QuarantineDialog.BackupMissing(event.packageName)
-                QuarantineViewModel.Event.NeedsBackupFolder ->
-                    snackbarHostState.showSnackbar(
-                        resources.getString(R.string.quarantine_error_needs_backup_folder),
-                    )
             }
         }
     }

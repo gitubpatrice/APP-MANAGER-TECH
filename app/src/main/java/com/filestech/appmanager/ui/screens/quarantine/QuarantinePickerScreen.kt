@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
+import com.filestech.appmanager.data.system.NotificationChannels
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.ui.components.AppIcon
@@ -53,6 +54,7 @@ import com.filestech.appmanager.ui.components.BrandedTitle
 import com.filestech.appmanager.ui.components.dialogs.CriticalWarningDialog
 import com.filestech.appmanager.ui.components.dialogs.QuarantineConfigDialog
 import com.filestech.appmanager.ui.components.dialogs.SoftQuarantineActionDialog
+import com.filestech.appmanager.ui.components.rememberNotificationPermissionRequest
 import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.ui.text.resolve
@@ -83,6 +85,9 @@ fun QuarantinePickerScreen(
     val context = LocalContext.current
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
+    // v0.5.1 — the review reminder is on by default, so no settings toggle ever asks for the
+    // notification permission it needs: confirming a quarantine does.
+    val requestNotifications = rememberNotificationPermissionRequest(snackbarHostState)
 
     var selectedApp by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedLabel by rememberSaveable { mutableStateOf<String?>(null) }
@@ -184,6 +189,7 @@ fun QuarantinePickerScreen(
                 viewModel.quarantine(pkg, mode, days)
                 selectedApp = null
                 selectedLabel = null
+                requestNotifications(NotificationChannels.QUARANTINE_CHANNEL_ID)
             },
         )
     }

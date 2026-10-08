@@ -339,7 +339,7 @@
     <string name="security_audit_refresh_done">Actualisé — administrateurs : %1$d · services d\'accessibilité : %2$d</string>
 
     <!-- v0.1.3 — snackbar résultat actions par lot -->
-    <string name="batch_done_result">Succès : %1$d / %2$d</string>
+    <string name="batch_done_result">Arrêt demandé : %1$d / %2$d (Android n\'arrête pas une app au premier plan)</string>
 
     <!-- About links (Phase VIII.B Intent.ACTION_VIEW wired) -->
 
@@ -641,6 +641,8 @@
     <string name="quarantine_restore_not_installed">%1$s n\'a pas été réinstallée. L\'entrée de quarantaine et la sauvegarde sont conservées.</string>
     <string name="quarantine_error_split_apks">%1$s est installée en plusieurs fichiers APK (App Bundle) : une sauvegarde de son seul fichier principal ne pourrait pas la réinstaller. Utilisez « Rappel seul ».</string>
     <string name="quarantine_error_system_app">%1$s est une app système : Android ne peut retirer que ses mises à jour, pas l\'app elle-même. Utilisez « Rappel seul ».</string>
+    <string name="notifications_blocked">Les notifications sont bloquées : cette alerte n\'apparaîtra pas tant que les réglages de notification d\'Android ne l\'autorisent pas.</string>
+    <string name="notifications_blocked_action">Paramètres</string>
     <string name="quarantine_dialog_restore_body_soft">Ouvre les Paramètres Android pour réactiver l\'app. L\'entrée de quarantaine sera supprimée.</string>
     <string name="quarantine_dialog_drop_title">Retirer %1$s de la liste ?</string>
     <string name="quarantine_dialog_drop_body">Retire l\'entrée de la liste. Si l\'app est actuellement désinstallée (vraie quarantaine), l\'APK de sauvegarde reste sur le disque — restaurez-le depuis votre gestionnaire de fichiers si besoin.</string>

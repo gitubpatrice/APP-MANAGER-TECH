@@ -70,6 +70,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.core.result.Outcome
+import com.filestech.appmanager.data.system.NotificationChannels
 import com.filestech.appmanager.domain.model.AppDetail
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.PrivacyScore
@@ -86,6 +87,7 @@ import com.filestech.appmanager.ui.components.dialogs.SoftQuarantineActionDialog
 import com.filestech.appmanager.ui.components.dialogs.UninstallChoiceDialog
 import com.filestech.appmanager.domain.model.CriticalClassification
 import com.filestech.appmanager.domain.model.QuarantineMode
+import com.filestech.appmanager.ui.components.rememberNotificationPermissionRequest
 import com.filestech.appmanager.ui.components.settings.SectionHeader
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
@@ -133,6 +135,9 @@ fun AppDetailScreen(
     val context = LocalContext.current
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
+    // v0.5.1 — the review reminder is on by default, so no settings toggle ever asks for the
+    // notification permission it needs: confirming a quarantine does.
+    val requestNotifications = rememberNotificationPermissionRequest(snackbarHostState)
     val scope = rememberCoroutineScope()
     // v0.3.3 — tag picker open state. Not Saveable because AppTag enum is
     // safely Saveable via its `name`, but the simplest boolean toggle is
@@ -333,6 +338,7 @@ fun AppDetailScreen(
             onConfirm = { mode, days ->
                 viewModel.quarantine(mode, days)
                 quarantineDialogOpen = false
+                requestNotifications(NotificationChannels.QUARANTINE_CHANNEL_ID)
             },
         )
     }

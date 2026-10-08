@@ -241,3 +241,12 @@ class QuarantineAppUseCase @Inject constructor(
         const val MAX_DAYS = 365
     }
 }
+
+/**
+ * v0.5.1 — true when HARD mode stopped only for want of a backup folder: the caller asks the user to
+ * pick one. Every other refusal (split APKs, system app…) comes first, so no folder is asked for in
+ * vain.
+ */
+fun QuarantineAppUseCase.Result.needsBackupFolder(): Boolean =
+    this is QuarantineAppUseCase.Result.Failure &&
+        reason == QuarantineAppUseCase.FailureReason.NEEDS_BACKUP_FOLDER

@@ -12,6 +12,7 @@ import com.filestech.appmanager.core.result.getOrNull
 import com.filestech.appmanager.data.system.AmtActionLogger
 import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.IntentFactory
+import com.filestech.appmanager.domain.usecase.needsBackupFolder
 import com.filestech.appmanager.ui.screens.settings.setAppTags
 import com.filestech.appmanager.domain.model.AmtActionResult
 import com.filestech.appmanager.domain.model.AmtActionType
@@ -471,17 +472,18 @@ class AppDetailViewModel @Inject constructor(
                 null
             }
 
-            if (mode == QuarantineMode.HARD_UNINSTALL && backupTreeUri == null) {
-                _events.trySend(Event.NeedsBackupFolder)
-                return@launch
-            }
-
             val result = quarantineApp(
                 packageName   = pkg,
                 mode          = mode,
                 durationDays  = durationDays,
                 backupTreeUri = backupTreeUri,
             )
+            // v0.5.1 — asked by the use case, after it refuses an app it could never restore (split
+            // APKs, system app): checked here first, the user picked a folder only to be refused.
+            if (result.needsBackupFolder()) {
+                _events.trySend(Event.NeedsBackupFolder)
+                return@launch
+            }
             val journalType = if (mode == QuarantineMode.HARD_UNINSTALL) {
                 AmtActionType.QUARANTINE_HARD
             } else {

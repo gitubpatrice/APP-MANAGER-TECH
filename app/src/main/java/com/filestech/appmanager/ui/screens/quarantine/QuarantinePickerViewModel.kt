@@ -19,6 +19,7 @@ import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.repository.QuarantineRepository
 import com.filestech.appmanager.domain.usecase.QuarantineAppUseCase
+import com.filestech.appmanager.domain.usecase.needsBackupFolder
 import com.filestech.appmanager.ui.text.UiText
 import com.filestech.appmanager.ui.text.toUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -134,17 +135,17 @@ class QuarantinePickerViewModel @Inject constructor(
                     null
                 }
 
-                if (mode == QuarantineMode.HARD_UNINSTALL && backupTreeUri == null) {
-                    _events.trySend(Event.NeedsBackupFolder)
-                    return@launch
-                }
-
                 val result = quarantineUseCase(
                     packageName   = packageName,
                     mode          = mode,
                     durationDays  = durationDays,
                     backupTreeUri = backupTreeUri,
                 )
+                // Asked after the use case refused an app it could never restore (see AppDetail).
+                if (result.needsBackupFolder()) {
+                    _events.trySend(Event.NeedsBackupFolder)
+                    return@launch
+                }
                 // v0.5.1 — journalled like the same action started from AppDetail: until v0.5.1 a
                 // quarantine started from this screen left no trace in the journal.
                 actionLogger.log(packageName, knownLabel, mode.journalType(), result.journalResult())

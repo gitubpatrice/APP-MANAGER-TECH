@@ -333,7 +333,7 @@
     <string name="security_audit_refresh_done">Refreshed — device admins: %1$d · accessibility services: %2$d</string>
 
     <!-- v0.1.3 — batch action result snackbar -->
-    <string name="batch_done_result">Succeeded: %1$d / %2$d</string>
+    <string name="batch_done_result">Stop requested: %1$d / %2$d (Android does not stop an app in the foreground)</string>
 
     <!-- About links (Phase VIII.B Intent.ACTION_VIEW wired) -->
     <string name="about_url_source_code" translatable="false">https://github.com/gitubpatrice/APP-MANAGER-TECH</string>
