@@ -1,0 +1,6 @@
+v0.5.1
+• Restoring a quarantined app now works: Android refused it, the install permission was missing
+• About: privacy policy, terms of use and licence in your language, and a “Check for updates” button
+• Privacy policy and terms rewritten from what the app really does, in 5 languages
+• Splash screen with the whole logo; pale-blue bars, menus, dialogs and cards
+• Top bar: the app name next to the logo, the screen’s title below

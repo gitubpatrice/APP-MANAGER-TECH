@@ -181,6 +181,18 @@ class ApkBackupManager @Inject constructor(
     }
 
     /**
+     * Live probe — true iff [packageName] is installed right now. Asks PackageManager, not the Room
+     * cache, which still lists an app for a while after it is uninstalled. A HARD restore only drops
+     * its quarantine entry once this says the install really happened.
+     */
+    fun isInstalled(packageName: String): Boolean = try {
+        context.packageManager.getPackageInfo(packageName, 0)
+        true
+    } catch (ignored: PackageManager.NameNotFoundException) {
+        false
+    }
+
+    /**
      * Probe — returns true iff the backup file referenced by [apkBackupUri]
      * still exists and we still have a persistable read grant on it. Used by
      * the UI to disable the "Restaurer" button when the backup is gone.

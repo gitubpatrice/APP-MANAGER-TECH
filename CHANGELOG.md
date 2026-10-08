@@ -7,6 +7,45 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.5.1] — 2026-10-08 — Quarantine restore, legal texts, look aligned on the suite
+
+### Fixed
+- Restoring a quarantined app did nothing since v0.2.0: the system installer aborts a request from
+  an app that does not declare `REQUEST_INSTALL_PACKAGES` (AOSP `InstallStart`, Android 8+). The
+  permission is now declared; Android still asks the user to allow installs from App Manager Tech,
+  then to confirm each one. Measured on a Galaxy S9: `InstallStart` logged "Requesting uid … needs
+  to declare permission android.permission.REQUEST_INSTALL_PACKAGES" and closed.
+- The same restore dropped the quarantine entry as soon as the installer was launched, so a refused
+  or cancelled install lost the record. The entry now goes only once the app is installed again
+  (checked when the Quarantine screen comes back to the front); otherwise it stays, with its backup,
+  and a message says so. Unit test added, proven by sabotage.
+- The Transparency screen claimed an exhaustive list but left out the three histories, the trash
+  and quarantines, the reading of APK files and the files written outside the app, and said anyone
+  could reproduce the build byte for byte, which has never been verified. Rewritten in five
+  languages; its privacy and terms links now open the app's language.
+- `FDROID.md` said the app shipped only on F-Droid and that GitHub releases were unsigned;
+  `fastlane/README.md` and `THIRD_PARTY_NOTICES.md` (2024 versions, a library no longer used) were
+  stale. Corrected; the notices now say which declared library R8 removes (Coil, and OkHttp with it).
+- Privacy policy and terms of use rewritten from the code: they announced distribution through
+  F-Droid (false), left out the three histories and their retention periods, the files written
+  outside the app (exports, APK backups) and half of the APK's permissions, and named no publisher.
+
+### Added
+- Privacy policy and terms of use in German, Italian and Spanish; the French version prevails, as
+  in Agenda Tech and Notes Tech.
+- About: a "Legal" section (privacy policy, terms of use, licence), each opening the document in
+  the app's language; a files-tech.com link; a copyright line; a "Check for updates" button under
+  the version, which opens the releases page in the browser (the app has no Internet access).
+
+### Changed
+- Splash screen shows the whole logo with rounded corners, no longer cut into a circle.
+- Light theme: bars, menus, dialogs and cards in Agenda Tech's pale blue (`#F0F5FB`) instead of
+  Material 3's default lavender.
+- Top bar: logo and app name on one line, the screen's title below them.
+- README and store listings list every permission of the release APK (twelve).
+
+---
+
 ## [0.5.0] — 2026-10-08 — German / Italian / Spanish, verified builds, audit fixes
 
 ### Added

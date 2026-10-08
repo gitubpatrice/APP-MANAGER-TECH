@@ -1,0 +1,6 @@
+v0.5.1
+• Eine App aus der Quarantäne wiederherstellen funktioniert: Android lehnte ab, die Installationsberechtigung fehlte
+• Über: Datenschutzerklärung, Nutzungsbedingungen und Lizenz in Ihrer Sprache, dazu „Nach Updates suchen“
+• Datenschutzerklärung und Bedingungen neu geschrieben, nach dem, was die App wirklich tut, in 5 Sprachen
+• Ganzes Logo beim Start; Leisten, Menüs, Dialoge und Karten in Hellblau
+• Obere Leiste: App-Name neben dem Logo, Bildschirmtitel darunter

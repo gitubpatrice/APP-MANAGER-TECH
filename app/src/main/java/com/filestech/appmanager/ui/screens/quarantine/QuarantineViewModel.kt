@@ -67,6 +67,9 @@ class QuarantineViewModel @Inject constructor(
      *  single-in-flight per action across the 3 entry points. */
     private val isWorking = AtomicBoolean(false)
 
+    /** The package whose HARD restore was handed to the installer, checked when the screen resumes. */
+    private var pendingRestore: String? = null
+
     /** Quarantine an app (called from AppDetail / list screens via QuarantineLauncher). */
     fun quarantine(
         packageName: String,
@@ -112,8 +115,10 @@ class QuarantineViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 when (val r = restore(packageName)) {
-                    is RestoreFromQuarantineUseCase.Result.HardReinstall ->
+                    is RestoreFromQuarantineUseCase.Result.HardReinstall -> {
+                        pendingRestore = packageName
                         _events.trySend(Event.LaunchIntent(r.intent))
+                    }
                     is RestoreFromQuarantineUseCase.Result.SoftReenable ->
                         _events.trySend(Event.LaunchIntent(r.intent))
                     RestoreFromQuarantineUseCase.Result.BackupMissing ->
@@ -125,6 +130,22 @@ class QuarantineViewModel @Inject constructor(
                 }
             } finally {
                 isWorking.set(false)
+            }
+        }
+    }
+
+    /**
+     * The screen is back in front: if a HARD restore was handed to the installer, say whether the app
+     * is installed again. Its entry is dropped only then; otherwise it stays, with its backup.
+     */
+    fun onResumed() {
+        val packageName = pendingRestore ?: return
+        pendingRestore = null
+        viewModelScope.launch {
+            if (restore.confirmHardRestore(packageName)) {
+                _events.trySend(Event.ShowMessage(uiText(R.string.quarantine_restore_done, packageName)))
+            } else {
+                _events.trySend(Event.ShowMessage(uiText(R.string.quarantine_restore_not_installed, packageName)))
             }
         }
     }
@@ -143,6 +164,7 @@ class QuarantineViewModel @Inject constructor(
     sealed interface Event {
         data class LaunchIntent(val intent: Intent) : Event
         data class ShowError(val text: UiText) : Event
+        data class ShowMessage(val text: UiText) : Event
         /** HARD restore requested but APK file is gone — UI asks user to drop the entry. */
         data class BackupMissing(val packageName: String) : Event
         /** HARD quarantine requested but the user has not picked a backup folder yet. */

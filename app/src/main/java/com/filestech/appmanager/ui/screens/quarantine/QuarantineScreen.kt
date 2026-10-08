@@ -55,6 +55,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
 import com.filestech.appmanager.domain.model.QuarantineEntry
@@ -95,11 +97,17 @@ fun QuarantineScreen(
 
     var dialog by rememberSaveable { mutableStateOf<QuarantineDialog?>(null) }
 
+    // Back from the installer after a HARD restore: the entry goes only if the app is installed again.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onResumed()
+    }
+
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 is QuarantineViewModel.Event.LaunchIntent -> launchIntent(context, event.intent)
                 is QuarantineViewModel.Event.ShowError -> snackbarHostState.showSnackbar(event.text.resolve(resources))
+                is QuarantineViewModel.Event.ShowMessage -> snackbarHostState.showSnackbar(event.text.resolve(resources))
                 is QuarantineViewModel.Event.BackupMissing -> dialog = QuarantineDialog.BackupMissing(event.packageName)
                 QuarantineViewModel.Event.NeedsBackupFolder ->
                     snackbarHostState.showSnackbar(

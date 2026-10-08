@@ -15,8 +15,12 @@ import javax.inject.Inject
  *
  *  - **HARD_UNINSTALL**: produces the install intent for the backup APK URI.
  *    Caller fires it → OS PackageInstaller shows its own confirm dialog. The
- *    quarantine row is dropped on success ([dropEntry] = true) so the user can
- *    re-quarantine the freshly reinstalled app without conflict.
+ *    row is KEPT: the installer reports nothing back, and the user can cancel
+ *    it, or Android can refuse it (it did, for every restore until v0.5.1: the
+ *    app lacked REQUEST_INSTALL_PACKAGES). The caller drops it through
+ *    [confirmHardRestore] once the app is seen installed again. Until v0.5.1 the
+ *    row was dropped when the intent was produced, so a refused install lost the
+ *    quarantine record.
  *  - **SOFT_REMINDER**: no install — produces an `appDetailsSettingsIntent`
  *    deep-link so the user can re-enable the app themselves. The quarantine
  *    row is dropped unconditionally.
@@ -33,7 +37,7 @@ class RestoreFromQuarantineUseCase @Inject constructor(
 ) {
 
     sealed interface Result {
-        /** HARD mode — caller fires this install intent. Row already dropped. */
+        /** HARD mode — caller fires this install intent. Row kept until [confirmHardRestore]. */
         data class HardReinstall(val intent: Intent) : Result
 
         /** SOFT mode — caller deep-links the user to OS Settings. Row already dropped. */
@@ -64,10 +68,23 @@ class RestoreFromQuarantineUseCase @Inject constructor(
             Timber.w("HARD restore: backup missing for %s", entry.packageName)
             Result.BackupMissing
         } else {
-            repository.delete(entry.packageName)
-            Timber.i("HARD restore: produced install intent for %s, row dropped", entry.packageName)
+            Timber.i("HARD restore: produced install intent for %s, row kept", entry.packageName)
             Result.HardReinstall(intent)
         }
+    }
+
+    /**
+     * Called when the user comes back from the installer. Drops the HARD entry of [packageName] if,
+     * and only if, the app is installed again; returns whether it did. A cancelled or refused
+     * install leaves the entry, and its backup, in place.
+     */
+    suspend fun confirmHardRestore(packageName: String): Boolean {
+        if (!packageName.isValidPackageName()) return false
+        val entry = repository.getByPackage(packageName) ?: return false
+        if (entry.mode != QuarantineMode.HARD_UNINSTALL || !apkBackup.isInstalled(packageName)) return false
+        repository.delete(packageName)
+        Timber.i("HARD restore: %s installed again, row dropped", packageName)
+        return true
     }
 
     private suspend fun softRestore(entry: QuarantineEntry): Result {

@@ -31,9 +31,10 @@ App Manager Tech is a fully local Android app manager and cleaner. Inspect every
 <b>Permissions</b>
 
 QUERY_ALL_PACKAGES — list installed apps
-PACKAGE_USAGE_STATS — last use and exact sizes (granted in Android Settings; without it they stay at 0)
+PACKAGE_USAGE_STATS — last use and exact sizes (granted in Android Settings; without it, sizes show 0 and apps “Never used”)
 GET_PACKAGE_SIZE — app sizes
 REQUEST_DELETE_PACKAGES — open Android's uninstall dialog (you confirm)
+REQUEST_INSTALL_PACKAGES — restore a quarantined app from its backed-up APK (Android asks you to allow it, then to confirm)
 KILL_BACKGROUND_PROCESSES — stop background processes
 POST_NOTIFICATIONS (Android 13+) — local notifications
 WAKE_LOCK, FOREGROUND_SERVICE, RECEIVE_BOOT_COMPLETED, ACCESS_NETWORK_STATE — added by WorkManager for background jobs. ACCESS_NETWORK_STATE tells whether a network exists; without INTERNET the app cannot use it

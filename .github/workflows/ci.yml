@@ -108,7 +108,7 @@ jobs:
 
       # Only the manifest merge, not a full release build: it needs neither keystore nor R8, and it is
       # the artefact that decides which permissions the published APK carries. Libraries add theirs
-      # here: the source manifest declares six permissions, the merged one carries eleven.
+      # here: the source manifest declares seven permissions, the merged one carries twelve.
       - name: Merge the release manifest
         run: ./gradlew --no-daemon :app:processReleaseMainManifest
 

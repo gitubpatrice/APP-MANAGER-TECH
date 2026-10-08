@@ -21,6 +21,12 @@
     <!-- Trigger uninstall via system intent (user confirms) -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
+    <!-- Restore a quarantined app: the backed-up APK goes to the system installer. Since Android 8,
+         the installer aborts a request from an app that does not declare this permission (AOSP
+         InstallStart), so without it every restore did nothing. The user must still allow
+         "Install unknown apps" for this app, and confirms each install. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- StorageStatsManager : app size / cache / data -->
     <uses-permission android:name="android.permission.GET_PACKAGE_SIZE" />
 

@@ -16,6 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Gavel
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.SystemUpdateAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -90,6 +94,12 @@ private fun AboutBody(innerPadding: PaddingValues) {
     val releasesUrl = stringResource(R.string.about_url_releases)
     val sourceUrl = stringResource(R.string.about_url_source_code)
     val issueUrl  = stringResource(R.string.about_url_report_issue)
+    val websiteUrl = stringResource(R.string.about_url_website)
+    val licenceUrl = stringResource(R.string.about_url_licence)
+    // One resource per language, as in Agenda Tech: each language opens its own PRIVACY.xx.md and
+    // TERMS.xx.md. tools/check-translations.py fails the build if one of those files does not exist.
+    val privacyUrl = stringResource(R.string.about_url_privacy)
+    val termsUrl   = stringResource(R.string.about_url_terms)
 
     val openUrl: (String) -> Unit = { url ->
         // v0.1.3 audit S-1 fix — defence in depth scheme whitelist. URLs come
@@ -187,14 +197,30 @@ private fun AboutBody(innerPadding: PaddingValues) {
                 leadingIcon = Icons.Outlined.BugReport,
                 onClick     = { openUrl(issueUrl) },
             )
+            NavigationRow(
+                title       = stringResource(R.string.about_link_website),
+                leadingIcon = Icons.Outlined.Language,
+                onClick     = { openUrl(websiteUrl) },
+            )
         }
 
-        SectionHeader(stringResource(R.string.about_section_licence))
+        SectionHeader(stringResource(R.string.about_section_legal))
         AboutCard {
-            Text(
-                text     = stringResource(R.string.about_licence_text),
-                style    = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(16.dp),
+            NavigationRow(
+                title       = stringResource(R.string.about_link_privacy),
+                leadingIcon = Icons.Outlined.PrivacyTip,
+                onClick     = { openUrl(privacyUrl) },
+            )
+            NavigationRow(
+                title       = stringResource(R.string.about_link_terms),
+                leadingIcon = Icons.Outlined.Description,
+                onClick     = { openUrl(termsUrl) },
+            )
+            NavigationRow(
+                title       = stringResource(R.string.about_link_licence),
+                description = stringResource(R.string.about_link_licence_desc),
+                leadingIcon = Icons.Outlined.Gavel,
+                onClick     = { openUrl(licenceUrl) },
             )
         }
 
@@ -213,15 +239,27 @@ private fun AboutBody(innerPadding: PaddingValues) {
             color    = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp, bottom = 16.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                .padding(top = 24.dp),
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text      = stringResource(R.string.about_legal_body, COPYRIGHT_YEAR, AUTHOR_NAME),
+            style     = MaterialTheme.typography.bodySmall,
+            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier  = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp, bottom = 16.dp),
         )
     }
 }
 
-
 /** The blue of the logo's checkerboard (`drawable/ic_app_logo`), for the update button. */
 private val LogoBlue = Color(0xFF0D6EFD)
+
+// The publisher named in PRIVACY.md and TERMS.md, as in Agenda Tech's About screen.
+private const val AUTHOR_NAME = "Patrice Haltaya"
+private const val COPYRIGHT_YEAR = "2026"
 
 @Composable
 private fun AboutCard(content: @Composable () -> Unit) {

@@ -31,9 +31,10 @@ App Manager Tech ist ein vollständig lokales Werkzeug zur Verwaltung und Berein
 <b>Berechtigungen</b>
 
 QUERY_ALL_PACKAGES — installierte Apps auflisten
-PACKAGE_USAGE_STATS — letzte Nutzung und genaue Größen (wird in den Android-Einstellungen erteilt; ohne sie bleiben diese Werte bei 0)
+PACKAGE_USAGE_STATS — letzte Nutzung und genaue Größen (wird in den Android-Einstellungen erteilt; ohne sie zeigen die Größen 0 und die Apps „Nie verwendet“)
 GET_PACKAGE_SIZE — Größen der Apps
 REQUEST_DELETE_PACKAGES — den Deinstallationsdialog von Android öffnen (Sie bestätigen)
+REQUEST_INSTALL_PACKAGES — eine App aus der Quarantäne aus ihrer gesicherten APK wiederherstellen (Android bittet Sie um die Erlaubnis, dann um eine Bestätigung)
 KILL_BACKGROUND_PROCESSES — Hintergrundprozesse beenden
 POST_NOTIFICATIONS (Android 13+) — lokale Benachrichtigungen
 WAKE_LOCK, FOREGROUND_SERVICE, RECEIVE_BOOT_COMPLETED, ACCESS_NETWORK_STATE — von WorkManager für Hintergrundaufgaben hinzugefügt. ACCESS_NETWORK_STATE gibt an, ob ein Netzwerk vorhanden ist; ohne INTERNET kann die App es nicht nutzen

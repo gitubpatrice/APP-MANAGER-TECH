@@ -1,6 +1,25 @@
 # App Manager Tech — Security model
 
-Current release: **v0.5.0**
+Current release: **v0.5.1**
+
+## v0.5.1 — Quarantine restore, legal texts
+
+- **One permission added: `REQUEST_INSTALL_PACKAGES`.** Restoring a quarantined app hands the
+  backed-up APK to the system installer, which since Android 8 aborts a request from an app that
+  does not declare this permission (AOSP `InstallStart`): every restore since v0.2.0 did nothing.
+  The permission grants nothing on its own: Android requires the user to allow "Install unknown
+  apps" for App Manager Tech, and shows its own confirmation for each install. The CI allowlist
+  (`tools/check-manifest-permissions.py`) and the privacy policy list it; the release APK carries
+  twelve permissions, still no `INTERNET`.
+- **The quarantine record survives a refused or cancelled restore.** It was dropped as soon as the
+  install intent was produced; it is now dropped only once the package is installed again, read
+  live from PackageManager (`ApkBackupManager.isInstalled`), not from the cache.
+- **Known limit, unchanged:** a backed-up APK is not checked for modification before restore. The
+  terms of use now say so and advise restoring only files the user backed up, from a folder no
+  other app modifies.
+- **Legal texts rewritten from the code** and published in five languages (French prevails), and
+  linked from About: data kept and for how long, every permission with what it actually does,
+  every exchange the user can trigger (exports, APK backups, web pages, Android screens).
 
 ## v0.5.0 — Build verification, German / Italian / Spanish, audit fixes
 
@@ -302,10 +321,14 @@ Tink AEAD (AES-256-GCM). No home-grown crypto.
 |---|---|---|
 | `QUERY_ALL_PACKAGES` | install-time (normal) | Enumerate every installed app via PackageManager |
 | `PACKAGE_USAGE_STATS` | granted by user in OS Settings | Last-used timestamps via UsageStatsManager + cache / data sizes via StorageStatsManager |
+| `GET_PACKAGE_SIZE` | install-time (normal) | App sizes |
 | `REQUEST_DELETE_PACKAGES` | install-time (normal) | Launch the OS uninstall flow; the OS asks for user confirmation per package |
+| `REQUEST_INSTALL_PACKAGES` | install-time, plus "Install unknown apps" granted by the user (since v0.5.1) | Restore a quarantined app: hand the backed-up APK to the OS installer, which asks for confirmation |
 | `KILL_BACKGROUND_PROCESSES` | install-time (normal) | Best-effort force-stop of background processes |
-| `RECEIVE_BOOT_COMPLETED` | install-time (normal) | Reschedule the background-scan WorkManager job after device reboot |
-| `POST_NOTIFICATIONS` | runtime (Android 13+) | Display the single cache-threshold notification |
+| `POST_NOTIFICATIONS` | runtime (Android 13+) | Cache threshold, permission changes, end of a quarantine |
+| `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED` | install-time (normal), added by `androidx.work` | Run the background jobs; reschedule them after a reboot |
+| `FOREGROUND_SERVICE`, `ACCESS_NETWORK_STATE` | install-time (normal), added by `androidx.work` | Unused: no expedited job, no network constraint |
+| `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | signature, added by `androidx.core` | Keeps the runtime package receiver closed to other apps |
 | `INTERNET` | **not declared** | Strictly local app — Android enforces no socket can be opened |
 | `MANAGE_EXTERNAL_STORAGE` | **not declared** | Out of scope; everything goes through SAF (Storage Access Framework) |
 
@@ -315,6 +338,7 @@ Tink AEAD (AES-256-GCM). No home-grown crypto.
 
 | Version | Date | Scope | Findings |
 |---|---|---|---|
+| v0.5.1 | 2026-10-08 | No pre-release audit (a release planned as cosmetic). Every statement of the privacy policy, terms of use, Transparency screen, README and store listings checked against the code and the release APK | 2 functional defects, both in quarantine restore and present since v0.2.0 (installer refused without `REQUEST_INSTALL_PACKAGES`, measured on a Galaxy S9; entry dropped before the install happened) — **fixed before tag**. Public texts corrected: F-Droid distribution claimed, unsigned releases claimed, unverified byte-for-byte reproducibility claimed, six of eleven permissions listed, histories and their retention omitted. |
 | v0.5.0 | 2026-10-08 | Pre-release 3-axes audit of v0.4.0..v0.5.0 (CI, toolchain, detekt, German / Italian / Spanish), plus Claude API and GPT reviews of each change and of each translation | 0 CRITICAL, 0 HIGH, 3 MEDIUM (expert app-op state read without the permission behind it, cache notification re-alerting at every scan, release hygiene) + 7 LOW — **the 3 MEDIUM and 5 LOW fixed before tag**. Deferred: integrity check of a backed-up APK before restore (needs a schema column), English deduction labels of the privacy score (internal, never displayed, pinned by tests), CI actions pinned by tag rather than SHA. |
 | v0.2.1 | 2026-05-24 | FULL-APP "peigne fin" audit (3-axes + cohérence transversale) post-v0.2.0 + 6 user-reported UX bugs (Trash ghost rows, SecurityAudit refresh stuck, Zombies row tap, Storage refresh, AppDetail "last used", Settings shortcut Outils) | 0 CRITICAL, 8 HIGH (H1 SystemClock vs wall-clock in hold-3s timer, H3 SettingsScreen missing PermissionDrift+Quarantine callbacks, C2a/b + C8a/b RarelyUsed+Zombies missing UsageStats banner+ON_RESUME, C7a/b/c/d 4 withTimeout sites missing) + 12 MEDIUM (C1a/b/c/d AtomicBoolean replacing racy guards, M1 IntentFactory require validPkg, M2 notif ID negative hashCode mask, M4 AppDetail load fan-out timeout, M5 SecurityAuditScreen BrandDanger, M-1 delta hasUsageStatsAccess off-main, M-4/L-2 Box weight, C3a Trackers ScanDone snackbar, C6a BatchAction filter) + 12 LOW — **all blocking findings fixed before tag**. CI fix: CodeQL `--no-build-cache --rerun-tasks` so tracer observes compilation. |
 | v0.2.0 | 2026-05-23 | v0.2.0 delta — Permission Drift Tracker + App Quarantine (HARD APK backup + SOFT reminder) + Safety Guardrails (`CriticalAppDetector` + `CriticalWarningDialog` hold-3s) + Room v3→v4 migration + new IntentFactory.appPermissionsSettingsChain + SAF backup folder | 0 CRITICAL, 1 HIGH (USER_PROTECTED enum phantom — fixed by adding empty Set + ranking entry), 4 MEDIUM (notif hash collision 0x7FFF → full 32-bit, restore HARD ConfirmDialog → DestructiveDialog, detectTapGestures no drag-cancel → pointerInput awaitPointerEventScope with touchSlop, label resolution cap deferred v0.2.1) + 5 LOW — **all blocking findings fixed before tag** |

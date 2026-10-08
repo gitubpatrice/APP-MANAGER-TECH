@@ -1,0 +1,6 @@
+v0.5.1
+• Restaurer une app mise en quarantaine fonctionne : Android refusait, faute de la permission d'installation
+• À propos : politique de confidentialité, conditions d'utilisation et licence dans votre langue, et un bouton « Vérifier les mises à jour »
+• Politique et conditions réécrites d'après ce que fait vraiment l'app, en 5 langues
+• Logo entier au démarrage ; barres, menus, dialogues et cartes en bleu pâle
+• Barre du haut : le nom de l'app à côté du logo, le titre de l'écran dessous

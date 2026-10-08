@@ -194,15 +194,21 @@
     <string name="about_version_label">Version</string>
     <string name="about_section_about">À propos</string>
     <string name="about_section_links">Liens</string>
-    <string name="about_section_licence">Licence</string>
     <string name="about_section_permissions">Permissions</string>
     <string name="about_description">App Manager Tech est une application libre et open source qui vous permet d\'inspecter, nettoyer et gérer chaque application Android installée sur votre appareil. Aucune donnée n\'est jamais envoyée à l\'extérieur.</string>
     <string name="about_check_updates">Vérifier les mises à jour</string>
     <string name="about_check_updates_hint">Ouvre la page des versions sur GitHub dans votre navigateur — l\'app ne se connecte jamais à Internet elle-même.</string>
     <string name="about_link_source_code">Code source (GitHub)</string>
     <string name="about_link_report_issue">Signaler un problème</string>
-    <string name="about_licence_text">Distribué sous licence Apache 2.0. Voir le fichier LICENSE dans le dépôt source.</string>
-    <string name="about_permissions_text">App Manager Tech ne demande que les permissions nécessaires à sa fonction principale : énumérer les applications installées, lire leurs tailles de stockage et leurs dates de dernière utilisation. Aucune permission Internet n\'est demandée.</string>
+    <string name="about_section_legal">Informations légales</string>
+    <string name="about_link_privacy">Politique de confidentialité</string>
+    <string name="about_link_terms">Conditions d\'utilisation</string>
+    <string name="about_link_licence">Licence</string>
+    <string name="about_link_licence_desc">Licence Apache 2.0</string>
+    <string name="about_legal_body">© %1$s %2$s — Licence Apache 2.0</string>
+    <string name="about_url_privacy">https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/PRIVACY.fr.md</string>
+    <string name="about_url_terms">https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/TERMS.fr.md</string>
+    <string name="about_permissions_text">App Manager Tech ne demande que ce dont ses fonctions ont besoin : voir les applications installées, lire leurs tailles et leur dernière utilisation, ouvrir les fenêtres de désinstallation et d\'installation d\'Android, et afficher des notifications si vous l\'acceptez. Aucune permission Internet n\'est demandée. La politique de confidentialité liste toutes les permissions de l\'application, avec la raison de chacune.</string>
     <string name="about_made_in">Files Tech — France</string>
 
     <!-- ================================================================ -->
@@ -379,19 +385,21 @@
     <string name="smart_cleaner_category_duplicate">Catégorie en doublon</string>
 
     <string name="screen_transparency_title">Transparence</string>
-    <string name="transparency_intro">App Manager Tech fonctionne entièrement en local. Voici la liste exhaustive de ce que cette app lit, stocke et envoie. Il n\'y a rien d\'autre.</string>
+    <string name="transparency_intro">App Manager Tech fonctionne entièrement sur votre téléphone. Voici ce que cette app lit, conserve et envoie. La politique de confidentialité détaille chaque point, permission par permission.</string>
     <string name="transparency_section_reads">Ce que nous lisons sur votre appareil</string>
     <string name="transparency_reads_packages">La liste des apps installées (nom, version, package, dates d\'installation / mise à jour / dernière utilisation, source d\'installation, permissions déclarées, certificat de signature). Sources : Android PackageManager + StorageStatsManager + UsageStatsManager.</string>
     <string name="transparency_reads_sizes">Tailles des apps : octets d\'installation / données / cache par paquet. Nécessite PACKAGE_USAGE_STATS accordée dans les Paramètres OS.</string>
+    <string name="transparency_reads_apk">Le fichier d\'installation (APK) d\'une app : pour le copier dans le dossier de sauvegarde que vous avez choisi quand vous la mettez en quarantaine, et pour calculer son empreinte SHA-256 dans l\'historique des installations, si vous l\'avez activé.</string>
     <string name="transparency_section_stores">Ce que nous stockons sur votre appareil</string>
-    <string name="transparency_stores_room">Un cache du catalogue dans une base SQLite privée (Room). Rafraîchie par le worker d\'analyse en arrière-plan ou à la demande. Exclue de la sauvegarde cloud.</string>
-    <string name="transparency_stores_prefs">Vos préférences (thème, cadence d\'analyse, liste d\'ignorance, etc.) dans DataStore Preferences. Exclues de la sauvegarde cloud.</string>
+    <string name="transparency_stores_room">Dans une base de données privée (Room) : un cache de la liste des apps ; la corbeille et les quarantaines ; et seulement si vous les activez, l\'historique des permissions (90 jours par défaut), celui des installations et désinstallations (180 jours) et le journal des actions de cette app (180 jours). Exclue de la sauvegarde cloud et des transferts d\'un appareil à l\'autre.</string>
+    <string name="transparency_stores_prefs">Vos réglages (thème, seuils, apps ignorées et protégées, étiquettes, dossier de sauvegarde choisi) dans DataStore. Exclus de la sauvegarde cloud et des transferts d\'un appareil à l\'autre.</string>
+    <string name="transparency_stores_files">Les fichiers que vous demandez, là où vous le choisissez : exports (JSON, CSV, PDF) et sauvegardes d\'APK des apps mises en quarantaine. Ils y restent si vous désinstallez App Manager Tech.</string>
     <string name="transparency_section_sends">Ce que nous envoyons hors de votre appareil</string>
-    <string name="transparency_sends_nothing">Rien. L\'app ne demande pas la permission INTERNET. Elle ne peut pas ouvrir de socket réseau — Android l\'applique au niveau OS.</string>
+    <string name="transparency_sends_nothing">Rien. L\'app ne demande pas la permission INTERNET, elle ne peut donc pas ouvrir de socket réseau : Android l\'applique. Les liens (mises à jour, code source, ces documents) s\'ouvrent dans votre navigateur, qui se connecte lui-même.</string>
     <string name="transparency_section_third_parties">SDK tiers intégrés</string>
-    <string name="transparency_third_parties_none">Zéro. Pas de Google Mobile Services, pas de Firebase, pas d\'analytique, pas de rapporteur de crash qui téléverse, aucune bibliothèque publicitaire. Chaque dépendance est open source sous Apache 2.0 / MIT / BSD. Liste complète dans THIRD_PARTY_NOTICES.</string>
+    <string name="transparency_third_parties_none">Zéro. Pas de Google Mobile Services, pas de Firebase, pas d\'analytique, pas de rapporteur de crash qui téléverse, aucune bibliothèque publicitaire. Chaque bibliothèque embarquée est open source, sous licence Apache 2.0. Liste complète dans THIRD_PARTY_NOTICES.</string>
     <string name="transparency_section_open_source">Open source</string>
-    <string name="transparency_open_source_body">Le code source, la recette de build, le modèle de menace et le changelog sont publics sur GitHub. N\'importe qui peut auditer, reproduire le build à l\'octet près, forker et redistribuer sous Apache 2.0.</string>
+    <string name="transparency_open_source_body">Le code source, la recette de build, le modèle de menace et le changelog sont publics sur GitHub. N\'importe qui peut les auditer, construire l\'app, la forker et la redistribuer sous Apache 2.0.</string>
     <string name="transparency_link_privacy">Politique de confidentialité</string>
     <string name="transparency_link_terms">Conditions d\'utilisation</string>
     <string name="transparency_link_security">Modèle de sécurité</string>
@@ -628,7 +636,9 @@
     <string name="quarantine_row_restore_on">À réexaminer le %1$s</string>
     <string name="quarantine_row_expired_on">À réexaminer depuis le %1$s</string>
     <string name="quarantine_dialog_restore_title">Restaurer %1$s ?</string>
-    <string name="quarantine_dialog_restore_body_hard">Le PackageInstaller Android va réinstaller l\'app depuis l\'APK sauvegardé. Les données de l\'app repartiront à zéro.</string>
+    <string name="quarantine_dialog_restore_body_hard">L\'installateur d\'Android va réinstaller l\'app depuis l\'APK sauvegardé ; la première fois, Android vous demande d\'autoriser l\'installation depuis App Manager Tech. Les données de l\'app repartiront à zéro.</string>
+    <string name="quarantine_restore_done">%1$s est de nouveau installée. Son entrée de quarantaine est retirée.</string>
+    <string name="quarantine_restore_not_installed">%1$s n\'a pas été réinstallée. L\'entrée de quarantaine et la sauvegarde sont conservées.</string>
     <string name="quarantine_dialog_restore_body_soft">Ouvre les Paramètres Android pour réactiver l\'app. L\'entrée de quarantaine sera supprimée.</string>
     <string name="quarantine_dialog_drop_title">Retirer %1$s de la liste ?</string>
     <string name="quarantine_dialog_drop_body">Retire l\'entrée de la liste. Si l\'app est actuellement désinstallée (vraie quarantaine), l\'APK de sauvegarde reste sur le disque — restaurez-le depuis votre gestionnaire de fichiers si besoin.</string>

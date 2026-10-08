@@ -1,0 +1,6 @@
+v0.5.1
+• Ripristinare un'app in quarantena ora funziona: Android lo rifiutava, mancava l'autorizzazione di installazione
+• Informazioni: informativa sulla privacy, condizioni d'uso e licenza nella sua lingua, e «Cerca aggiornamenti»
+• Informativa e condizioni riscritte in base a ciò che l'app fa davvero, in 5 lingue
+• Logo intero all'avvio; barre, menu, finestre e schede in azzurro chiaro
+• Barra superiore: il nome dell'app accanto al logo, il titolo della schermata sotto

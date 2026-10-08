@@ -1,0 +1,6 @@
+v0.5.1
+• Restaurar una app en cuarentena ya funciona: Android lo rechazaba, faltaba el permiso de instalación
+• Acerca de: política de privacidad, condiciones de uso y licencia en su idioma, y «Buscar actualizaciones»
+• Política y condiciones reescritas a partir de lo que la app hace de verdad, en 5 idiomas
+• Logo entero al iniciar; barras, menús, diálogos y tarjetas en azul claro
+• Barra superior: el nombre de la app junto al logo, el título de la pantalla debajo
