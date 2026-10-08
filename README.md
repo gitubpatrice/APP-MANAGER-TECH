@@ -42,7 +42,7 @@ sending a single byte off the device.
 | Background | WorkManager 2.12.0 (on-demand init, no androidx.startup) |
 | Coroutines | kotlinx-coroutines 1.11.0 |
 | Logging | Timber 5 (DebugTree in debug, NoOpReleaseTree in release) |
-| Splash | androidx.core:core-splashscreen (transparent icon workaround Android 12+) |
+| Splash | androidx.core:core-splashscreen 1.2 (compat for API 26–30, native API on 31+): the launcher foreground on white |
 | Tests | JUnit 6 (Jupiter) + Truth + MockK + Turbine + Robolectric; Room DAO and migration tests on device |
 | Quality | Android lint, detekt 1.23.8 (blocking, no baseline), CodeQL; CI checks that the release APK declares no INTERNET permission |
 
