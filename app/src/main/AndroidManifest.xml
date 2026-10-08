@@ -35,8 +35,10 @@
         tools:ignore="ProtectedPermissions" />
 
     <!-- POST_NOTIFICATIONS — required from Android 13+ (API 33) to display the
-         background-scan notifications. Runtime grant is requested on first use
-         via Accompanist Permissions (Phase VIII Settings screen). -->
+         three local notifications (cache threshold, permission changes, quarantine
+         review reminder). Requested at run time when the user switches on a setting
+         that posts one: Settings (permission-change alerts, review reminders) and
+         Cleaner settings (cache threshold). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application

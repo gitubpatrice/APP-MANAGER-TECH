@@ -1040,6 +1040,8 @@
     <string name="notif_channel_drift_desc">When an installed app\'s permissions change between two snapshots.</string>
     <string name="notif_channel_quarantine_name">Quarantine reminders</string>
     <string name="notif_channel_quarantine_desc">When the review date of a quarantined app has passed.</string>
+    <string name="notifications_blocked">Notifications are blocked: this alert will not appear until Android\'s notification settings allow it.</string>
+    <string name="notifications_blocked_action">Settings</string>
 
     <string name="expert_appop_not_declared">Permission not declared</string>
     <string name="expert_appop_not_granted">Permission not granted</string>

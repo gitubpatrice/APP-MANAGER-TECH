@@ -4,6 +4,7 @@ import com.filestech.appmanager.core.ext.MS_PER_DAY
 import com.filestech.appmanager.core.result.AppError
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.runCatchingOutcome
+import com.filestech.appmanager.domain.model.AppCategory
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.SmartCleanerReport
 import com.filestech.appmanager.domain.model.SmartSuggestion
@@ -27,7 +28,8 @@ import kotlin.math.max
  * - Oversized + rarely used (install + data + cache > 100 MB and unused > 30 days)
  *   → recommend REVIEW_AND_DECIDE
  * - Duplicate category — apps in the same `AppCategory` with overlapping role
- *   (e.g. 3 video players) → recommend REVIEW_AND_DECIDE
+ *   (e.g. 3 video players) → recommend REVIEW_AND_DECIDE. Never for
+ *   `UNDEFINED` or `OTHER`, which name no role.
  *
  * Apps in the user's [IgnoreListRepository] are excluded — the user has
  * explicitly opted them out of cleanup suggestions.
@@ -113,8 +115,12 @@ class GetSmartSuggestionsUseCase @Inject constructor(
             seenPackages += app.packageName
         }
 
-        // Pass 4: duplicate category — apps grouped by AppCategory where count > 1
-        apps.filter { it.packageName !in seenPackages }
+        // Pass 4: duplicate category — apps grouped by AppCategory where count > 1.
+        // v0.5.1 — the categories that say nothing about an app's role are left out: UNDEFINED (no
+        // category declared, as for most sideloaded and F-Droid apps) and OTHER (one this enum does
+        // not know). Grouped, they turned unrelated apps into "duplicates" and added their full size
+        // to the reclaimable total.
+        apps.filter { it.packageName !in seenPackages && it.category !in ROLELESS_CATEGORIES }
             .groupBy { it.category }
             .filterValues { it.size > 1 }
             .forEach { (_, group) ->
@@ -157,3 +163,6 @@ private const val DEFAULT_CACHE_HOG_BYTES = 100L * 1024 * 1024
 
 // 100 MB of install + data + cache.
 private const val DEFAULT_OVERSIZED_BYTES = 100L * 1024 * 1024
+
+// Categories that do not tell what an app does: two apps sharing one are not duplicates.
+private val ROLELESS_CATEGORIES = setOf(AppCategory.UNDEFINED, AppCategory.OTHER)
