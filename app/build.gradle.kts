@@ -168,16 +168,11 @@ room {
     schemaDirectory("$projectDir/../schemas")
 }
 
-// MigrationTestHelper reads the exported schemas from the androidTest ASSETS, and the Room plugin
-// does not package them there: the seven migration tests failed on "Cannot find the schema file in
-// the assets folder" (measured 2026-10-08 on a Galaxy S9 — never seen before, because the
-// androidTest APK did not build either).
-//
-// The test APK is meant to package the COMMITTED schemas, so no dependency on copyRoomSchemas is
-// declared: a new database version's schema must be committed before its migration test can pass.
-// Forgetting it fails either way - the asset merge ran before KSP in the builds measured, so the test
-// misses the file; in the other order, Gradle rejects the undeclared dependency on the copy's output.
-android.sourceSets.getByName("androidTest").assets.directories.add("$projectDir/../schemas")
+// MigrationTestHelper reads these schemas from the androidTest ASSETS. Since Room 2.8 the plugin
+// packages them itself (copyRoomSchemasToAndroidTestAssets); under Room 2.6 nothing did, and the
+// source set had to list schemas/ by hand. It packages the COMMITTED files, before KSP runs
+// (measured 2026-10-08 with 8.json removed: the test APK carried 1-7 only), so a new database
+// version's schema must be committed before its migration test can pass.
 
 dependencies {
     // --- Core ---
@@ -236,6 +231,19 @@ dependencies {
     // --- Debug tooling ---
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
+
+    // --- Version constraint, not a new dependency ---
+    // Room 2.8 reads the exported schemas with kotlinx-serialization 1.8.1 (room-testing, in the
+    // instrumented migration tests). Instrumented tests run against the APP's library versions, and
+    // the app resolved kotlinx-serialization-core 1.6.3 (pulled by navigation-compose): the seven
+    // migration tests died on an AbstractMethodError (measured on a Galaxy S9, 2026-10-08). This
+    // raises the version the app already carries, in the safe direction - a newer runtime runs code
+    // generated for an older one, not the reverse - and adds nothing the app did not have.
+    constraints {
+        implementation(libs.kotlinx.serialization.core) {
+            because("room-testing 2.8.5 needs kotlinx-serialization 1.8.1 in the instrumented tests")
+        }
+    }
 
     // --- Unit tests ---
     testImplementation(platform(libs.junit.bom))
