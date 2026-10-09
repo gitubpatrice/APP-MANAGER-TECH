@@ -3,6 +3,8 @@ package com.filestech.appmanager.core.ext
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
@@ -96,6 +98,29 @@ object HashUtils {
         } catch (e: NoSuchAlgorithmException) {
             throw IllegalStateException("SHA-256 algorithm unavailable", e)
         }
+    }
+
+    /**
+     * v0.5.1 — copies [input] into [output] and returns the SHA-256 of the bytes copied, as continuous
+     * lowercase hex (the [sha256ToHexLower] format). The digest is computed on the stream itself, in
+     * the same pass: the hash describes exactly what was written, not a second read of a file that
+     * could have changed in between. Used to fingerprint a quarantine backup when it is written, and to
+     * check it when it is restored. I/O errors propagate to the caller.
+     */
+    fun copyWithSha256HexLower(input: InputStream, output: OutputStream): String {
+        val digest = try {
+            MessageDigest.getInstance(ALGORITHM)
+        } catch (e: NoSuchAlgorithmException) {
+            throw IllegalStateException("SHA-256 algorithm unavailable", e)
+        }
+        val buf = ByteArray(STREAM_BUFFER_BYTES)
+        while (true) {
+            val read = input.read(buf)
+            if (read < 0) break
+            digest.update(buf, 0, read)
+            output.write(buf, 0, read)
+        }
+        return digest.digest().joinToString(separator = "") { byte -> "%02x".format(byte) }
     }
 
     private const val ALGORITHM = "SHA-256"

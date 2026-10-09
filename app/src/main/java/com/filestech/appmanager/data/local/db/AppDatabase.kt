@@ -91,6 +91,13 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
  *     Migration `MIGRATION_7_8`: 1× CREATE TABLE + 3× CREATE INDEX
  *     IF NOT EXISTS.
  *
+ * - v9 (v0.5.1 — quarantine backup integrity)
+ *     Adds `apk_sha256` TEXT NULLable column to `quarantine_entry`: the
+ *     SHA-256 of the backup APK, computed while it is written. A restore
+ *     installs the backup only if a fresh copy has this fingerprint.
+ *     Pre-v0.5.1 entries read NULL — their backup cannot be checked.
+ *     Migration `MIGRATION_8_9`: 1× ALTER TABLE ADD COLUMN (NULLable).
+ *
  * Migration rules (STRICT — enforced by code review):
  * - Every version bump MUST ship an additive Migration in [Migrations].
  * - Only `ALTER TABLE ... ADD COLUMN`, `CREATE INDEX IF NOT EXISTS`, `CREATE TABLE` are allowed.
@@ -121,6 +128,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         const val DATABASE_NAME = "app_manager_tech.db"
-        const val SCHEMA_VERSION = 8
+        const val SCHEMA_VERSION = 9
     }
 }

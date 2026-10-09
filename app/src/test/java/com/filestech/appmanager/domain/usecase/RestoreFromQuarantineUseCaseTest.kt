@@ -7,9 +7,10 @@ import com.filestech.appmanager.domain.model.QuarantineEntry
 import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.domain.repository.QuarantineRepository
 import com.google.common.truth.Truth.assertThat
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -39,19 +40,55 @@ class RestoreFromQuarantineUseCaseTest {
         restoreAt          = QUARANTINED_AT,
         versionName        = "1.0",
         versionCode        = 1L,
-        apkBackupUri       = if (mode == QuarantineMode.HARD_UNINSTALL) "content://backup/test.apk" else null,
+        apkBackupUri       = if (mode == QuarantineMode.HARD_UNINSTALL) BACKUP_URI else null,
         autoRestoreEnabled = false,
         notified           = false,
+        apkSha256          = if (mode == QuarantineMode.HARD_UNINSTALL) SHA256 else null,
     )
 
+    init {
+        // Every reconcile first deletes the copy a restore left for the installer.
+        coEvery { apkBackup.clearRestoreCache() } just Runs
+    }
+
     @Test
-    fun `hard restore hands the intent over and keeps the entry`() = runTest {
+    fun `hard restore hands the verified copy over and keeps the entry`() = runTest {
         coEvery { repository.getByPackage(PKG) } returns entry(QuarantineMode.HARD_UNINSTALL)
-        every { apkBackup.restoreIntent(any()) } returns mockk<Intent>()
+        coEvery { apkBackup.prepareRestore(BACKUP_URI, SHA256, PKG) } returns
+            ApkBackupManager.Restore.Ready(mockk<Intent>())
 
         val result = useCase(PKG)
 
         assertThat(result).isInstanceOf(RestoreFromQuarantineUseCase.Result.HardReinstall::class.java)
+        coVerify(exactly = 0) { repository.delete(any()) }
+    }
+
+    @Test
+    fun `a backup that changed since it was saved is refused, entry kept`() = runTest {
+        coEvery { repository.getByPackage(PKG) } returns entry(QuarantineMode.HARD_UNINSTALL)
+        coEvery { apkBackup.prepareRestore(BACKUP_URI, SHA256, PKG) } returns ApkBackupManager.Restore.Modified
+
+        assertThat(useCase(PKG)).isEqualTo(RestoreFromQuarantineUseCase.Result.BackupModified("Test"))
+        coVerify(exactly = 0) { repository.delete(any()) }
+    }
+
+    @Test
+    fun `a backup saved without a fingerprint is never installed`() = runTest {
+        // Before v0.5.1 no fingerprint was recorded: the use case must pass that null through, and
+        // must not turn an unverifiable backup into an install.
+        coEvery { repository.getByPackage(PKG) } returns entry(QuarantineMode.HARD_UNINSTALL).copy(apkSha256 = null)
+        coEvery { apkBackup.prepareRestore(BACKUP_URI, null, PKG) } returns ApkBackupManager.Restore.Unverifiable
+
+        assertThat(useCase(PKG)).isEqualTo(RestoreFromQuarantineUseCase.Result.BackupUnverifiable("Test"))
+        coVerify(exactly = 0) { repository.delete(any()) }
+    }
+
+    @Test
+    fun `a backup that cannot be read is refused, entry kept`() = runTest {
+        coEvery { repository.getByPackage(PKG) } returns entry(QuarantineMode.HARD_UNINSTALL)
+        coEvery { apkBackup.prepareRestore(BACKUP_URI, SHA256, PKG) } returns ApkBackupManager.Restore.Failed
+
+        assertThat(useCase(PKG)).isEqualTo(RestoreFromQuarantineUseCase.Result.BackupUnreadable("Test"))
         coVerify(exactly = 0) { repository.delete(any()) }
     }
 
@@ -116,5 +153,7 @@ class RestoreFromQuarantineUseCaseTest {
         const val CANCELLED = "com.example.cancelled"
         const val GONE = "com.example.gone"
         const val QUARANTINED_AT = 1_000_000L
+        const val BACKUP_URI = "content://backup/test.apk"
+        const val SHA256 = "ab12"
     }
 }

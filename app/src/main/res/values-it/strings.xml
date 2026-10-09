@@ -643,9 +643,12 @@
     <string name="quarantine_row_restore_on">Revisione il %1$s</string>
     <string name="quarantine_row_expired_on">Revisione scaduta il %1$s</string>
     <string name="quarantine_dialog_restore_title">Ripristinare %1$s?</string>
-    <string name="quarantine_dialog_restore_body_hard">Il programma di installazione di Android reinstallerà l\'app dall\'APK salvato; la prima volta, Android le chiede di consentire le installazioni da App Manager Tech. I dati dell\'app ripartiranno da zero.</string>
+    <string name="quarantine_dialog_restore_body_hard">App Manager Tech verifica prima che il backup sia proprio il file che ha salvato; poi il programma di installazione di Android reinstalla l\'app da quel file — la prima volta, Android le chiede di consentire le installazioni da App Manager Tech. I dati dell\'app ripartiranno da zero.</string>
     <string name="quarantine_restore_done">%1$s è di nuovo installata. La voce di quarantena è stata rimossa.</string>
     <string name="quarantine_restore_not_installed">%1$s non è stata reinstallata. La voce di quarantena e il backup vengono conservati.</string>
+    <string name="quarantine_restore_modified">Il backup di %1$s è cambiato da quando è stato salvato: la sua impronta SHA-256 non corrisponde più. Ripristino rifiutato; il file potrebbe essere stato sostituito.</string>
+    <string name="quarantine_restore_unverifiable">Il backup di %1$s è stato fatto da una versione precedente alla 0.5.1, che non registrava alcuna impronta: App Manager Tech non può verificarlo, quindi non lo installa. Il file è ancora nella cartella di backup.</string>
+    <string name="quarantine_restore_unreadable">Non è stato possibile leggere il backup di %1$s per verificarlo. Ripristino rifiutato.</string>
     <string name="quarantine_error_split_apks">%1$s è installata come più file APK (App Bundle): un backup del solo file principale non potrebbe reinstallarla. Usi «Solo promemoria».</string>
     <string name="quarantine_error_system_app">%1$s è un\'app di sistema: Android può rimuoverne solo gli aggiornamenti, non l\'app stessa. Usi «Solo promemoria».</string>
     <string name="notifications_blocked">Le notifiche sono bloccate: questo avviso non comparirà finché le impostazioni delle notifiche di Android non lo consentiranno.</string>

@@ -65,6 +65,7 @@ class QuarantineRepositoryImpl @Inject constructor(
         apkBackupUri       = apkBackupUri,
         autoRestoreEnabled = autoRestoreEnabled,
         notified           = notified,
+        apkSha256          = apkSha256,
     )
 
     private fun QuarantineEntry.toEntity(): QuarantineEntryEntity = QuarantineEntryEntity(
@@ -78,6 +79,7 @@ class QuarantineRepositoryImpl @Inject constructor(
         apkBackupUri       = apkBackupUri,
         autoRestoreEnabled = autoRestoreEnabled,
         notified           = notified,
+        apkSha256          = apkSha256,
     )
 
     private fun parseMode(persisted: String): QuarantineMode =

@@ -89,6 +89,22 @@
                 tools:node="remove" />
         </provider>
 
+        <!--
+            v0.5.1 — restoring a quarantined app installs a VERIFIED copy of its backup, held in this
+            app's private cache (ApkBackupManager.prepareRestore), and that copy reaches the system
+            installer through this provider. Not exported: the installer gets a one-off read grant on
+            that single file, through the intent, and nothing else is shared.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.restore"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/restore_paths" />
+        </provider>
+
     </application>
 
 </manifest>

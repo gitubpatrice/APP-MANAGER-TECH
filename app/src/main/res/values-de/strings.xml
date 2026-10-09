@@ -625,9 +625,12 @@
     <string name="quarantine_row_restore_on">Prüfung am %1$s</string>
     <string name="quarantine_row_expired_on">Prüfung war fällig am %1$s</string>
     <string name="quarantine_dialog_restore_title">%1$s wiederherstellen?</string>
-    <string name="quarantine_dialog_restore_body_hard">Das Installationsprogramm von Android installiert die App aus dem gesicherten APK neu; beim ersten Mal bittet Android Sie, Installationen über App Manager Tech zu erlauben. Die App startet ohne ihre bisherigen Daten.</string>
+    <string name="quarantine_dialog_restore_body_hard">App Manager Tech prüft zuerst, ob die Sicherung genau die gespeicherte Datei ist; danach installiert das Installationsprogramm von Android die App daraus neu — beim ersten Mal bittet Android Sie, Installationen über App Manager Tech zu erlauben. Die App startet ohne ihre bisherigen Daten.</string>
     <string name="quarantine_restore_done">%1$s ist wieder installiert. Der Quarantäne-Eintrag wurde entfernt.</string>
     <string name="quarantine_restore_not_installed">%1$s wurde nicht neu installiert. Quarantäne-Eintrag und Sicherung bleiben erhalten.</string>
+    <string name="quarantine_restore_modified">Die Sicherung von %1$s hat sich seit dem Speichern verändert: Ihr SHA-256-Fingerabdruck stimmt nicht mehr überein. Wiederherstellung abgelehnt; die Datei wurde möglicherweise ersetzt.</string>
+    <string name="quarantine_restore_unverifiable">Die Sicherung von %1$s stammt aus einer Version vor 0.5.1, die keinen Fingerabdruck gespeichert hat: App Manager Tech kann sie nicht prüfen und installiert sie daher nicht. Die Datei liegt weiterhin in Ihrem Sicherungsordner.</string>
+    <string name="quarantine_restore_unreadable">Die Sicherung von %1$s konnte zur Prüfung nicht gelesen werden. Wiederherstellung abgelehnt.</string>
     <string name="quarantine_error_split_apks">%1$s ist aus mehreren APK-Dateien installiert (App Bundle): Eine Sicherung allein ihrer Hauptdatei könnte sie nicht neu installieren. Verwenden Sie „Nur Erinnerung“.</string>
     <string name="quarantine_error_system_app">%1$s ist eine System-App: Android kann nur ihre Updates entfernen, nicht die App selbst. Verwenden Sie „Nur Erinnerung“.</string>
     <string name="notifications_blocked">Benachrichtigungen sind blockiert: Dieser Hinweis erscheint erst, wenn die Benachrichtigungseinstellungen von Android ihn zulassen.</string>

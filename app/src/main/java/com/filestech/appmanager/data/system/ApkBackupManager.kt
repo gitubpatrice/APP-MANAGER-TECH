@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
+import com.filestech.appmanager.core.ext.HashUtils
 import com.filestech.appmanager.di.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -12,6 +14,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,7 +31,9 @@ import javax.inject.Singleton
  *     `<package>_<versionCode>.apk` (via [DocumentFile.createFile]). Returns
  *     the resulting document URI string.
  *  4. Caller fires [com.filestech.appmanager.data.system.IntentFactory.uninstallIntent].
- *  5. On restore, [restoreIntent] returns the install intent the UI fires.
+ *  5. On restore, [prepareRestore] copies the backup into the app's private cache, checks the copy's
+ *     SHA-256 against the one recorded in step 3, and returns the install intent for that verified
+ *     copy (v0.5.1; until then the backup document itself went to the installer, unchecked).
  *
  * Why SAF and not direct File access?
  *  - F-Droid-friendly: no MANAGE_EXTERNAL_STORAGE permission required.
@@ -61,7 +66,8 @@ class ApkBackupManager @Inject constructor(
      * into the message the user sees; [Failure.message] is the technical detail, for the logs.
      */
     sealed interface Result {
-        data class Success(val documentUri: String) : Result
+        /** [sha256]: the fingerprint of the bytes written, which [prepareRestore] checks later. */
+        data class Success(val documentUri: String, val sha256: String) : Result
         data class Failure(val reason: Reason, val message: String, val cause: Throwable? = null) : Result
     }
 
@@ -120,11 +126,11 @@ class ApkBackupManager @Inject constructor(
             val backupDoc = tree.createFile(MIME_APK, fileName)
                 ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "Failed to create backup file")
 
-            val bytes = copyInto(backupDoc, sourceFile)
+            val sha256 = copyInto(backupDoc, sourceFile)
                 ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "Failed to open backup output stream")
 
-            Timber.i("ApkBackupManager: backed up %s (%d bytes) to %s", packageName, bytes, backupDoc.uri)
-            Result.Success(backupDoc.uri.toString())
+            Timber.i("ApkBackupManager: backed up %s to %s (sha256 %s)", packageName, backupDoc.uri, sha256)
+            Result.Success(backupDoc.uri.toString(), sha256)
         } catch (e: PackageManager.NameNotFoundException) {
             // Uninstalled between the catalogue read and the backup: there is no APK to copy.
             Timber.w(e, "ApkBackupManager: %s is no longer installed", packageName)
@@ -139,59 +145,112 @@ class ApkBackupManager @Inject constructor(
     }
 
     /**
-     * Copies [source] into [target]; null when the provider gives no output stream. Whatever stops the
-     * copy — no stream, an IOException, a provider's undocumented runtime exception — deletes
-     * [target]: an empty or half-written APK must not stay in the folder looking like a backup.
+     * Copies [source] into [target] and returns the SHA-256 of what was written; null when the
+     * provider gives no output stream. Whatever stops the copy — no stream, an IOException, a
+     * provider's undocumented runtime exception — deletes [target]: an empty or half-written APK must
+     * not stay in the folder looking like a backup.
      */
-    private fun copyInto(target: DocumentFile, source: File): Long? {
-        var copied: Long? = null
+    private fun copyInto(target: DocumentFile, source: File): String? {
+        var sha256: String? = null
         try {
-            copied = context.contentResolver.openOutputStream(target.uri)?.use { out ->
-                FileInputStream(source).use { input -> input.copyTo(out) }
+            sha256 = context.contentResolver.openOutputStream(target.uri)?.use { out ->
+                FileInputStream(source).use { input -> HashUtils.copyWithSha256HexLower(input, out) }
             }
-            return copied
+            return sha256
         } finally {
-            if (copied == null) target.delete()
+            if (sha256 == null) target.delete()
+        }
+    }
+
+    /** Outcome of [prepareRestore]. */
+    sealed interface Restore {
+        /** The backup is the very file that was saved: [intent] installs its verified private copy. */
+        data class Ready(val intent: Intent) : Restore
+
+        /** The backup document is gone, or its folder is no longer readable. */
+        data object Missing : Restore
+
+        /** Saved before v0.5.1, without a fingerprint: it cannot be checked, so it is not installed. */
+        data object Unverifiable : Restore
+
+        /** The backup no longer has the fingerprint recorded when it was saved: it was changed. */
+        data object Modified : Restore
+
+        /** The copy failed; the cause is in the logs. */
+        data object Failed : Restore
+    }
+
+    /**
+     * v0.5.1 — checks a HARD quarantine's backup and prepares its install.
+     *
+     * The backup document lives in a folder other apps may be able to write to, and until v0.5.1 it
+     * went to the installer as is. Now it is first copied into this app's private cache — no other app
+     * can write there — and the SHA-256 of the bytes copied is compared with [expectedSha256], the
+     * fingerprint recorded when the backup was written. Only an identical file is installed, and the
+     * installer is given the verified COPY, never the folder's document: what was checked is what is
+     * installed. Android still asks the user to allow installs from this app and to confirm.
+     *
+     * The intent is pinned to the SYSTEM installer: any app may declare a VIEW filter for APKs, and an
+     * implicit intent would offer it this file and its read grant. Pinned only when exactly one system
+     * package handles it (resolveActivity returns the system chooser, package "android", when there
+     * are several); otherwise left implicit, so the pinning never makes a restore impossible.
+     */
+    // SAF providers are third-party code and fail with undocumented runtime exceptions; the user must
+    // get a refused restore, not a crash. No suspension point inside the `try`.
+    @Suppress("TooGenericExceptionCaught", "ReturnCount")
+    suspend fun prepareRestore(
+        apkBackupUri: String,
+        expectedSha256: String?,
+        packageName: String,
+    ): Restore = withContext(io) {
+        try {
+            val uri = Uri.parse(apkBackupUri)
+            val doc = DocumentFile.fromSingleUri(context, uri)
+            if (doc == null || !doc.exists()) return@withContext Restore.Missing
+            if (expectedSha256 == null) return@withContext Restore.Unverifiable
+
+            val dir = File(context.cacheDir, RESTORE_DIR)
+            dir.deleteRecursively()
+            dir.mkdirs()
+            val copy = File(dir, sanitizeFilename("$packageName.apk"))
+            val actual = context.contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(copy).use { output -> HashUtils.copyWithSha256HexLower(input, output) }
+            } ?: return@withContext Restore.Missing
+            if (actual != expectedSha256) {
+                copy.delete()
+                Timber.w("ApkBackupManager: backup of %s changed (sha256 %s, expected %s)", packageName, actual, expectedSha256)
+                return@withContext Restore.Modified
+            }
+
+            val copyUri = FileProvider.getUriForFile(context, context.packageName + AUTHORITY_SUFFIX, copy)
+            Restore.Ready(
+                Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(copyUri, MIME_APK)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    context.packageManager
+                        .queryIntentActivities(this, PackageManager.MATCH_SYSTEM_ONLY)
+                        .map { it.activityInfo.packageName }
+                        .distinct()
+                        .singleOrNull()
+                        ?.let { setPackage(it) }
+                },
+            )
+        } catch (e: SecurityException) {
+            Timber.w(e, "ApkBackupManager: backup folder no longer readable for %s", packageName)
+            Restore.Missing
+        } catch (e: Exception) {
+            Timber.e(e, "ApkBackupManager: restore preparation failed for %s", packageName)
+            Restore.Failed
         }
     }
 
     /**
-     * Returns the install intent for a previously-backed-up APK URI, or null
-     * if the URI is invalid (user deleted the file, revoked SAF grant, etc.).
-     *
-     * The intent uses ACTION_VIEW + MIME `application/vnd.android.package-archive`
-     * → resolves to PackageInstaller, which shows its own confirmation dialog.
-     * Includes `FLAG_GRANT_READ_URI_PERMISSION` so PackageInstaller can read
-     * the document; the URI is passed across the binder, so no FileProvider
-     * setup is needed for SAF document URIs.
-     *
-     * v0.5.1 — pinned to the SYSTEM installer: any app may declare a VIEW filter for APKs, and an
-     * implicit intent would offer it this document and its read grant. Pinned only when exactly
-     * one system package handles it (resolveActivity would return the system chooser, package
-     * "android", if there were several); otherwise left implicit, so the pinning itself never makes
-     * a restore impossible.
+     * v0.5.1 — deletes the verified copies [prepareRestore] left for the installer. Called when the
+     * Quarantine screen comes back to the front, once the installer has finished with them.
      */
-    @Suppress("TooGenericExceptionCaught") // Same SAF boundary as backupApk.
-    fun restoreIntent(apkBackupUri: String): Intent? {
-        return try {
-            val uri = Uri.parse(apkBackupUri)
-            val doc = DocumentFile.fromSingleUri(context, uri)
-            if (doc == null || !doc.exists()) return null
-            Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, MIME_APK)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                context.packageManager
-                    .queryIntentActivities(this, PackageManager.MATCH_SYSTEM_ONLY)
-                    .map { it.activityInfo.packageName }
-                    .distinct()
-                    .singleOrNull()
-                    ?.let { setPackage(it) }
-            }
-        } catch (e: Exception) {
-            Timber.w(e, "ApkBackupManager: restoreIntent failed for %s", apkBackupUri)
-            null
-        }
+    suspend fun clearRestoreCache() {
+        withContext(io) { File(context.cacheDir, RESTORE_DIR).deleteRecursively() }
     }
 
     /**
@@ -251,5 +310,11 @@ class ApkBackupManager @Inject constructor(
 
     private companion object {
         const val MIME_APK = "application/vnd.android.package-archive"
+
+        /** Under `cacheDir`; declared in `res/xml/restore_paths.xml` for the FileProvider. */
+        const val RESTORE_DIR = "restore"
+
+        /** Appended to the package name: the authority declared in the manifest. */
+        const val AUTHORITY_SUFFIX = ".restore"
     }
 }

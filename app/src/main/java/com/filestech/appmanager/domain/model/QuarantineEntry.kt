@@ -17,6 +17,8 @@ data class QuarantineEntry(
     val apkBackupUri: String?,
     val autoRestoreEnabled: Boolean,
     val notified: Boolean,
+    /** v0.5.1 — SHA-256 of the backup APK when it was written; null for SOFT and pre-0.5.1 entries. */
+    val apkSha256: String? = null,
 ) {
     fun isExpired(nowMs: Long = System.currentTimeMillis()): Boolean = nowMs >= restoreAt
 }

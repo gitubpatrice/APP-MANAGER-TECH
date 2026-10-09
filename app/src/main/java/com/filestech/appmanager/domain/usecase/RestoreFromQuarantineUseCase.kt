@@ -46,6 +46,15 @@ class RestoreFromQuarantineUseCase @Inject constructor(
         /** HARD mode but backup APK is missing — caller should offer "Drop entry" path. */
         data object BackupMissing : Result
 
+        /** v0.5.1 — the backup changed since it was saved (fingerprint mismatch): not installed. */
+        data class BackupModified(val label: String) : Result
+
+        /** v0.5.1 — saved before v0.5.1, with no fingerprint to check it against: not installed. */
+        data class BackupUnverifiable(val label: String) : Result
+
+        /** v0.5.1 — the backup could not be copied to be checked: not installed. */
+        data class BackupUnreadable(val label: String) : Result
+
         /** Quarantine entry was not found at all. */
         data object NotFound : Result
 
@@ -62,14 +71,26 @@ class RestoreFromQuarantineUseCase @Inject constructor(
         }
     }
 
+    /**
+     * v0.5.1 — installs the backup only if it is the very file that was saved: [ApkBackupManager.prepareRestore]
+     * copies it into the app's private cache, checks the copy's SHA-256 against the one recorded at
+     * backup time, and hands the installer that verified copy. Any other outcome leaves the entry and
+     * its backup in place, and says why.
+     */
     private suspend fun hardRestore(entry: QuarantineEntry): Result {
-        val intent = entry.apkBackupUri?.let { apkBackup.restoreIntent(it) }
-        return if (intent == null) {
-            Timber.w("HARD restore: backup missing for %s", entry.packageName)
-            Result.BackupMissing
-        } else {
-            Timber.i("HARD restore: produced install intent for %s, row kept", entry.packageName)
-            Result.HardReinstall(intent)
+        val backupUri = entry.apkBackupUri ?: return Result.BackupMissing
+        return when (val r = apkBackup.prepareRestore(backupUri, entry.apkSha256, entry.packageName)) {
+            is ApkBackupManager.Restore.Ready -> {
+                Timber.i("HARD restore: backup of %s verified, install intent produced, row kept", entry.packageName)
+                Result.HardReinstall(r.intent)
+            }
+            ApkBackupManager.Restore.Missing -> {
+                Timber.w("HARD restore: backup missing for %s", entry.packageName)
+                Result.BackupMissing
+            }
+            ApkBackupManager.Restore.Modified -> Result.BackupModified(entry.label)
+            ApkBackupManager.Restore.Unverifiable -> Result.BackupUnverifiable(entry.label)
+            ApkBackupManager.Restore.Failed -> Result.BackupUnreadable(entry.label)
         }
     }
 
@@ -83,8 +104,12 @@ class RestoreFromQuarantineUseCase @Inject constructor(
      * updated before its quarantine, and its entry must stay. A cancelled or refused install leaves
      * the entry, and its backup, in place. SOFT entries are never touched: their app stays installed
      * by design, and the user drops them through [invoke].
+     *
+     * Also deletes the verified copy a restore left for the installer: by the time this screen is back
+     * in front, the installer has staged its own copy of the file.
      */
     suspend fun reconcileHardRestores(): Set<String> {
+        apkBackup.clearRestoreCache()
         val dropped = repository.getAll()
             .filter { it.mode == QuarantineMode.HARD_UNINSTALL && cameBackSinceQuarantine(it) }
             .mapTo(HashSet()) { it.packageName }

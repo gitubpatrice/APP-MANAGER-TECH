@@ -80,6 +80,12 @@ class QuarantineViewModel @Inject constructor(
                         _events.trySend(Event.LaunchIntent(r.intent))
                     RestoreFromQuarantineUseCase.Result.BackupMissing ->
                         _events.trySend(Event.BackupMissing(packageName))
+                    is RestoreFromQuarantineUseCase.Result.BackupModified ->
+                        _events.trySend(Event.ShowError(uiText(R.string.quarantine_restore_modified, r.label)))
+                    is RestoreFromQuarantineUseCase.Result.BackupUnverifiable ->
+                        _events.trySend(Event.ShowError(uiText(R.string.quarantine_restore_unverifiable, r.label)))
+                    is RestoreFromQuarantineUseCase.Result.BackupUnreadable ->
+                        _events.trySend(Event.ShowError(uiText(R.string.quarantine_restore_unreadable, r.label)))
                     RestoreFromQuarantineUseCase.Result.NotFound ->
                         _events.trySend(Event.ShowError(uiText(R.string.quarantine_error_entry_not_found, packageName)))
                     RestoreFromQuarantineUseCase.Result.InvalidPackage ->

@@ -6,6 +6,7 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.system.ApkBackupManager
 import com.filestech.appmanager.data.system.IntentFactory
 import com.filestech.appmanager.domain.model.AppInfo
+import com.filestech.appmanager.domain.model.QuarantineEntry
 import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.repository.QuarantineRepository
@@ -14,6 +15,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -84,13 +86,18 @@ class QuarantineAppUseCaseTest {
         // Control: the refusal must not catch the apps the backup can restore.
         coEvery { appInfo.getApp(PKG) } returns Outcome.Success(app())
         coEvery { apkBackup.hasSplitApks(PKG) } returns false
-        coEvery { apkBackup.backupApk(backupFolder, PKG, 1L) } returns ApkBackupManager.Result.Success("content://backup/x.apk")
+        coEvery { apkBackup.backupApk(backupFolder, PKG, 1L) } returns
+            ApkBackupManager.Result.Success("content://backup/x.apk", BACKUP_SHA256)
         every { intents.uninstallIntent(PKG) } returns mockk<Intent>()
+        val saved = slot<QuarantineEntry>()
+        coEvery { repository.upsert(capture(saved)) } returns Unit
 
         val result = quarantineHard()
 
         assertThat(result).isInstanceOf(QuarantineAppUseCase.Result.HardReady::class.java)
-        coVerify(exactly = 1) { repository.upsert(any()) }
+        // v0.5.1 — the fingerprint of the backup, computed while it was written, is what a restore
+        // checks the backup against: an entry saved without it could never be restored.
+        assertThat(saved.captured.apkSha256).isEqualTo(BACKUP_SHA256)
     }
 
     @Test
@@ -112,6 +119,7 @@ class QuarantineAppUseCaseTest {
     }
 
     private companion object {
+        const val BACKUP_SHA256 = "ab12"
         const val PKG = "com.example.target"
         const val LABEL = "Target"
         const val DAYS = 30

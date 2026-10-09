@@ -636,9 +636,12 @@
     <string name="quarantine_row_restore_on">À réexaminer le %1$s</string>
     <string name="quarantine_row_expired_on">À réexaminer depuis le %1$s</string>
     <string name="quarantine_dialog_restore_title">Restaurer %1$s ?</string>
-    <string name="quarantine_dialog_restore_body_hard">L\'installateur d\'Android va réinstaller l\'app depuis l\'APK sauvegardé ; la première fois, Android vous demande d\'autoriser l\'installation depuis App Manager Tech. Les données de l\'app repartiront à zéro.</string>
+    <string name="quarantine_dialog_restore_body_hard">App Manager Tech vérifie d\'abord que la sauvegarde est bien le fichier qu\'il a enregistré ; l\'installateur d\'Android réinstalle ensuite l\'app à partir de celui-ci — la première fois, Android vous demande d\'autoriser l\'installation depuis App Manager Tech. Les données de l\'app repartiront à zéro.</string>
     <string name="quarantine_restore_done">%1$s est de nouveau installée. Son entrée de quarantaine est retirée.</string>
     <string name="quarantine_restore_not_installed">%1$s n\'a pas été réinstallée. L\'entrée de quarantaine et la sauvegarde sont conservées.</string>
+    <string name="quarantine_restore_modified">La sauvegarde de %1$s a changé depuis qu\'elle a été faite : son empreinte SHA-256 ne correspond plus. Restauration refusée ; le fichier a peut-être été remplacé.</string>
+    <string name="quarantine_restore_unverifiable">La sauvegarde de %1$s a été faite par une version antérieure à la 0.5.1, qui n\'enregistrait pas d\'empreinte : App Manager Tech ne peut pas la vérifier, donc ne l\'installe pas. Le fichier est toujours dans votre dossier de sauvegarde.</string>
+    <string name="quarantine_restore_unreadable">La sauvegarde de %1$s n\'a pas pu être lue pour être vérifiée. Restauration refusée.</string>
     <string name="quarantine_error_split_apks">%1$s est installée en plusieurs fichiers APK (App Bundle) : une sauvegarde de son seul fichier principal ne pourrait pas la réinstaller. Utilisez « Rappel seul ».</string>
     <string name="quarantine_error_system_app">%1$s est une app système : Android ne peut retirer que ses mises à jour, pas l\'app elle-même. Utilisez « Rappel seul ».</string>
     <string name="notifications_blocked">Les notifications sont bloquées : cette alerte n\'apparaîtra pas tant que les réglages de notification d\'Android ne l\'autorisent pas.</string>

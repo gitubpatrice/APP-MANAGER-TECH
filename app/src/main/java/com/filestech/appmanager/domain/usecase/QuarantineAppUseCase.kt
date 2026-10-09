@@ -165,8 +165,8 @@ class QuarantineAppUseCase @Inject constructor(
             return Result.Failure(FailureReason.NEEDS_BACKUP_FOLDER, "HARD mode without a backup folder")
         }
         val backupResult = apkBackup.backupApk(backupTreeUri, packageName, versionCode)
-        val backupUri = when (backupResult) {
-            is ApkBackupManager.Result.Success -> backupResult.documentUri
+        val backup = when (backupResult) {
+            is ApkBackupManager.Result.Success -> backupResult
             is ApkBackupManager.Result.Failure -> return Result.Failure(
                 reason = when (backupResult.reason) {
                     ApkBackupManager.Reason.APK_UNREADABLE -> FailureReason.APK_UNREADABLE
@@ -187,12 +187,13 @@ class QuarantineAppUseCase @Inject constructor(
                     restoreAt          = restoreAt,
                     versionName        = versionName,
                     versionCode        = versionCode,
-                    apkBackupUri       = backupUri,
+                    apkBackupUri       = backup.documentUri,
                     autoRestoreEnabled = true,
                     notified           = false,
+                    apkSha256          = backup.sha256,
                 ),
             )
-            Timber.i("Quarantine HARD: %s persisted, backup at %s", packageName, backupUri)
+            Timber.i("Quarantine HARD: %s persisted, backup at %s", packageName, backup.documentUri)
             Result.HardReady(uninstallIntent = intents.uninstallIntent(packageName))
         } catch (ce: CancellationException) {
             throw ce

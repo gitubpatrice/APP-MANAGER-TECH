@@ -632,9 +632,12 @@
     <string name="quarantine_row_restore_on">Review on %1$s</string>
     <string name="quarantine_row_expired_on">Review was due on %1$s</string>
     <string name="quarantine_dialog_restore_title">Restore %1$s?</string>
-    <string name="quarantine_dialog_restore_body_hard">Android\'s installer will reinstall the app from the backed-up APK; the first time, Android asks you to allow installs from App Manager Tech. The app\'s data will start fresh.</string>
+    <string name="quarantine_dialog_restore_body_hard">App Manager Tech first checks that the backup is the very file it saved; Android\'s installer then reinstalls the app from it — the first time, Android asks you to allow installs from App Manager Tech. The app\'s data will start fresh.</string>
     <string name="quarantine_restore_done">%1$s is installed again. Its quarantine entry is removed.</string>
     <string name="quarantine_restore_not_installed">%1$s was not reinstalled. Its quarantine entry and backup are kept.</string>
+    <string name="quarantine_restore_modified">The backup of %1$s has changed since it was saved: its SHA-256 fingerprint no longer matches. Restore refused; the file may have been replaced.</string>
+    <string name="quarantine_restore_unverifiable">The backup of %1$s was made by a version older than 0.5.1, which recorded no fingerprint: App Manager Tech cannot check it, so it does not install it. The file is still in your backup folder.</string>
+    <string name="quarantine_restore_unreadable">The backup of %1$s could not be read to be checked. Restore refused.</string>
     <string name="quarantine_dialog_restore_body_soft">Open Android Settings to re-enable the app. The quarantine entry will be removed.</string>
     <string name="quarantine_dialog_drop_title">Remove %1$s from the list?</string>
     <string name="quarantine_dialog_drop_body">Removes the entry from the list. If the app is currently uninstalled (real quarantine), the backup APK stays on disk — restore from your file manager if needed.</string>
