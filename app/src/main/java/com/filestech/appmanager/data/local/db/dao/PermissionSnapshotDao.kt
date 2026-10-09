@@ -21,8 +21,11 @@ import kotlinx.coroutines.flow.Flow
  *  - Because the capture use case inserts only on change, any row that has
  *    a strictly-older row for the same (pkg, perm) pair IS, by construction,
  *    a drift event.
- *  - The EXISTS subquery is O(log n) thanks to the composite index
- *    `(package_name, captured_at)`.
+ *  - The EXISTS subqueries seek by package through the composite index
+ *    `(package_name, captured_at)`, then scan that package's rows for the
+ *    permission: no index covers (package_name, permission). Cheap in
+ *    practice — rows are written only on change, and a purge leaves about
+ *    one old row per pair — and run by a periodic worker.
  */
 @Dao
 interface PermissionSnapshotDao {

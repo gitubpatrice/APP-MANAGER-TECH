@@ -128,6 +128,15 @@ class ApkBackupManager @Inject constructor(
 
             val sha256 = copyInto(backupDoc, sourceFile)
                 ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "Failed to open backup output stream")
+            // v0.5.1 — a provider may report success on a file it truncated. Checked here, while the app
+            // is still installed: found at restore time, the corruption would come after the uninstall.
+            if (backupDoc.length() != sourceFile.length()) {
+                backupDoc.delete()
+                return@withContext Result.Failure(
+                    Reason.FAILED,
+                    "Backup size ${backupDoc.length()} != APK size ${sourceFile.length()}",
+                )
+            }
 
             Timber.i("ApkBackupManager: backed up %s to %s (sha256 %s)", packageName, backupDoc.uri, sha256)
             Result.Success(backupDoc.uri.toString(), sha256)
@@ -209,6 +218,9 @@ class ApkBackupManager @Inject constructor(
             if (doc == null || !doc.exists()) return@withContext Restore.Missing
             if (expectedSha256 == null) return@withContext Restore.Unverifiable
 
+            // The previous restore's verified copy goes here, and only here: deleting it when the screen
+            // resumes could pull it from under an installer the user left open (review M1). At most one
+            // APK is kept, in the app-private cache, which Android may also evict.
             val dir = File(context.cacheDir, RESTORE_DIR)
             dir.deleteRecursively()
             dir.mkdirs()
@@ -243,14 +255,6 @@ class ApkBackupManager @Inject constructor(
             Timber.e(e, "ApkBackupManager: restore preparation failed for %s", packageName)
             Restore.Failed
         }
-    }
-
-    /**
-     * v0.5.1 — deletes the verified copies [prepareRestore] left for the installer. Called when the
-     * Quarantine screen comes back to the front, once the installer has finished with them.
-     */
-    suspend fun clearRestoreCache() {
-        withContext(io) { File(context.cacheDir, RESTORE_DIR).deleteRecursively() }
     }
 
     /**

@@ -104,12 +104,8 @@ class RestoreFromQuarantineUseCase @Inject constructor(
      * updated before its quarantine, and its entry must stay. A cancelled or refused install leaves
      * the entry, and its backup, in place. SOFT entries are never touched: their app stays installed
      * by design, and the user drops them through [invoke].
-     *
-     * Also deletes the verified copy a restore left for the installer: by the time this screen is back
-     * in front, the installer has staged its own copy of the file.
      */
     suspend fun reconcileHardRestores(): Set<String> {
-        apkBackup.clearRestoreCache()
         val dropped = repository.getAll()
             .filter { it.mode == QuarantineMode.HARD_UNINSTALL && cameBackSinceQuarantine(it) }
             .mapTo(HashSet()) { it.packageName }

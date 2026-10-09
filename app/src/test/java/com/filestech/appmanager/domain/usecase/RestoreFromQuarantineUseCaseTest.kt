@@ -7,10 +7,8 @@ import com.filestech.appmanager.domain.model.QuarantineEntry
 import com.filestech.appmanager.domain.model.QuarantineMode
 import com.filestech.appmanager.domain.repository.QuarantineRepository
 import com.google.common.truth.Truth.assertThat
-import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -45,11 +43,6 @@ class RestoreFromQuarantineUseCaseTest {
         notified           = false,
         apkSha256          = if (mode == QuarantineMode.HARD_UNINSTALL) SHA256 else null,
     )
-
-    init {
-        // Every reconcile first deletes the copy a restore left for the installer.
-        coEvery { apkBackup.clearRestoreCache() } just Runs
-    }
 
     @Test
     fun `hard restore hands the verified copy over and keeps the entry`() = runTest {
