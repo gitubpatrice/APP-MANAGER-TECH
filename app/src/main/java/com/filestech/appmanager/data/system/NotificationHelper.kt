@@ -1,5 +1,6 @@
 package com.filestech.appmanager.data.system
 
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -19,8 +20,10 @@ import javax.inject.Singleton
  * from a Worker result and routed to a `MainActivity` deep-link click intent.
  *
  * On Android 13+ the user must have granted `POST_NOTIFICATIONS` for the
- * post to actually appear; we use the `notifyIfPermitted` helper to catch
- * `SecurityException` silently rather than crash.
+ * post to actually appear. v0.5.1 — `notify()` does not throw when the
+ * notifications are refused or switched off: Android drops the post without
+ * a word. `notifyIfPermitted` therefore checks [canPostNotifications] first,
+ * and still catches a `SecurityException` rather than crash.
  */
 @Singleton
 class NotificationHelper @Inject constructor(
@@ -147,14 +150,21 @@ class NotificationHelper @Inject constructor(
      * Returns true iff the notification was actually posted. Caller uses the
      * outcome to decide follow-up state (e.g. flipping `notified = true` on
      * the Room row only if the user actually saw the alert).
+     *
+     * v0.5.1 — returned true for every post that did not throw, and a refused
+     * or switched-off notification does not throw: the quarantine worker
+     * marked as delivered a reminder nobody had seen. Checked before posting.
      */
     private fun notifyIfPermitted(id: Int, notif: android.app.Notification): Boolean {
+        val channelId = notif.channelId ?: return false
+        if (!canPostNotifications(context, channelId)) return false
         return try {
             notificationManager.notify(id, notif)
             true
         } catch (expected: SecurityException) {
-            // POST_NOTIFICATIONS not granted on API 33+ → silently drop.
-            // The Settings screen has a UI to request grant explicitly.
+            // POST_NOTIFICATIONS withdrawn between the check and the post.
+            // The Settings screens ask for it again when the user switches on
+            // a setting that notifies.
             false
         }
     }
@@ -175,4 +185,21 @@ class NotificationHelper @Inject constructor(
         const val NOTIF_ID_QUARANTINE_BASE = 1_000_000
         const val REQUEST_OPEN_QUARANTINE_BASE = 2_000_000
     }
+}
+
+/**
+ * v0.5.1 — Whether a notification posted on [channelId] would be shown. False when the app's
+ * notifications are off — from Android 13, also while `POST_NOTIFICATIONS` is not granted — or when
+ * the user switched that channel off. In all three cases `notify()` drops the post silently.
+ *
+ * Checked before every post, and by the Settings screens to tell the user that an alert they just
+ * switched on cannot appear.
+ */
+fun canPostNotifications(context: Context, channelId: String): Boolean {
+    val manager = NotificationManagerCompat.from(context)
+    if (!manager.areNotificationsEnabled()) return false
+    // Channels are registered at startup (MainApplication.onCreate); a post on a missing one is
+    // dropped as well.
+    val channel = manager.getNotificationChannel(channelId) ?: return false
+    return channel.importance != NotificationManager.IMPORTANCE_NONE
 }

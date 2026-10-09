@@ -79,4 +79,12 @@ data class QuarantineEntryEntity(
      */
     @ColumnInfo(name = "notified", defaultValue = "0")
     val notified: Boolean = false,
+
+    /**
+     * v0.5.1 (schema v9) — SHA-256 of the backup APK, computed while it was written (lowercase hex).
+     * A restore installs the backup only if a fresh copy of it has this exact fingerprint. NULL for
+     * SOFT entries and for HARD entries saved before v0.5.1, whose backup cannot be checked.
+     */
+    @ColumnInfo(name = "apk_sha256")
+    val apkSha256: String? = null,
 )

@@ -13,7 +13,7 @@ App Manager Tech is a fully local Android app manager and cleaner. Inspect every
 • Permission changes — what each app was granted or lost between snapshots (opt-in)
 • Install history — installs, updates and uninstalls (opt-in)
 • Signature clusters — apps grouped by signing certificate
-• Quarantine — set an app aside with a review date: a reminder, or an uninstall after backing up its APK to a folder you choose
+• Quarantine — set an app aside with a review date: a reminder, or — for a single-APK app you installed — an uninstall after backing up its APK to a folder you choose
 • Trash — stage uninstalls and review them first
 • Protected apps — a 3-second hold before destructive actions, on your apps and on built-in lists: authenticators, password managers, encrypted messengers, health, French banks and transport
 • Action journal — a local record of what App Manager Tech did (opt-in)
@@ -31,9 +31,10 @@ App Manager Tech is a fully local Android app manager and cleaner. Inspect every
 <b>Permissions</b>
 
 QUERY_ALL_PACKAGES — list installed apps
-PACKAGE_USAGE_STATS — last use and exact sizes (granted in Android Settings; without it they stay at 0)
+PACKAGE_USAGE_STATS — last use and exact sizes (granted in Android Settings; without it, sizes show 0 and apps “Never used”)
 GET_PACKAGE_SIZE — app sizes
 REQUEST_DELETE_PACKAGES — open Android's uninstall dialog (you confirm)
+REQUEST_INSTALL_PACKAGES — restore a quarantined app from its backed-up APK (Android asks you to allow it, then to confirm)
 KILL_BACKGROUND_PROCESSES — stop background processes
 POST_NOTIFICATIONS (Android 13+) — local notifications
 WAKE_LOCK, FOREGROUND_SERVICE, RECEIVE_BOOT_COMPLETED, ACCESS_NETWORK_STATE — added by WorkManager for background jobs. ACCESS_NETWORK_STATE tells whether a network exists; without INTERNET the app cannot use it

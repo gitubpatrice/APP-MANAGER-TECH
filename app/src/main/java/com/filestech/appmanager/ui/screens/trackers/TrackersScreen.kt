@@ -64,8 +64,7 @@ import com.filestech.appmanager.ui.theme.BrandDanger
  * Trackers screen — bulk scan of every installed app's declared Android
  * components against a curated tracker signature database.
  *
- * App Manager Tech innovation: this is the **only F-Droid-only Android app
- * manager** that does Exodus-style tracker detection 100% locally.
+ * Exodus-style tracker detection, done 100% locally: no network, no upload.
  *
  * The screen renders:
  * - A summary card (apps scanned / apps with trackers / contamination % / category histogram)

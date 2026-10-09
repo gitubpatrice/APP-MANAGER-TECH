@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    v0.5.1 — the only folder the restore FileProvider serves: cache/restore/, where
+    ApkBackupManager.prepareRestore writes the verified copy of a quarantine backup before handing it to
+    the system installer. Nothing else of the app is reachable through it.
+-->
+<paths>
+    <cache-path
+        name="restore"
+        path="restore/" />
+</paths>

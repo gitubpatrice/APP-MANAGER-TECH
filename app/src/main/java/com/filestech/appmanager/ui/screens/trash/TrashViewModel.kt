@@ -102,7 +102,7 @@ class TrashViewModel @Inject constructor(
         viewModelScope.launch {
             restoreFromTrash(packageName)
             actionLogger.log(packageName, label, AmtActionType.RESTORE_FROM_TRASH, AmtActionResult.SUCCESS)
-            _events.trySend(Event.Restored(packageName))
+            _events.trySend(Event.Restored(label ?: packageName))
         }
     }
 
@@ -208,7 +208,8 @@ class TrashViewModel @Inject constructor(
     sealed interface Event {
         data class LaunchIntent(val intent: Intent) : Event
         data class LaunchIntents(val intents: List<Intent>, val total: Int) : Event
-        data class Restored(val packageName: String) : Event
+        /** v0.5.1 — carries the app label (the package name only as a fallback), shown in the snackbar. */
+        data class Restored(val label: String) : Event
         data class ShowError(val text: UiText) : Event
         /**
          * v0.3.1 — surface the hold-3s [CriticalWarningDialog]. The screen

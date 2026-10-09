@@ -1,120 +1,128 @@
 # Privacy Policy — App Manager Tech
 
-**Effective date:** 2026-05-23
+_Last updated: 9 October 2026_ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
-App Manager Tech is a local-only Android application. It does not collect,
-transmit, or share any user data. This privacy policy documents that
-commitment in plain terms.
+> This is a translation. **In case of discrepancy, the [French version](PRIVACY.fr.md) prevails**:
+> the publisher is based in France and the French text is the one he writes and answers for.
 
----
+App Manager Tech (`com.filestech.appmanager`) is an **entirely local** app manager: it examines the
+apps installed on your phone from the phone itself, and sends nothing anywhere.
 
-## 1. Data we collect
+## In short
 
-**None.** The app reads metadata that already exists on your device
-(installed-apps catalogue from `PackageManager`, sizes from `StorageStatsManager`,
-last-used timestamps from `UsageStatsManager`) and stores a cached copy in a
-private SQLite database (Room) inside the app's own private storage. This cache
-never leaves the device.
+- **No data collected, no data transmitted.** The app does not declare the `INTERNET` permission:
+  it is technically unable to send anything over a network. An automated check verifies this on the
+  published APK itself, at every continuous-integration run.
+- **No account, no sign-up, no identifier.**
+- **No advertising, no tracker, no analytics**, no crash report sent.
+- **No cloud backup**: `allowBackup=false`, and both the database and the settings are excluded
+  from Android's automatic backups and from device-to-device transfers.
 
-The app does not request the `INTERNET` permission. It cannot open a network
-socket. It cannot send anything to any server, ours or otherwise.
+## What data, and where
 
----
+The app reads what Android already knows about the installed apps, and keeps a copy in its
+**private storage**, which no other app can access. This database is not encrypted: it describes
+your apps, not your content.
 
-## 2. Data we store on your device
-
-| What | Where | When deleted |
+| Data | Where it comes from | How long |
 |---|---|---|
-| App catalogue snapshot | `Room` DB in app private storage | App uninstall, "Clear data" in OS Settings |
-| User preferences (theme, scan interval, ignore list, …) | `DataStore` Preferences in app private storage | Same |
-| Notification channel registration | OS Settings | Same |
+| List of apps: name, version, sizes, install, update and last-used dates, store of origin, state (enabled, hibernated) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Replaced at every scan |
+| Trackers detected, privacy score | Computed on the phone (see below) | Recomputed every time they are shown |
+| History of the permissions granted to each app — **off by default** | Periodic capture, if you turn it on | 90 days by default, adjustable from 7 to 365; the last known state of each permission is kept as a reference; all erased when you turn it off |
+| History of installs, updates and uninstalls, with the SHA-256 fingerprint of each APK and the uninstall reason you choose to give — **off by default** | Android's announcements received while the app is running, if you turn it on | 180 days by default, adjustable from 30 to 365; erased when you turn it off |
+| Journal of the actions started from App Manager Tech — **off by default** | Your actions, if you turn it on | 180 days by default, adjustable from 30 to 365; erased when you turn it off |
+| Trash and quarantines (with the SHA-256 fingerprint of each backed-up APK) | Your actions | Until you empty or restore them |
+| Settings: theme, thresholds, ignored or protected apps, tags, and the access grant to the backup folder you picked | You | Until uninstall |
 
-The Room database file is excluded from cloud backup
-(`res/xml/backup_rules.xml` rule). DataStore preferences are excluded by the
-same rule.
+**Trackers** are spotted by comparing the names of the components each app declares to Android
+with a list built into App Manager Tech, taken from Exodus Privacy's public database. That list is
+updated with the app; it is never downloaded.
 
----
+Uninstalling App Manager Tech, or clearing its data in Android's settings, deletes all of the
+above. Files that **you** had written elsewhere (see "Sharing") stay where you put them.
 
-## 3. Permissions
+The developer has **no access** to this data and receives **no copy** of it.
 
-| Permission | Why | Optional? |
+## Permissions requested, and why
+
+This list is **exhaustive**: these are the twelve permissions the published APK carries, as read in
+its manifest. It therefore includes the ones no line of our code asks for, but that a library
+brought with it. An automated check rejects any build whose APK departs from this list
+(`tools/check-manifest-permissions.py`, run at every continuous-integration run).
+
+### Declared by the app
+
+| Permission | Use | Network? |
 |---|---|---|
-| `QUERY_ALL_PACKAGES` | Enumerate installed apps | No — core feature |
-| `PACKAGE_USAGE_STATS` | Sizes & last-used timestamps | Yes — graceful degradation if denied (sizes display as 0) |
-| `GET_PACKAGE_SIZE` | Storage sizes via StorageStatsManager | No — install-time normal |
-| `REQUEST_DELETE_PACKAGES` | Trigger system uninstall dialog | No — install-time normal |
-| `KILL_BACKGROUND_PROCESSES` | Best-effort force-stop | No — install-time normal |
-| `POST_NOTIFICATIONS` (Android 13+) | Cache-threshold notification | Yes — runtime grant, only requested on first opt-in |
+| `QUERY_ALL_PACKAGES` | See every installed app: this is what the app is for. | No |
+| `PACKAGE_USAGE_STATS` | Special access "Usage data access", which you grant yourself in Android's settings. It provides each app's sizes and last-used date. If refused, sizes show 0 and apps show as "Never used"; nothing else stops working. | No |
+| `GET_PACKAGE_SIZE` | Read the size of apps. | No |
+| `REQUEST_DELETE_PACKAGES` | Open Android's uninstall window. Android asks for confirmation and uninstalls. | No |
+| `REQUEST_INSTALL_PACKAGES` | Restore a quarantined app: hand the backed-up APK to Android's installer. Android additionally requires you to allow App Manager Tech to install apps yourself, and asks for confirmation at every install. It serves nothing else. | No |
+| `KILL_BACKGROUND_PROCESSES` | Stop an app's background processes, at your request. | No |
+| `POST_NOTIFICATIONS` | Three optional notifications: cache threshold reached, permissions changed, end of a quarantine. Requested when you turn one of them on (Android 13 and later), can be refused. | No |
 
-The AndroidX WorkManager library, which runs the periodic scan, adds four more install-time
-permissions to the built APK: `WAKE_LOCK`, `FOREGROUND_SERVICE`, `RECEIVE_BOOT_COMPLETED` (to keep
-the schedule after a reboot) and `ACCESS_NETWORK_STATE` (it can read whether a network is present;
-without `INTERNET` it cannot use one). None of them gives access to your data.
+### Brought by the libraries used
 
-AndroidX also adds `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, a
-signature permission that only this app holds: it keeps the receivers the app registers at run
-time closed to every other app. It gives access to nothing.
+| Permission | Origin | What it **actually** does here | Network? |
+|---|---|---|---|
+| `WAKE_LOCK` | `androidx.work` | Held briefly while a background task runs: automatic scan, permission capture, history purge, quarantine reminder — the ones you turned on. | No |
+| `RECEIVE_BOOT_COMPLETED` | `androidx.work` | Reschedule those tasks after a reboot. | No |
+| `FOREGROUND_SERVICE` | `androidx.work` | **Nothing.** `androidx.work` declares it for "expedited" tasks; the app schedules none. | No |
+| `ACCESS_NETWORK_STATE` | `androidx.work` | **Nothing.** `androidx.work` declares it for tasks that wait for a network; every task of the app is scheduled with no network condition. It would only tell whether a network is present: without `INTERNET`, none can be used. | No |
+| `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | **Self-granted** permission, at "signature" level: only an app signed with our key can obtain it. It closes to other apps the receiver the app registers to follow installs. | No |
 
-**Never requested:** `INTERNET`, location, contacts, SMS, calendar, microphone,
-camera, `MANAGE_EXTERNAL_STORAGE`.
+The app **never** asks for access to the Internet, location, contacts, SMS, calendar, microphone,
+camera, or your files (`MANAGE_EXTERNAL_STORAGE`, `READ_EXTERNAL_STORAGE`).
 
----
+## Sharing with third parties
 
-## 4. Third parties
+**None.** No data is shared, sold or transmitted to anyone — the app has no technical means to do
+so.
 
-App Manager Tech embeds zero third-party SDKs that phone home:
+The only possible exchanges are the ones **you** trigger, and they stay on your phone:
 
-- No Google Mobile Services (GMS)
-- No Firebase
-- No Google Analytics, AppsFlyer, Mixpanel, Sentry SaaS, or other telemetry
-- No advertising SDK
-- No crash reporter that uploads anywhere
+- **Export (JSON, CSV, PDF)**: a report on your apps, written to the location you pick in Android's
+  file picker. It reveals which apps are installed on your phone; what becomes of the file then is
+  up to you alone, including if you save it to a folder synced to a cloud.
+- **Quarantine with backup**: the app copies an app's installation file (APK) to the folder you
+  picked, before uninstalling it. An APK contains the app, **never its data**. That folder is not
+  deleted when you uninstall App Manager Tech.
+- **Web pages** ("Check for updates", source code, report an issue, licence, this policy): the app
+  asks your phone's browser to open a fixed address. The browser connects, under its own privacy
+  policy; App Manager Tech gives it nothing but that address.
+- **Android screens** (uninstall, an app's info page, settings): the app gives them the name of the
+  package concerned, and nothing else.
 
-All bundled libraries are Apache 2.0 / MIT / BSD / LGPL / GPL / AGPL — see
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the complete list.
+## Logs
 
----
+Published versions write **no log line**: every message is discarded before being written. Only
+development builds write any, visible through ADB alone.
 
-## 5. Logs
+## Your rights (GDPR)
 
-In debug builds the app prints log lines to Logcat (visible only with USB
-debug + ADB). These include package names, sizes, and operation outcomes. No
-PII per RGPD: package names are public information by Android design.
+As the app processes no personal data outside your device, there is no remote processing to
+access, rectify or erase. You keep full control: turning a history off, emptying the trash, or
+uninstalling the app deletes the corresponding data from the device. The export gives you a
+readable copy of what the app knows about your apps.
 
-**Release builds emit no log lines at all** — Timber uses `NoOpReleaseTree`
-which discards every entry.
+## Children
 
----
+The app collects no data and is suitable for all audiences.
 
-## 6. Children's privacy
+## Changes
 
-App Manager Tech does not collect any data from any user, including
-children under 13. The app has no account system and no online presence.
+This policy may change with the app; the date at the top of the document shows the latest revision,
+and the history is public in this repository. The version of 23 May 2026 left out the histories and
+their retention periods, the files written outside the app, and half of the APK's permissions. The version of 9 October 2026 adds `REQUEST_INSTALL_PACKAGES`,
+without which Android refused every restore of a quarantine.
 
----
+## Publisher and contact
 
-## 7. Your rights (GDPR / French CNIL)
+App Manager Tech is published by **Patrice Haltaya** (France), data controller within the meaning
+of the GDPR — even though, as explained above, no data ever reaches him. Contact:
+**contact@files-tech.com**.
 
-Since we do not collect, store off-device, or process any personal data,
-the standard GDPR rights (access, rectification, erasure, portability,
-restriction, objection) have no application:
-
-- **Erasure:** uninstall the app, or use OS Settings → Apps → App Manager Tech
-  → Storage → Clear data.
-- **Access / portability:** the Export feature already lets you save the full
-  storage report as JSON or CSV to a location of your choosing via the
-  Storage Access Framework.
-
-If you believe this app violates your privacy rights anyway, please open an
-issue at https://github.com/gitubpatrice/APP-MANAGER-TECH/issues or contact
-contact@files-tech.com.
-
----
-
-## 8. Changes to this policy
-
-Material changes to this policy will be reflected in the CHANGELOG.md and
-announced in the corresponding release notes (`fastlane/metadata/android/.../changelogs/`).
-
-The current version is tracked alongside the source code:
-https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/PRIVACY.md
+Question or report: open an [issue](https://github.com/gitubpatrice/APP-MANAGER-TECH/issues) on the
+repository, or go through [files-tech.com](https://files-tech.com). For security, see
+[SECURITY.md](SECURITY.md).

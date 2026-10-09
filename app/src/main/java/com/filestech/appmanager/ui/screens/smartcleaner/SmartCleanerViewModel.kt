@@ -3,10 +3,13 @@ package com.filestech.appmanager.ui.screens.smartcleaner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.filestech.appmanager.R
+import com.filestech.appmanager.core.ext.STATEFLOW_STOP_TIMEOUT_MS
 import com.filestech.appmanager.core.ext.asFlow
 import com.filestech.appmanager.core.ext.oneShotEvents
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.getOrNull
+import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.data.local.datastore.confirmBeforeDelete
 import com.filestech.appmanager.data.system.AmtActionLogger
 import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.IntentFactory
@@ -28,8 +31,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -63,6 +68,7 @@ class SmartCleanerViewModel @Inject constructor(
      * AppList / Trash paths. Closes the forensic coverage gap.
      */
     private val actionLogger: AmtActionLogger,
+    settings: SettingsRepository,
     /**
      * v0.4.0 audit L1 fix — IO dispatcher injected so the AppOps IPC
      * probe `hasUsageStatsAccess()` runs off the main thread (parity
@@ -79,6 +85,18 @@ class SmartCleanerViewModel @Inject constructor(
      */
     private val _state = MutableStateFlow(UiState(usageStatsGranted = false))
     val state: StateFlow<UiState> = _state.asStateFlow()
+
+    /**
+     * v0.5.1 — Settings → "Confirm before deleting", on by default: the
+     * row's "Clear cache" now asks first, as App detail and the App list
+     * batch do (it never did). `true` until DataStore answers.
+     */
+    val confirmClearCache: StateFlow<Boolean> = settings.confirmBeforeDelete
+        .stateIn(
+            scope        = viewModelScope,
+            started      = SharingStarted.WhileSubscribed(STATEFLOW_STOP_TIMEOUT_MS),
+            initialValue = true,
+        )
 
     private val _events = oneShotEvents<Event>()
     val events: Flow<Event> = _events.asFlow()

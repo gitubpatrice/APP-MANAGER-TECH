@@ -46,3 +46,6 @@ obj/
 
 # === Fastlane — changelogs committed, metadata not ===
 fastlane/metadata/android/*/images/
+
+# Local Claude Code agent worktrees (nested git checkouts), never part of the repository
+/.claude/worktrees/

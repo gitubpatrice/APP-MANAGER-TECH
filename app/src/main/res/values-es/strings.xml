@@ -119,6 +119,11 @@
     <string name="critical_action_uninstall">Desinstalar</string>
     <string name="critical_action_quarantine_hard">Cuarentena + desinstalación</string>
     <string name="critical_warning_hold_hint">Por su protección, el botón de confirmación debe mantenerse pulsado 3 segundos. Suéltelo para cancelar.</string>
+    <plurals name="critical_warning_other_protected">
+        <item quantity="one">Afecta también a %1$d app protegida más.</item>
+        <item quantity="many">Afecta también a %1$d apps protegidas más.</item>
+        <item quantity="other">Afecta también a %1$d apps protegidas más.</item>
+    </plurals>
     <string name="critical_warning_hold_action">%1$s (mantener 3 s)</string>
 
     <!-- Per-category titles + bodies. %1$s in a title = app label; bodies take no argument (the action is on the button). -->
@@ -194,13 +199,21 @@
     <string name="about_version_label">Versión</string>
     <string name="about_section_about">Acerca de</string>
     <string name="about_section_links">Enlaces</string>
-    <string name="about_section_licence">Licencia</string>
     <string name="about_section_permissions">Permisos</string>
     <string name="about_description">App Manager Tech es una app libre y de código abierto que le ayuda a inspeccionar, limpiar y gestionar todas las aplicaciones Android instaladas en su dispositivo. Nunca envía ningún dato fuera del dispositivo.</string>
+    <string name="about_check_updates">Buscar actualizaciones</string>
+    <string name="about_check_updates_hint">Abre la página de versiones de GitHub en su navegador: la propia aplicación nunca se conecta a Internet.</string>
     <string name="about_link_source_code">Código fuente (GitHub)</string>
     <string name="about_link_report_issue">Informar de un problema</string>
-    <string name="about_licence_text">Publicada bajo la licencia Apache 2.0. Consulte el archivo LICENSE en el repositorio del código fuente.</string>
-    <string name="about_permissions_text">App Manager Tech solo solicita los permisos necesarios para su función principal: enumerar las apps instaladas y leer su tamaño en el almacenamiento y la fecha de su último uso. Nunca pide acceso a Internet.</string>
+    <string name="about_section_legal">Información legal</string>
+    <string name="about_link_privacy">Política de privacidad</string>
+    <string name="about_link_terms">Condiciones de uso</string>
+    <string name="about_link_licence">Licencia</string>
+    <string name="about_link_licence_desc">Apache License 2.0</string>
+    <string name="about_legal_body">© %1$s %2$s — Apache License 2.0</string>
+    <string name="about_url_privacy">https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/PRIVACY.es.md</string>
+    <string name="about_url_terms">https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/TERMS.es.md</string>
+    <string name="about_permissions_text">App Manager Tech solo solicita lo que necesitan sus funciones: ver las apps instaladas, leer su tamaño y su último uso, abrir las ventanas de desinstalación e instalación de Android y mostrar notificaciones si usted lo permite. Nunca pide acceso a Internet. La política de privacidad enumera todos los permisos de la app, con el motivo de cada uno.</string>
     <string name="about_made_in">Files Tech — Francia</string>
 
     <!-- ================================================================ -->
@@ -288,12 +301,12 @@
     <string name="screen_ignore_list_title">Apps excluidas</string>
     <string name="ignore_list_subtitle">%1$d de %2$d como máximo</string>
     <string name="ignore_list_empty_title">Ninguna app excluida</string>
-    <string name="ignore_list_empty_body">Las apps que añada aquí quedan excluidas de las acciones por lotes (desinstalar, forzar detención, borrar caché) y de las notificaciones del análisis en segundo plano.</string>
+    <string name="ignore_list_empty_body">Las apps que añada aquí quedan fuera de las sugerencias del Limpiador inteligente. Siguen en todas las demás listas y en las acciones por lotes.</string>
     <string name="ignore_list_remove">Quitar de la lista</string>
 
     <!-- Export screen -->
     <string name="screen_export_title">Exportar el informe de almacenamiento</string>
-    <string name="export_description">Elija un formato y un destino. El informe contiene todas las apps instaladas con sus tamaños, su fecha de instalación y su tienda de origen.</string>
+    <string name="export_description">Elija un formato y un destino. El informe enumera las apps que usted ha instalado (las apps del sistema quedan excluidas), con sus tamaños, su fecha de instalación y su tienda de origen.</string>
     <string name="export_action">Exportar ahora</string>
     <plurals name="export_success">
         <item quantity="one">%1$d app exportada (%2$s)</item>
@@ -331,7 +344,7 @@
     <string name="security_audit_refresh_done">Actualizado — administradores de dispositivos: %1$d · servicios de accesibilidad: %2$d</string>
 
     <!-- v0.1.3 — batch action result snackbar -->
-    <string name="batch_done_result">Con éxito: %1$d / %2$d</string>
+    <string name="batch_done_result">Detención solicitada: %1$d / %2$d (Android no detiene una app en primer plano)</string>
 
     <!-- About links (Phase VIII.B Intent.ACTION_VIEW wired) -->
 
@@ -380,19 +393,21 @@
 
     <!-- Transparency screen (full disclosure of what App Manager Tech does on-device) -->
     <string name="screen_transparency_title">Transparencia</string>
-    <string name="transparency_intro">App Manager Tech funciona solo en local. A continuación, la lista exhaustiva de lo que esta app lee, lo que guarda y lo que envía. No hay nada más.</string>
+    <string name="transparency_intro">App Manager Tech funciona por completo en su teléfono. Esto es lo que esta app lee, conserva y envía. La política de privacidad detalla cada punto, permiso por permiso.</string>
     <string name="transparency_section_reads">Lo que leemos de su dispositivo</string>
     <string name="transparency_reads_packages">La lista de apps instaladas (nombre visible, versión, nombre del paquete, fechas de instalación / actualización / último uso, origen de la instalación, permisos declarados, certificado de firma). Fuente: PackageManager + StorageStatsManager + UsageStatsManager de Android.</string>
     <string name="transparency_reads_sizes">Tamaño de las apps: bytes de instalación / datos / caché por paquete. Requiere que PACKAGE_USAGE_STATS esté concedido en los Ajustes del sistema.</string>
+    <string name="transparency_reads_apk">El archivo de instalación (APK) de una app: para copiarlo en la carpeta de copia de seguridad que usted eligió cuando pone la app en cuarentena, y para calcular su huella SHA-256 para el historial de instalaciones, si lo ha activado.</string>
     <string name="transparency_section_stores">Lo que guardamos en su dispositivo</string>
-    <string name="transparency_stores_room">Una caché del catálogo en una base de datos SQLite privada (Room). Se actualiza mediante el análisis en segundo plano o cuando usted lo pide. Excluida de la copia de seguridad en la nube.</string>
-    <string name="transparency_stores_prefs">Sus preferencias (tema, frecuencia de análisis, lista de exclusiones, etc.) en DataStore Preferences. Excluidas de la copia de seguridad en la nube.</string>
+    <string name="transparency_stores_room">En una base de datos privada (Room): una caché de la lista de apps; la papelera y las cuarentenas; y solo si los activa, el historial de permisos (90 días por defecto), el de instalaciones y desinstalaciones (180 días) y el registro de acciones de esta app (180 días). Excluida de la copia de seguridad en la nube y de las transferencias entre dispositivos.</string>
+    <string name="transparency_stores_prefs">Sus ajustes (tema, umbrales, apps ignoradas y protegidas, etiquetas, carpeta de copia de seguridad elegida) en DataStore. Excluidos de la copia de seguridad en la nube y de las transferencias entre dispositivos.</string>
+    <string name="transparency_stores_files">Los archivos que usted pide, donde usted elige: exportaciones (JSON, CSV, PDF) y copias de seguridad de APK de las apps en cuarentena. Permanecen ahí si desinstala App Manager Tech.</string>
     <string name="transparency_section_sends">Lo que enviamos fuera de su dispositivo</string>
-    <string name="transparency_sends_nothing">Nada. La app no solicita el permiso INTERNET. No puede abrir ningún socket de red — Android lo impone a nivel del sistema operativo.</string>
+    <string name="transparency_sends_nothing">Nada. La app no solicita el permiso INTERNET, así que no puede abrir ningún socket de red: Android lo impone. Los enlaces (actualizaciones, código fuente, estos documentos) se abren en su navegador, que se conecta por sí mismo.</string>
     <string name="transparency_section_third_parties">SDK de terceros integrados</string>
-    <string name="transparency_third_parties_none">Ninguno. Ni Google Mobile Services, ni Firebase, ni analítica, ni informes de fallos enviados a un servidor, ni bibliotecas publicitarias. Todas las dependencias son de código abierto bajo Apache 2.0 / MIT / BSD. Lista completa en THIRD_PARTY_NOTICES.</string>
+    <string name="transparency_third_parties_none">Ninguno. Sin Google Mobile Services, sin Firebase, sin analítica, sin informes de fallos que se envíen, sin bibliotecas publicitarias. Todas las bibliotecas incluidas en la app son de código abierto, con licencia Apache 2.0. Lista completa en THIRD_PARTY_NOTICES.</string>
     <string name="transparency_section_open_source">Código abierto</string>
-    <string name="transparency_open_source_body">El código fuente, la receta de compilación, el modelo de amenazas y el registro de cambios son públicos en GitHub. Cualquiera puede auditarlos, reproducir la compilación byte a byte, hacer un fork y redistribuirlos bajo Apache 2.0.</string>
+    <string name="transparency_open_source_body">El código fuente, la receta de compilación, el modelo de amenazas y el registro de cambios son públicos en GitHub. Cualquiera puede auditarlos, compilar la app, hacer un fork y redistribuirla bajo Apache 2.0.</string>
     <string name="transparency_link_privacy">Política de privacidad</string>
     <string name="transparency_link_terms">Condiciones de uso</string>
     <string name="transparency_link_security">Modelo de seguridad</string>
@@ -633,7 +648,16 @@
     <string name="quarantine_row_restore_on">Revisión el %1$s</string>
     <string name="quarantine_row_expired_on">La revisión estaba prevista para el %1$s</string>
     <string name="quarantine_dialog_restore_title">¿Restaurar %1$s?</string>
-    <string name="quarantine_dialog_restore_body_hard">El PackageInstaller del sistema reinstalará la app desde el APK de la copia de seguridad. Los datos de la app empezarán de cero.</string>
+    <string name="quarantine_dialog_restore_body_hard">App Manager Tech comprueba primero que la copia de seguridad es exactamente el archivo que guardó; después, el instalador de Android reinstala la app a partir de él — la primera vez, Android le pide que permita las instalaciones desde App Manager Tech. Los datos de la app empezarán de cero.</string>
+    <string name="quarantine_restore_done">%1$s vuelve a estar instalada. Se ha retirado la entrada de cuarentena.</string>
+    <string name="quarantine_restore_not_installed">%1$s no se ha reinstalado. Se conservan la entrada de cuarentena y la copia de seguridad.</string>
+    <string name="quarantine_restore_modified">La copia de seguridad de %1$s ha cambiado desde que se guardó: su huella SHA-256 ya no coincide. Restauración rechazada; es posible que el archivo se haya sustituido.</string>
+    <string name="quarantine_restore_unverifiable">La copia de seguridad de %1$s la hizo una versión anterior a la 0.5.1, que no registraba ninguna huella: App Manager Tech no puede comprobarla, así que no la instala. El archivo sigue en su carpeta de copias de seguridad.</string>
+    <string name="quarantine_restore_unreadable">No se ha podido leer la copia de seguridad de %1$s para comprobarla. Restauración rechazada.</string>
+    <string name="quarantine_error_split_apks">%1$s está instalada como varios archivos APK (App Bundle): una copia de seguridad de su archivo principal por sí solo no podría reinstalarla. Use «Solo recordatorio».</string>
+    <string name="quarantine_error_system_app">%1$s es una app del sistema: Android solo puede quitar sus actualizaciones, no la app en sí. Use «Solo recordatorio».</string>
+    <string name="notifications_blocked">Las notificaciones están bloqueadas: este aviso no aparecerá hasta que los ajustes de notificaciones de Android lo permitan.</string>
+    <string name="notifications_blocked_action">Ajustes</string>
     <string name="quarantine_dialog_restore_body_soft">Abra los Ajustes de Android para volver a activar la app. La entrada de cuarentena se eliminará.</string>
     <string name="quarantine_dialog_drop_title">¿Quitar %1$s de la lista?</string>
     <string name="quarantine_dialog_drop_body">Quita la entrada de la lista. Si la app está desinstalada en este momento (cuarentena real), el APK de la copia de seguridad se queda en el disco — restáurelo desde su gestor de archivos si lo necesita.</string>
@@ -652,7 +676,7 @@
     </plurals>
     <string name="quarantine_soft_action_body_step1">1. Toque «Abrir Ajustes» abajo.</string>
     <string name="quarantine_soft_action_body_step2">2. En la página Información de la aplicación que se abre, toque DESACTIVAR (o ARCHIVAR si está disponible — Android 14+).</string>
-    <string name="quarantine_soft_action_body_step3">3. Listo — la app queda en pausa hasta la fecha de revisión.</string>
+    <string name="quarantine_soft_action_body_step3">3. Listo — la app sigue desactivada hasta que usted la vuelva a activar; App Manager Tech se lo recuerda en la fecha de revisión.</string>
     <string name="quarantine_soft_action_open_settings">Abrir Ajustes</string>
     <string name="quarantine_soft_action_later">Más tarde</string>
     <string name="action_keep">Conservar</string>
@@ -664,7 +688,7 @@
     <!-- ================================================================ -->
     <string name="settings_section_privacy_monitor">Supervisión de privacidad</string>
     <string name="settings_privacy_monitor_drift_title">Seguir los cambios de permisos</string>
-    <string name="settings_privacy_monitor_drift_desc">Toma cada día una instantánea de los permisos peligrosos de cada app y muestra las concesiones / revocaciones en la herramienta Cambios de permisos.</string>
+    <string name="settings_privacy_monitor_drift_desc">Toma cada día una instantánea de los permisos peligrosos de cada app y muestra las concesiones / revocaciones en la herramienta Cambios de permisos. Al desactivarlo se borra este historial.</string>
     <string name="settings_privacy_monitor_retention_title">Conservación del historial</string>
     <string name="settings_privacy_monitor_retention_desc">%1$d días</string>
     <string name="settings_privacy_monitor_include_system_title">Incluir apps del sistema</string>
@@ -780,9 +804,9 @@
     <string name="pdf_label_amt_apps_tracked">Apps supervisadas</string>
     <string name="pdf_inventory_header">Nombre · Paquete · Versión · Instalador · Total</string>
     <plurals name="pdf_issue_zombies">
-        <item quantity="one">%1$d app desactivada / nunca usada</item>
-        <item quantity="many">%1$d apps desactivadas / nunca usadas</item>
-        <item quantity="other">%1$d apps desactivadas / nunca usadas</item>
+        <item quantity="one">%1$d app desactivada</item>
+        <item quantity="many">%1$d apps desactivadas</item>
+        <item quantity="other">%1$d apps desactivadas</item>
     </plurals>
     <plurals name="pdf_issue_rarely_used">
         <item quantity="one">%1$d app poco usada (≥ 60 días)</item>
@@ -837,7 +861,7 @@
     <!-- Settings — Lifecycle History -->
     <string name="settings_section_lifecycle">Historial del ciclo de vida de las apps</string>
     <string name="settings_lifecycle_enabled_title">Seguir las instalaciones / desinstalaciones</string>
-    <string name="settings_lifecycle_enabled_desc">Registra cada emisión PACKAGE_ADDED / REMOVED / REPLACED del sistema, además de una referencia inicial única de las apps ya instaladas. Se queda en el dispositivo.</string>
+    <string name="settings_lifecycle_enabled_desc">Registra las instalaciones, actualizaciones y desinstalaciones que Android anuncia mientras App Manager Tech está en funcionamiento, además de una referencia inicial única de las apps ya instaladas. Android no envía estos anuncios a una app que no está en funcionamiento: los cambios hechos mientras tanto no se registran. Se queda en el dispositivo. Al desactivarlo se borra este historial.</string>
     <string name="settings_lifecycle_retention_title">Conservación del historial</string>
     <string name="settings_lifecycle_retention_desc">%1$d días</string>
     <string name="settings_lifecycle_prompt_reason_title">Preguntar el motivo al desinstalar</string>
@@ -971,7 +995,7 @@
     <string name="tool_subtitle_action_journal">Historial forense de las acciones realizadas por AMT</string>
     <string name="settings_section_action_journal">Registro de acciones</string>
     <string name="settings_action_journal_enabled_title">Registro de acciones</string>
-    <string name="settings_action_journal_enabled_desc">Registra cada acción destructiva o que cambia un estado realizada por AMT (desinstalar, borrar caché, desactivar, poner en cuarentena, …). Solo en local, nunca sale del dispositivo.</string>
+    <string name="settings_action_journal_enabled_desc">Registra cada acción destructiva o que cambia un estado realizada por AMT (desinstalar, borrar caché, desactivar, poner en cuarentena, …). Solo en local, nunca sale del dispositivo. Al desactivarlo se borra este registro.</string>
     <string name="settings_action_journal_retention_title">Conservación del historial</string>
     <string name="settings_action_journal_retention_desc">Conservar durante %1$d días</string>
     <string name="action_journal_empty_title">Todavía no hay acciones</string>

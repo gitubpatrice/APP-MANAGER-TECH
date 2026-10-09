@@ -16,7 +16,7 @@ import javax.inject.Singleton
  * Trackers screen or AppDetail) — keeps startup latency at zero for users
  * who never look at this feature.
  *
- * Why a local asset and not a remote API: app is F-Droid only, no INTERNET
+ * Why a local asset and not a remote API: the app has no INTERNET
  * permission. The asset ships a snapshot of the Exodus Privacy curated list
  * — refreshed by the developer at each release, not at runtime.
  *

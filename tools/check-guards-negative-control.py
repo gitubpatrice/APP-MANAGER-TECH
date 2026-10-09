@@ -53,6 +53,7 @@ PERMISSIONS = [
     "android.permission.QUERY_ALL_PACKAGES",
     "android.permission.PACKAGE_USAGE_STATS",
     "android.permission.REQUEST_DELETE_PACKAGES",
+    "android.permission.REQUEST_INSTALL_PACKAGES",
     "android.permission.GET_PACKAGE_SIZE",
     "android.permission.KILL_BACKGROUND_PROCESSES",
     "android.permission.POST_NOTIFICATIONS",

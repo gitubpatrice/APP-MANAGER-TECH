@@ -37,8 +37,12 @@ import org.junit.runner.RunWith
  * - `MIGRATION_7_8` (v0.4.0 AMT action journal): existing data
  *   survives; the new `amt_action_event` table accepts inserts with the
  *   expected schema; the three new indices are present.
+ * - `MIGRATION_8_9` (v0.5.1 quarantine backup integrity): an existing HARD
+ *   entry survives with `apk_sha256` NULL — its backup was never
+ *   fingerprinted, so a restore must refuse it — and a new row round-trips
+ *   its fingerprint.
  *
- * Requires the v1..v8 schemas to be exported under `schemas/` (Room plugin
+ * Requires the v1..v9 schemas to be exported under `schemas/` (Room plugin
  * handles this — checked into git).
  */
 @RunWith(AndroidJUnit4::class)
@@ -602,6 +606,59 @@ class AppDatabaseMigrationTest {
             ).use {
                 assertThat(it.moveToFirst()).isTrue()
             }
+        }
+
+        migrated.close()
+    }
+
+    @Test
+    fun migrate_v8_to_v9_adds_apk_sha256_null_for_existing_quarantine_entries() {
+        // 1. Seed v8 with one HARD quarantine entry, saved before fingerprints existed.
+        helper.createDatabase(TEST_DB_NAME, 8).apply {
+            execSQL(
+                """
+                INSERT INTO quarantine_entry
+                  (package_name, label, mode, quarantined_at, restore_at, version_name, version_code, apk_backup_uri)
+                VALUES ('com.old', 'Old', 'HARD_UNINSTALL', 1700000000000, 1702000000000, '1.0', 1, 'content://x/old')
+                """.trimIndent(),
+            )
+            close()
+        }
+
+        // 2. Migrate to v9 (validates the schema against the exported 9.json).
+        val migrated = helper.runMigrationsAndValidate(
+            TEST_DB_NAME,
+            9,
+            true,
+            Migrations.MIGRATION_8_9,
+        )
+
+        // 3. The existing entry survives, with no fingerprint: unverifiable, never installed.
+        migrated.query(
+            "SELECT package_name, apk_backup_uri, apk_sha256 FROM quarantine_entry",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("com.old")
+            assertThat(it.getString(1)).isEqualTo("content://x/old")
+            assertThat(it.isNull(2)).isTrue()
+        }
+
+        // 4. A new HARD entry round-trips its fingerprint.
+        val sampleHex = "a".repeat(64)
+        migrated.execSQL(
+            """
+            INSERT INTO quarantine_entry
+              (package_name, label, mode, quarantined_at, restore_at, version_name, version_code,
+               apk_backup_uri, apk_sha256)
+            VALUES ('com.new', 'New', 'HARD_UNINSTALL', 1700000000001, 1702000000001, '2.0', 2,
+                    'content://x/new', '$sampleHex')
+            """.trimIndent(),
+        )
+        migrated.query(
+            "SELECT apk_sha256 FROM quarantine_entry WHERE package_name = 'com.new'",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo(sampleHex)
         }
 
         migrated.close()

@@ -11,6 +11,7 @@ import com.filestech.appmanager.data.system.WorkScheduler
 import com.filestech.appmanager.di.ApplicationScope
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.BaselineLifecycleScanUseCase
+import com.filestech.appmanager.domain.usecase.EraseDisabledHistoriesUseCase
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.TimeoutCancellationException
@@ -49,6 +50,7 @@ class MainApplication : Application(), Configuration.Provider {
     @Inject lateinit var workScheduler: WorkScheduler
     @Inject lateinit var packageMonitor: PackageMonitor
     @Inject lateinit var baselineLifecycleScan: BaselineLifecycleScanUseCase
+    @Inject lateinit var eraseDisabledHistories: EraseDisabledHistoriesUseCase
     @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
     override val workManagerConfiguration: Configuration
@@ -67,6 +69,7 @@ class MainApplication : Application(), Configuration.Provider {
         triggerInitialScanIfNeeded()
         syncBackgroundWorkers()
         observeLifecycleToggle()
+        eraseHistoriesTurnedOff()
     }
 
     /**
@@ -103,6 +106,16 @@ class MainApplication : Application(), Configuration.Provider {
                         workScheduler.applyLifecyclePurgeScheduling(enabled = false)
                     }
                 }
+        }
+    }
+
+    /** v0.5.1 — a history turned off is erased: see [EraseDisabledHistoriesUseCase]. */
+    private fun eraseHistoriesTurnedOff() {
+        appScope.launch {
+            settingsRepository.flow
+                .map { Triple(it.lifecycle.enabled, it.actionJournal.enabled, it.privacyMonitor.permissionDriftEnabled) }
+                .distinctUntilChanged()
+                .collect { (lifecycle, journal, permissions) -> eraseDisabledHistories(lifecycle, journal, permissions) }
         }
     }
 

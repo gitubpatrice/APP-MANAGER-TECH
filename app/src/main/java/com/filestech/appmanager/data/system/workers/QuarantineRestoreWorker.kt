@@ -28,11 +28,11 @@ import timber.log.Timber
  *  - user takes action → row deleted by the use case
  *
  * Defensive ordering: notif is fired FIRST, [MarkQuarantineNotifiedUseCase]
- * is called only if the notif succeeded. A SecurityException (no POST_NOTIFS)
- * is swallowed by [NotificationHelper.notifyIfPermitted], in which case
- * `markNotified` does NOT fire and the row is retried next tick (acceptable
- * — the user revoked notif permission and the in-app list is the fallback
- * surface).
+ * is called only if the notif succeeded. When notifications are refused or
+ * switched off (app-wide or on the quarantine channel), or the post throws a
+ * SecurityException, `postQuarantineExpired` returns false: `markNotified`
+ * does NOT fire and the row is retried next tick, so a reminder nobody saw is
+ * never consumed (the in-app list stays the fallback surface).
  *
  * F-Droid: pure local WorkManager, no GMS / FCM.
  */

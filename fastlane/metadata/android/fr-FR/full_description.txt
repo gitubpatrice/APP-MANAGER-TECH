@@ -13,7 +13,7 @@ App Manager Tech est un gestionnaire et nettoyeur d'applications Android entièr
 • Changements de permissions — ce que chaque app a gagné ou perdu entre deux instantanés (à activer)
 • Historique des installations — installations, mises à jour, désinstallations (à activer)
 • Clusters de signatures — apps regroupées par certificat de signature
-• Quarantaine — mettre une app de côté avec une date de réexamen : simple rappel, ou désinstallation après sauvegarde de son APK dans le dossier de votre choix
+• Quarantaine — mettre une app de côté avec une date de réexamen : simple rappel, ou — pour une app installée d'un seul fichier APK — désinstallation après sauvegarde de son APK dans le dossier de votre choix
 • Corbeille — préparer des désinstallations et les revoir d'abord
 • Apps protégées — appui de 3 secondes avant toute action destructrice, sur vos apps et sur des listes intégrées : authentificateurs, gestionnaires de mots de passe, messageries chiffrées, santé, banques et transports français
 • Journal d'actions — trace locale de ce qu'App Manager Tech a fait (à activer)
@@ -31,9 +31,10 @@ App Manager Tech est un gestionnaire et nettoyeur d'applications Android entièr
 <b>Permissions</b>
 
 QUERY_ALL_PACKAGES — lister les apps installées
-PACKAGE_USAGE_STATS — dernière utilisation et tailles exactes (à accorder dans les Paramètres Android ; sans elle, ces valeurs restent à 0)
+PACKAGE_USAGE_STATS — dernière utilisation et tailles exactes (à accorder dans les Paramètres Android ; sans elle, les tailles s'affichent à 0 et les apps « Jamais utilisée »)
 GET_PACKAGE_SIZE — tailles des apps
 REQUEST_DELETE_PACKAGES — ouvrir la fenêtre de désinstallation d'Android (vous confirmez)
+REQUEST_INSTALL_PACKAGES — restaurer une app mise en quarantaine depuis son APK sauvegardé (Android vous demande de l'autoriser, puis de confirmer)
 KILL_BACKGROUND_PROCESSES — arrêter les processus d'arrière-plan
 POST_NOTIFICATIONS (Android 13+) — notifications locales
 WAKE_LOCK, FOREGROUND_SERVICE, RECEIVE_BOOT_COMPLETED, ACCESS_NETWORK_STATE — ajoutées par WorkManager pour les tâches de fond. ACCESS_NETWORK_STATE dit si un réseau existe ; sans INTERNET, l'app ne peut pas s'en servir

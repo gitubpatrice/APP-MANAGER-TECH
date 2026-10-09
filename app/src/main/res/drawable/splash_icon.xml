@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The logo as the splash screen should draw it: a rounded square, whole. (Ported from Agenda Tech.)
+
+  The splash shows its icon inside a CIRCLE whose diameter is 2/3 of the icon, and clips the rest.
+  The launcher foreground is a near-square meant for the launcher's own mask: in that circle it lost
+  its corners and read as a disc.
+
+  `splash_logo` is built by tools/make-splash-logo.py from the launcher artwork, its corners rounded at
+  13 % of the side (the SMS Tech / Agenda Tech rounding). A rounded square of side s reaches 0.65 s from
+  its centre; inside a circle of radius 1/3, s may be at most 51 % of the icon: a 26 % inset per side
+  gives 48 %, so the logo sits whole.
+
+  `mipmap/ic_launcher` is left alone: the launcher masks it itself.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/splash_logo"
+    android:inset="26%" />

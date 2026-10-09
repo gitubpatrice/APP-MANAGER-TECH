@@ -13,7 +13,7 @@ App Manager Tech è un'app completamente locale per gestire e pulire le app Andr
 • Modifiche alle autorizzazioni — ciò che ogni app ha ottenuto o perso tra due istantanee (da attivare)
 • Storico delle installazioni — installazioni, aggiornamenti e disinstallazioni (da attivare)
 • Gruppi per firma — app raggruppate per certificato di firma
-• Quarantena — mettere da parte un'app con una data di revisione: un semplice promemoria, oppure una disinstallazione dopo il backup dell'APK in una cartella a sua scelta
+• Quarantena — mettere da parte un'app con una data di revisione: un semplice promemoria, oppure — per un'app installata da un unico file APK — una disinstallazione dopo il backup dell'APK in una cartella a sua scelta
 • Cestino — mettere in attesa le disinstallazioni e riesaminarle prima
 • App protette — conferma con pressione di 3 secondi prima delle azioni distruttive, sulle sue app e su elenchi integrati: autenticatori, gestori di password, messaggistica crittografata, salute, banche e trasporti francesi
 • Registro delle azioni — una traccia locale di ciò che ha fatto App Manager Tech (da attivare)
@@ -31,9 +31,10 @@ App Manager Tech è un'app completamente locale per gestire e pulire le app Andr
 <b>Autorizzazioni</b>
 
 QUERY_ALL_PACKAGES — elencare le app installate
-PACKAGE_USAGE_STATS — ultimo utilizzo e dimensioni esatte (da concedere nelle Impostazioni Android; senza di essa questi valori restano a 0)
+PACKAGE_USAGE_STATS — ultimo utilizzo e dimensioni esatte (da concedere nelle Impostazioni Android; senza di essa le dimensioni risultano 0 e le app «Mai usata»)
 GET_PACKAGE_SIZE — dimensioni delle app
 REQUEST_DELETE_PACKAGES — aprire la finestra di disinstallazione di Android (conferma lei)
+REQUEST_INSTALL_PACKAGES — ripristinare un'app in quarantena dal suo APK salvato (Android le chiede di consentirlo, poi di confermare)
 KILL_BACKGROUND_PROCESSES — terminare i processi in background
 POST_NOTIFICATIONS (Android 13+) — notifiche locali
 WAKE_LOCK, FOREGROUND_SERVICE, RECEIVE_BOOT_COMPLETED, ACCESS_NETWORK_STATE — aggiunte da WorkManager per le attività in background. ACCESS_NETWORK_STATE indica se esiste una rete; senza INTERNET l'app non può usarla

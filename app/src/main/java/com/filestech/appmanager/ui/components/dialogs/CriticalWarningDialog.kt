@@ -29,6 +29,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -65,6 +66,11 @@ fun CriticalWarningDialog(
     category: CriticalCategory,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
+    /**
+     * v0.5.1 — for a batch: the protected apps it holds besides [appLabel], which names the warning.
+     * Until v0.5.1 they were counted but never shown, and the hold uninstalled apps it had not named.
+     */
+    otherProtectedCount: Int = 0,
 ) {
     val (titleRes, bodyRes) = warningCopyFor(category)
 
@@ -91,6 +97,18 @@ fun CriticalWarningDialog(
                     text  = stringResource(bodyRes),
                     style = MaterialTheme.typography.bodyMedium,
                 )
+                if (otherProtectedCount > 0) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text       = pluralStringResource(
+                            R.plurals.critical_warning_other_protected,
+                            otherProtectedCount,
+                            otherProtectedCount,
+                        ),
+                        style      = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text  = stringResource(R.string.critical_warning_hold_hint),

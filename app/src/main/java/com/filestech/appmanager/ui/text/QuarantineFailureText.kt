@@ -17,4 +17,6 @@ fun QuarantineAppUseCase.Result.Failure.toUiText(): UiText = when (reason) {
     FailureReason.BACKUP_FOLDER_ACCESS_REVOKED -> uiText(R.string.quarantine_error_backup_folder_revoked)
     FailureReason.BACKUP_FAILED -> uiText(R.string.quarantine_error_backup_failed)
     FailureReason.SAVE_FAILED -> uiText(R.string.quarantine_error_save_failed)
+    FailureReason.SPLIT_APKS -> uiText(R.string.quarantine_error_split_apks, appLabel.orEmpty())
+    FailureReason.SYSTEM_APP -> uiText(R.string.quarantine_error_system_app, appLabel.orEmpty())
 }

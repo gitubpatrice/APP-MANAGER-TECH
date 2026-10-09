@@ -21,8 +21,11 @@ import kotlinx.coroutines.flow.Flow
  *  - Because the capture use case inserts only on change, any row that has
  *    a strictly-older row for the same (pkg, perm) pair IS, by construction,
  *    a drift event.
- *  - The EXISTS subquery is O(log n) thanks to the composite index
- *    `(package_name, captured_at)`.
+ *  - The EXISTS subqueries seek by package through the composite index
+ *    `(package_name, captured_at)`, then scan that package's rows for the
+ *    permission: no index covers (package_name, permission). Cheap in
+ *    practice — rows are written only on change, and a purge leaves about
+ *    one old row per pair — and run by a periodic worker.
  */
 @Dao
 interface PermissionSnapshotDao {
@@ -30,12 +33,15 @@ interface PermissionSnapshotDao {
     /**
      * The latest snapshot for [packageName] / [permission], or null if we have
      * no record yet. Used by the capture use case to dedup unchanged states.
+     *
+     * v0.5.1 — `id` breaks a `captured_at` tie, the same order [purgeOlderThan]
+     * uses to pick the row it keeps.
      */
     @Query(
         """
         SELECT * FROM permission_snapshot
         WHERE package_name = :packageName AND permission = :permission
-        ORDER BY captured_at DESC LIMIT 1
+        ORDER BY captured_at DESC, id DESC LIMIT 1
         """,
     )
     suspend fun getLatest(packageName: String, permission: String): PermissionSnapshotEntity?
@@ -67,14 +73,35 @@ interface PermissionSnapshotDao {
     suspend fun insert(entity: PermissionSnapshotEntity): Long
 
     /**
-     * Retention: drops rows older than [cutoffMs]. Returns the number of rows
-     * deleted (for logging / metrics).
+     * Retention: drops rows older than [cutoffMs], except, for each (package,
+     * permission) pair, the NEWEST of them. Returns the number of rows deleted
+     * (for logging / metrics).
      *
-     * IMPORTANT: this can break the "predecessor" invariant for a (pkg, perm)
-     * pair if the deleted row WAS the predecessor. The capture use case
-     * recovers from that automatically by re-baselining on the next tick.
+     * v0.5.1 — that row is the state the pair was in at the cutoff: the
+     * baseline of the first change kept after it, and of the next one if the
+     * pair has not changed since. The query deleted every row older than the
+     * cutoff, so the baseline aged out first: with a 90-day retention, a
+     * baseline taken on day 0 went on day 91, and a change recorded on day 80
+     * — 11 days old — lost its predecessor and vanished from [observeDrifts]
+     * 79 days early. Nothing re-created it: the capture use case inserts only
+     * on change.
+     *
+     * "Newest" is `captured_at`, then `id` on a tie (same order as [getLatest]).
      */
-    @Query("DELETE FROM permission_snapshot WHERE captured_at < :cutoffMs")
+    @Query(
+        """
+        DELETE FROM permission_snapshot
+        WHERE captured_at < :cutoffMs
+          AND EXISTS (
+            SELECT 1 FROM permission_snapshot newer
+            WHERE newer.package_name = permission_snapshot.package_name
+              AND newer.permission   = permission_snapshot.permission
+              AND newer.captured_at  < :cutoffMs
+              AND (newer.captured_at > permission_snapshot.captured_at
+                OR (newer.captured_at = permission_snapshot.captured_at AND newer.id > permission_snapshot.id))
+          )
+        """,
+    )
     suspend fun purgeOlderThan(cutoffMs: Long): Int
 
     @Query("SELECT COUNT(*) FROM permission_snapshot")

@@ -250,6 +250,25 @@ object Migrations {
     }
 
     /**
+     * v0.5.1 — adds `apk_sha256` TEXT column to `quarantine_entry`.
+     *
+     * The SHA-256 of a HARD quarantine's backup APK, computed while it is
+     * written; a restore checks a fresh copy against it before installing.
+     * NULL for SOFT entries and for every pre-v0.5.1 HARD entry (its backup
+     * was never fingerprinted, so it cannot be checked).
+     *
+     * Strict additive: `ALTER TABLE ADD COLUMN ... TEXT` — NULLable so no
+     * DEFAULT clause is necessary, pre-existing rows read NULL.
+     */
+    val MIGRATION_8_9: Migration = object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE `quarantine_entry` ADD COLUMN `apk_sha256` TEXT",
+            )
+        }
+    }
+
+    /**
      * All migrations in version order. Spread (`*ALL_MIGRATIONS`) into
      * `Room.databaseBuilder(...).addMigrations()`.
      */
@@ -261,5 +280,6 @@ object Migrations {
         MIGRATION_5_6,
         MIGRATION_6_7,
         MIGRATION_7_8,
+        MIGRATION_8_9,
     )
 }

@@ -1,0 +1,7 @@
+v0.5.1
+• Quarantine restore works (Android refused it), from an intact backup only (SHA-256)
+• Notifications are requested when you turn one on: on Android 13+ they never appeared
+• Protected apps: the 3-second hold also covers batch uninstall and the security audit
+• Default sort, system apps and “confirm before deleting” settings now take effect
+• Privacy policy and terms rewritten from the code, in 5 languages, linked from About
+• Pale-blue look, whole splash logo, update button

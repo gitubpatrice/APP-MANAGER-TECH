@@ -1,9 +1,11 @@
-# F-Droid distribution policy
+# Free-software dependency policy (F-Droid compatible)
 
-App Manager Tech ships **only on F-Droid**. There is no Google Play release
-and there will never be one. This file documents the constraints that flow
-from that policy so every contributor (human or LLM) keeps the door closed
-to proprietary dependencies.
+App Manager Tech is published **on GitHub Releases only**: there is no Google
+Play release, and the app is **not on F-Droid** at the moment (its inclusion
+request, fdroiddata !38925, was closed; the draft recipe in
+`fdroid-submission/` belongs to it and is not maintained). This file keeps
+every dependency F-Droid compatible all the same, so that every contributor
+(human or LLM) keeps the door closed to proprietary dependencies.
 
 ---
 
@@ -35,7 +37,7 @@ project tree before tagging a release.
 | Push notifications | [UnifiedPush](https://unifiedpush.org/) or none | Open-source distributor protocol |
 | Maps | [OpenStreetMap via osmdroid](https://github.com/osmdroid/osmdroid) | Apache 2.0, no API key |
 | Auth | Username/password local or [Bitwarden CLI](https://github.com/bitwarden/clients) | No SaaS lock-in |
-| In-app updates | F-Droid client handles it | Don't bundle a proprietary updater |
+| Updates | The user installs them; About's "Check for updates" only opens the releases page in the browser | Don't bundle an updater (the app has no Internet access) |
 | Background jobs | WorkManager (already in the catalog) | Native AndroidX, no GMS |
 | Analytics | Don't. App Manager Tech does no analytics. | Trust > metrics |
 
@@ -54,7 +56,7 @@ project tree before tagging a release.
 [ ] No `compileOnly` proprietary stubs that hide a runtime classpath leak
 [ ] `app/build.gradle.kts` has no `googleServices()` apply, no `firebase {}` block
 [ ] Splash, icons, sounds: all locally produced or under a free licence
-[ ] Fastlane metadata under `fastlane/metadata/android/{en-US,fr-FR}/` is
+[ ] Fastlane metadata under `fastlane/metadata/android/{en-US,fr-FR,de-DE,it-IT,es-ES}/` is
     complete (title, short/full description, changelogs/<versionCode>.txt
     ≤ 500 chars, screenshots without proprietary OEM watermarks)
 [ ] F-Droid recipe metadata yml in `fdroiddata/metadata/com.filestech.appmanager.yml`
@@ -65,11 +67,12 @@ project tree before tagging a release.
 
 ---
 
-## Permissions narrative for the F-Droid maintainer
+## Permissions narrative
 
 App Manager Tech is a **fully local** app manager / cleaner inspired by
-SD Maid. Every permission below has a single justified use, documented in
-SECURITY.md:
+SD Maid. The release APK carries twelve permissions, asserted by CI
+(`tools/check-manifest-permissions.py`) and explained one by one in
+[PRIVACY.md](PRIVACY.md). The seven the app declares itself:
 
 - `QUERY_ALL_PACKAGES` — enumerate installed apps (core feature).
 - `PACKAGE_USAGE_STATS` — last-used timestamps & accurate cache/data sizes
@@ -78,7 +81,16 @@ SECURITY.md:
   gracefully if denied.
 - `GET_PACKAGE_SIZE` — install/data/cache size (normal, install-time).
 - `REQUEST_DELETE_PACKAGES` — uninstall flow (user confirms in OS dialog).
+- `REQUEST_INSTALL_PACKAGES` — restore a quarantined app from its backed-up
+  APK through the system installer; the user must also allow "Install
+  unknown apps" for App Manager Tech, and confirms each install.
 - `KILL_BACKGROUND_PROCESSES` — stop background processes of other apps.
+- `POST_NOTIFICATIONS` — cache threshold, permission changes, end of a
+  quarantine (runtime, refusable).
+
+The other five come from libraries: `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`,
+`FOREGROUND_SERVICE`, `ACCESS_NETWORK_STATE` (`androidx.work`) and the
+signature-level `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (`androidx.core`).
 
 Never requested: `INTERNET`, `ACCESS_FINE_LOCATION`, `READ_CONTACTS`,
 `READ_SMS`, `MANAGE_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`.
@@ -87,16 +99,17 @@ Never requested: `INTERNET`, `ACCESS_FINE_LOCATION`, `READ_CONTACTS`,
 
 ## Reproducible builds
 
-Target: every F-Droid build is **byte-for-byte reproducible** from the
-tagged commit.
+Target, **not verified to date**: a build from the tagged commit that is
+byte-for-byte identical to the published APK.
 
 - Pin AGP, Kotlin, Gradle, JDK in `gradle/libs.versions.toml` and
   `gradle/wrapper/gradle-wrapper.properties`.
 - Pin every dependency version explicitly — no `+` or `latest.release`.
 - No `BuildConfig.BUILD_TIME = System.currentTimeMillis()` or any other
   build-time timestamp baked into the APK.
-- Signing: F-Droid signs the AAB themselves; we provide an unsigned APK in
-  the GitHub release for users who prefer to sideload our own signature.
+- Signing: the GitHub release APKs are signed with our own key (certificate
+  SHA-256 `76e8772e09951369405f58e70c4afffd41c4687553c6cfa03d08145ff60ff1cf`,
+  unchanged since the first release).
 
 ---
 

@@ -116,12 +116,14 @@ private fun TransparencyBody(
         StatementCard(icon = Icons.Outlined.Visibility, tint = BrandBlue) {
             BulletText(stringResource(R.string.transparency_reads_packages))
             BulletText(stringResource(R.string.transparency_reads_sizes))
+            BulletText(stringResource(R.string.transparency_reads_apk))
         }
 
         SectionHeader(stringResource(R.string.transparency_section_stores))
         StatementCard(icon = Icons.Outlined.Folder, tint = BrandBlue) {
             BulletText(stringResource(R.string.transparency_stores_room))
             BulletText(stringResource(R.string.transparency_stores_prefs))
+            BulletText(stringResource(R.string.transparency_stores_files))
         }
 
         SectionHeader(stringResource(R.string.transparency_section_sends))
@@ -153,6 +155,10 @@ private fun TransparencyBody(
             BulletText(stringResource(R.string.transparency_open_source_body))
         }
 
+        // The privacy policy and terms exist in the app's five languages: the same localised links as
+        // About. SECURITY.md and THIRD_PARTY_NOTICES.md exist in English only.
+        val privacyUrl = stringResource(R.string.about_url_privacy)
+        val termsUrl = stringResource(R.string.about_url_terms)
         SectionHeader(stringResource(R.string.about_section_links))
         Card(
             modifier = Modifier
@@ -166,12 +172,12 @@ private fun TransparencyBody(
                 NavigationRow(
                     title       = stringResource(R.string.transparency_link_privacy),
                     leadingIcon = Icons.Outlined.Security,
-                    onClick     = { onOpenUrl("https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/PRIVACY.md") },
+                    onClick     = { onOpenUrl(privacyUrl) },
                 )
                 NavigationRow(
                     title       = stringResource(R.string.transparency_link_terms),
                     leadingIcon = Icons.Outlined.Security,
-                    onClick     = { onOpenUrl("https://github.com/gitubpatrice/APP-MANAGER-TECH/blob/main/TERMS.md") },
+                    onClick     = { onOpenUrl(termsUrl) },
                 )
                 NavigationRow(
                     title       = stringResource(R.string.transparency_link_security),

@@ -12,7 +12,7 @@ pulled transitively by `androidx.work`, and nobody noticed before a later audit.
 Two traps this script avoids
 ----------------------------
 1. **The source manifest is not evidence.** Libraries add permissions at merge time: the source
-   manifest of this app declares six, the merged release manifest carries eleven (measured
+   manifest of this app declares seven, the merged release manifest carries twelve (measured
    2026-10-08). Only the merged manifest decides what the published APK asks for.
 2. **`<uses-permission>` can span several lines.** A line-based grep misses an element whose
    `android:name` sits on its own line, which is a shape the merge produces. This parses the XML.
@@ -77,6 +77,8 @@ ALLOWED = {
     "android.permission.QUERY_ALL_PACKAGES",
     "android.permission.PACKAGE_USAGE_STATS",
     "android.permission.REQUEST_DELETE_PACKAGES",
+    # v0.5.1: without it, the system installer refused every quarantine restore.
+    "android.permission.REQUEST_INSTALL_PACKAGES",
     "android.permission.GET_PACKAGE_SIZE",
     "android.permission.KILL_BACKGROUND_PROCESSES",
     "android.permission.POST_NOTIFICATIONS",

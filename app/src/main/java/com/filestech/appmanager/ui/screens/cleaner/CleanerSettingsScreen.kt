@@ -15,10 +15,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -27,9 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.filestech.appmanager.R
+import com.filestech.appmanager.data.system.NotificationChannels
 import com.filestech.appmanager.domain.model.ExportFormat
 import com.filestech.appmanager.domain.model.ScanInterval
 import com.filestech.appmanager.ui.components.BrandedTitle
+import com.filestech.appmanager.ui.components.rememberNotificationPermissionRequest
 import com.filestech.appmanager.ui.components.dialogs.RadioPickerDialog
 import com.filestech.appmanager.ui.components.settings.NavigationRow
 import com.filestech.appmanager.ui.components.settings.SectionHeader
@@ -51,7 +56,13 @@ fun CleanerSettingsScreen(
     var rarelyDialog by rememberSaveable { mutableStateOf(false) }
     var exportDialog by rememberSaveable { mutableStateOf(false) }
 
+    // v0.5.1 — a threshold above 0 posts a notification, which Android 13+ drops until
+    // POST_NOTIFICATIONS is granted: asked for when one is picked.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val requestNotifications = rememberNotificationPermissionRequest(snackbarHostState)
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 navigationIcon = {
@@ -95,7 +106,10 @@ fun CleanerSettingsScreen(
             options  = THRESHOLD_OPTIONS,
             selected = settings.scanner.cacheThresholdMb,
             labelOf  = { thresholdLabel(it) },
-            onSelect = viewModel::setCacheThresholdMb,
+            onSelect = { mb ->
+                viewModel.setCacheThresholdMb(mb)
+                if (mb > 0) requestNotifications(NotificationChannels.SCAN_CHANNEL_ID)
+            },
             onDismiss = { thresholdDialog = false },
         )
     }

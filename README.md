@@ -145,13 +145,16 @@ SHA-256 `76e8772e09951369405f58e70c4afffd41c4687553c6cfa03d08145ff60ff1cf`, unch
 | `PACKAGE_USAGE_STATS` | granted in OS Settings (user opt-in) | Last-used timestamps + StorageStats sizes |
 | `GET_PACKAGE_SIZE` | install-time | StorageStatsManager cache / data sizes |
 | `REQUEST_DELETE_PACKAGES` | install-time | Trigger system uninstall dialog |
+| `REQUEST_INSTALL_PACKAGES` | install-time, plus "Install unknown apps" granted by the user | Restore a quarantined app from its backed-up APK (system installer, user confirms) |
 | `KILL_BACKGROUND_PROCESSES` | install-time | Best-effort force-stop |
-| `POST_NOTIFICATIONS` | runtime (Android 13+) | Cache-threshold notification |
+| `POST_NOTIFICATIONS` | runtime (Android 13+) | Cache threshold, permission changes, end of a quarantine |
+| `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`, `FOREGROUND_SERVICE`, `ACCESS_NETWORK_STATE` | install-time, added by `androidx.work` | Background jobs; the last two are unused (no expedited job, no network constraint) |
+| `com.filestech.appmanager.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | signature, added by `androidx.core` | Keeps the runtime package receiver closed to other apps |
 
-Never requested: `INTERNET`, location, contacts, SMS, calendar,
-`MANAGE_EXTERNAL_STORAGE`. The app degrades gracefully if any optional
-permission is denied (sizes / last-used fall back to 0; notifications stay
-silent).
+That is the full list of the release APK (twelve), asserted by CI. Never requested: `INTERNET`,
+location, contacts, SMS, calendar, `MANAGE_EXTERNAL_STORAGE`. The app degrades gracefully if any
+optional permission is denied (sizes show 0 and apps "Never used"; notifications stay silent). The
+[privacy policy](PRIVACY.md) explains each one.
 
 ---
 
@@ -194,5 +197,8 @@ Total: **226 i18n strings** EN+FR parity 100%, **3 release APK splits 1.86 MB**,
 ## Licence
 
 Apache 2.0 — see [LICENSE](LICENSE).
+
+[Privacy policy](PRIVACY.md) · [Terms of use](TERMS.md) — in English, French, German, Italian and
+Spanish; the French version prevails. The app links to them from About.
 
 Files Tech — France.

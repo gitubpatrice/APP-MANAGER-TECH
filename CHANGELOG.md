@@ -7,6 +7,91 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.5.1] — 2026-10-09 — Quarantine restore, legal texts, look aligned on the suite
+
+### Fixed
+- Restoring a quarantined app did nothing since v0.2.0: the system installer aborts a request from
+  an app that does not declare `REQUEST_INSTALL_PACKAGES` (AOSP `InstallStart`, Android 8+). The
+  permission is now declared; Android still asks the user to allow installs from App Manager Tech,
+  then to confirm each one. Measured on a Galaxy S9: `InstallStart` logged "Requesting uid … needs
+  to declare permission android.permission.REQUEST_INSTALL_PACKAGES" and closed.
+- The same restore dropped the quarantine entry as soon as the installer was launched, so a refused
+  or cancelled install lost the record. Every time the Quarantine screen comes back to the front, a
+  HARD entry now goes only if its app is installed AND was updated since the quarantine (an
+  installed app is not enough: a cancelled uninstall, or a system app's factory version); otherwise
+  it stays, with its backup, and a message says so. The restore intent is pinned to the system
+  installer. Unit tests, proven by sabotage.
+- A real quarantine of an app installed as split APKs (App Bundle — most Play Store apps) backed up
+  its base APK only, then uninstalled it: the backup could never reinstall it. Same for a system
+  app, of which Android only removes the updates. Both are now refused before anything is written
+  or uninstalled ("Reminder only" stays available), and before a backup folder is asked for.
+
+- A quarantine backup is restored only if it is the very file that was saved: its SHA-256 is
+  recorded while it is written (Room schema 8 → 9, `quarantine_entry.apk_sha256`), and a restore
+  installs a verified private copy of it, through a non-exported FileProvider, or refuses with a
+  reason (changed, saved before 0.5.1 without a fingerprint, unreadable). Until now a file swapped
+  in the backup folder would have been installed under the app's name. Measured on a Galaxy S9.
+  The backup is read back and hashed when it is written, before the uninstall (a provider may report
+  success on a truncated file). The copy is hashed in a folder nothing serves and published under a
+  fresh name only when it matches; restores are serialised; the installer pinned is the system app
+  holding INSTALL_PACKAGES.
+- **Turning a history off now erases it** (lifecycle history, action journal, permission changes),
+  as the privacy policy said. It used to stop the recording and cancel the purge: the data stayed
+  forever. Data an older version left behind goes at the first launch.
+
+### Fixed — found by checking every dialog, warning and setting against the code
+- **Notifications never appeared on Android 13+**: `POST_NOTIFICATIONS` was declared but never
+  requested. It is now requested when a notification is turned on (cache threshold, permission
+  changes, quarantine reminder), and once at launch when one is already on — an update from a
+  version that never asked, or a quarantine with its default reminder.
+  A post is counted only if Android lets it through (`areNotificationsEnabled`, channel not
+  blocked): a quarantine reminder dropped by Android is no longer marked as shown.
+- **Protected apps**: batch uninstall from the app list and uninstall from the security audit
+  skipped the 3-second hold. Both now ask for it. Tests proven by sabotage. A batch warning (app list,
+  empty trash) named one protected app only; it now counts the others.
+- **Three settings did nothing**: default sort order, show system apps, and confirm before clearing
+  the cache. All three are now applied (the latter also in the Smart Cleaner).
+- **Permission-change history** lost recorded changes before their retention: the purge deleted
+  the baseline row first. It now keeps, for each app and permission, the newest row older than the
+  cutoff. Instrumented test added.
+- **Smart Cleaner** flagged every uncategorised app as a "duplicate" and counted its whole size as
+  reclaimable. Apps without a category are left out of that rule.
+- Texts that promised what the code does not do: the exclusion list (it only filters Smart Cleaner
+  suggestions), the export (system apps are left out), "Reminder only" (nothing re-enables the app
+  on the review date), lifecycle history (recorded only while the app is running: Android does not
+  deliver these announcements to a stopped app), the PDF "zombie" count (disabled apps), batch force
+  stop ("requested", not "succeeded"). Dialog titles and the trash snackbar show the app's name
+  instead of its package name. Retry on the app list error state did nothing; it rescans.
+- `QuarantineViewModel.quarantine()`, never called, skipped the protected-app check and the
+  journal: removed. A quarantine started from the Quarantine screen is now journalled, like one
+  started from the app detail.
+- The Transparency screen claimed an exhaustive list but left out the three histories, the trash
+  and quarantines, the reading of APK files and the files written outside the app, and said anyone
+  could reproduce the build byte for byte, which has never been verified. Rewritten in five
+  languages; its privacy and terms links now open the app's language.
+- `FDROID.md` said the app shipped only on F-Droid and that GitHub releases were unsigned;
+  `fastlane/README.md` and `THIRD_PARTY_NOTICES.md` (2024 versions, a library no longer used) were
+  stale. Corrected; the notices now say which declared library R8 removes (Coil, and OkHttp with it).
+- Privacy policy and terms of use rewritten from the code: they announced distribution through
+  F-Droid (false), left out the three histories and their retention periods, the files written
+  outside the app (exports, APK backups) and half of the APK's permissions, and named no publisher.
+
+### Added
+- Privacy policy and terms of use in German, Italian and Spanish; the French version prevails, as
+  in Agenda Tech and Notes Tech.
+- About: a "Legal" section (privacy policy, terms of use, licence), each opening the document in
+  the app's language; a files-tech.com link; a copyright line; a "Check for updates" button under
+  the version, which opens the releases page in the browser (the app has no Internet access).
+
+### Changed
+- Splash screen shows the whole logo with rounded corners, no longer cut into a circle.
+- Light theme: bars, menus, dialogs and cards in Agenda Tech's pale blue (`#F0F5FB`) instead of
+  Material 3's default lavender.
+- Top bar: logo and app name on one line, the screen's title below them.
+- README and store listings list every permission of the release APK (twelve).
+
+---
+
 ## [0.5.0] — 2026-10-08 — German / Italian / Spanish, verified builds, audit fixes
 
 ### Added
