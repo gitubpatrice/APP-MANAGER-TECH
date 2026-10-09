@@ -20,7 +20,9 @@ import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.domain.model.ScanInterval
 import com.filestech.appmanager.domain.repository.QuarantineRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -61,9 +63,19 @@ class NotificationNeedViewModel @Inject constructor(
     private val quarantine: QuarantineRepository,
 ) : ViewModel() {
 
-    /** Reads the settings and the quarantine count once, as they are at launch. */
-    suspend fun notificationsNeeded(): Boolean =
+    /**
+     * Reads the settings and the quarantine count once, as they are at launch. A read that fails (a
+     * database that cannot open) means no request this launch, not a crash in a LaunchedEffect.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    suspend fun notificationsNeeded(): Boolean = try {
         notificationsNeeded(settings.flow.first(), quarantine.observeCount().first())
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (e: Exception) {
+        Timber.w(e, "Notification need: settings or quarantine unreadable")
+        false
+    }
 
     companion object {
         /**

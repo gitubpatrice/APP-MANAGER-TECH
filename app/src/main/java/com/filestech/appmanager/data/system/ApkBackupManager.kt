@@ -135,11 +135,9 @@ class ApkBackupManager @Inject constructor(
             // v0.5.1 — the backup is read back and hashed: a provider may report success on a file it
             // truncated or altered. Checked here, while the app is still installed; found at restore
             // time, the damage would come after the uninstall. Not the size: a provider that does not
-            // know it reports 0. A backup that cannot be read back could not be restored either.
-            val readBack = context.contentResolver.openInputStream(backupDoc.uri)?.use { HashUtils.sha256HexLower(it) }
-            if (readBack != sha256) {
-                backupDoc.delete()
-                return@withContext Result.Failure(Reason.FAILED, "Backup read back as $readBack, written as $sha256")
+            // know it reports 0.
+            if (!readsBackAs(backupDoc, sha256)) {
+                return@withContext Result.Failure(Reason.FAILED, "Backup did not read back as written ($sha256)")
             }
 
             Timber.i("ApkBackupManager: backed up %s to %s (sha256 %s)", packageName, backupDoc.uri, sha256)
@@ -172,6 +170,21 @@ class ApkBackupManager @Inject constructor(
             return sha256
         } finally {
             if (sha256 == null) target.delete()
+        }
+    }
+
+    /**
+     * True when [doc] reads back with the SHA-256 [sha256]. A backup that cannot be read back could not
+     * be restored either: a mismatch, no stream or a read that throws all delete [doc]; what the read
+     * throws propagates.
+     */
+    private fun readsBackAs(doc: DocumentFile, sha256: String): Boolean {
+        var readBack: String? = null
+        try {
+            readBack = context.contentResolver.openInputStream(doc.uri)?.use { HashUtils.sha256HexLower(it) }
+            return readBack == sha256
+        } finally {
+            if (readBack != sha256) doc.delete()
         }
     }
 

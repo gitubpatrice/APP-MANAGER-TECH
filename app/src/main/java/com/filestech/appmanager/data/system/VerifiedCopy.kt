@@ -27,8 +27,12 @@ object VerifiedCopy {
      * Returns the verified file in [outDir], or null when the copy's SHA-256 is not [expectedSha256]
      * (nothing published). I/O errors propagate, a failed publication included; the working copy is
      * deleted in every case.
+     *
+     * [workDir] belongs to the call: what it already holds — a copy left by a process killed mid-copy,
+     * which no `finally` ran for — is deleted first. Callers serialise (`ApkBackupManager.restoreLock`).
      */
     fun copyIfMatches(input: InputStream, expectedSha256: String, workDir: File, outDir: File): File? {
+        workDir.listFiles()?.forEach { it.delete() }
         workDir.mkdirs()
         outDir.mkdirs()
         val name = "${UUID.randomUUID()}.apk"

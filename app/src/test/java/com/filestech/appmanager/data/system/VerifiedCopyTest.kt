@@ -68,6 +68,17 @@ class VerifiedCopyTest {
     }
 
     @Test
+    fun `a copy left by a process killed mid-copy is cleared by the next restore`() {
+        work.mkdirs()
+        val leftover = File(work, "killed.apk").apply { writeBytes(apk.copyOf(70_000)) }
+
+        VerifiedCopy.copyIfMatches(ByteArrayInputStream(apk), apkSha256, work, out)
+
+        assertThat(leftover.exists()).isFalse()
+        assertThat(work.listFiles().orEmpty()).isEmpty()
+    }
+
+    @Test
     fun `only copies older than the keep time are dropped`() {
         out.mkdirs()
         val now = 10_000_000L

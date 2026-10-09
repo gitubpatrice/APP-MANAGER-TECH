@@ -4,9 +4,11 @@ import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.domain.repository.AmtActionRepository
 import com.filestech.appmanager.domain.repository.AppLifecycleRepository
 import com.filestech.appmanager.domain.repository.PermissionSnapshotRepository
+import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
@@ -52,5 +54,27 @@ class EraseDisabledHistoriesUseCaseTest {
         coVerify(exactly = 0) { lifecycle.deleteAll() }
         coVerify(exactly = 1) { journal.deleteAll() }
         coVerify(exactly = 0) { permissions.deleteAll() }
+    }
+
+    @Test
+    fun `a failing permission delete is logged, never thrown`() = runTest {
+        // Room's error on a database that cannot open: not an SQLException. Called from a scope with
+        // no handler, it would crash the app at launch.
+        coEvery { permissions.deleteAll() } throws IllegalStateException("Cannot open database")
+
+        useCase(lifecycleOn = false, journalOn = false, permissionsOn = false)
+
+        coVerify(exactly = 1) { lifecycle.deleteAll() }
+        coVerify(exactly = 1) { journal.deleteAll() }
+    }
+
+    @Test
+    fun `cancellation still propagates`() = runTest {
+        coEvery { permissions.deleteAll() } throws CancellationException("scope cancelled")
+
+        val thrown = runCatching { useCase(lifecycleOn = true, journalOn = true, permissionsOn = false) }
+            .exceptionOrNull()
+
+        assertThat(thrown).isInstanceOf(CancellationException::class.java)
     }
 }

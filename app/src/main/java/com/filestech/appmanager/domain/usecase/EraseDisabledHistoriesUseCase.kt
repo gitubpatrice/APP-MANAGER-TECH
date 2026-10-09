@@ -1,9 +1,9 @@
 package com.filestech.appmanager.domain.usecase
 
-import android.database.SQLException
 import com.filestech.appmanager.domain.repository.AmtActionRepository
 import com.filestech.appmanager.domain.repository.AppLifecycleRepository
 import com.filestech.appmanager.domain.repository.PermissionSnapshotRepository
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -22,14 +22,20 @@ class EraseDisabledHistoriesUseCase @Inject constructor(
     private val permissions: PermissionSnapshotRepository,
 ) {
 
+    // The permission repository returns a count, not an Outcome, and Room fails with more than
+    // SQLException (IllegalStateException on a database that cannot open). Called from the
+    // application scope, which has no handler: a failed delete is logged, never a crash at launch —
+    // the next launch tries again. Cancellation still propagates.
+    @Suppress("TooGenericExceptionCaught")
     suspend operator fun invoke(lifecycleOn: Boolean, journalOn: Boolean, permissionsOn: Boolean) {
         if (!lifecycleOn) lifecycle.deleteAll()
         if (!journalOn) journal.deleteAll()
         if (!permissionsOn) {
-            // Returns a count, not an Outcome: a failed delete is logged, never fatal.
             try {
                 permissions.deleteAll()
-            } catch (e: SQLException) {
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (e: Exception) {
                 Timber.w(e, "Permission history: delete on opt-out failed")
             }
         }
