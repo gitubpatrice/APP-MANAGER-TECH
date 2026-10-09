@@ -1,6 +1,6 @@
 # Condiciones de uso — App Manager Tech
 
-_Traducción de la versión del 8 de octubre de 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md)
+_Traducción de la versión del 9 de octubre de 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md)
 
 > Esta traducción la ha realizado el desarrollador con ayuda de herramientas automáticas y todavía
 > no la ha revisado un hablante nativo. **En caso de discrepancia, prevalece la
@@ -63,9 +63,11 @@ redistribuya si su licencia lo prohíbe.
   vez, la autorización para instalar apps desde App Manager Tech.
   La cuarentena con copia de seguridad no se ofrece para una app instalada como varios archivos APK (App Bundle) ni para una app del
   sistema: una copia de seguridad de su archivo principal por sí solo no podría reinstalarla.
-- **App Manager Tech todavía no comprueba que el APK de una copia de seguridad no haya sido
-  modificado** en su carpeta. Restaure únicamente archivos que usted mismo haya guardado, en una
-  carpeta que ninguna otra app modifique.
+- **Una copia de seguridad modificada nunca se restaura.** Al guardarla, App Manager Tech registra
+  la huella SHA-256 del archivo; para restaurarla, vuelve a copiarlo en su espacio privado,
+  comprueba que la copia tiene exactamente esa huella e instala esa copia verificada; si no, la
+  rechaza. Una copia hecha antes de la versión 0.5.1, sin huella, no se puede comprobar y por tanto
+  la app no la restaura: el archivo sigue en su carpeta.
 - Desinstalar App Manager Tech borra sus historiales, su papelera y sus cuarentenas. Los APK
   guardados y las exportaciones permanecen en las carpetas donde usted los puso.
 

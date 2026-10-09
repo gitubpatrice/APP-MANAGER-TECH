@@ -1,6 +1,6 @@
 # Terms of use — App Manager Tech
 
-_Last updated: 8 October 2026_ · 🇫🇷 [Français](TERMS.fr.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
+_Last updated: 9 October 2026_ · 🇫🇷 [Français](TERMS.fr.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > This is a translation. **In case of discrepancy, the [French version](TERMS.fr.md) prevails**:
 > the publisher is based in France and these terms are governed by French law.
@@ -58,8 +58,11 @@ forbids it.
   apps from App Manager Tech.
   Quarantine with backup is not offered for an app installed as several APK files (App Bundle) or for a system app:
   a backup of its main file alone could not reinstall it.
-- **App Manager Tech does not yet check that a backed-up APK has not been modified** in its folder.
-  Only restore files you backed up yourself, in a folder no other app modifies.
+- **A modified backup is never restored.** When it saves a backup, App Manager Tech records the
+  file's SHA-256 fingerprint; to restore it, it copies the file into its private storage again,
+  checks that the copy has exactly that fingerprint and installs that verified copy, or refuses. A
+  backup made before version 0.5.1, without a fingerprint, cannot be checked and so is not
+  restored by the app: the file stays in your folder.
 - Uninstalling App Manager Tech deletes its histories, its trash and its quarantines. Backed-up
   APKs and exports stay in the folders where you put them.
 

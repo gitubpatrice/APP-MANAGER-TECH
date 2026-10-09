@@ -1,6 +1,6 @@
 # Nutzungsbedingungen — App Manager Tech
 
-_Übersetzung der Fassung vom 8. Oktober 2026._ · 🇬🇧 [English](TERMS.md) · 🇫🇷 [Français](TERMS.fr.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
+_Übersetzung der Fassung vom 9. Oktober 2026._ · 🇬🇧 [English](TERMS.md) · 🇫🇷 [Français](TERMS.fr.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > Diese Übersetzung wurde vom Entwickler maschinengestützt erstellt und noch nicht von einer
 > Muttersprachlerin oder einem Muttersprachler geprüft. **Bei Abweichungen gilt die
@@ -67,9 +67,12 @@ dieser App: Verbreiten Sie das APK nicht weiter, wenn die Lizenz der App dies ve
   App Manager Tech zu installieren.
   Für eine App aus mehreren APK-Dateien (App Bundle) und für eine System-App wird die Quarantäne
   mit Sicherung nicht angeboten: Eine Sicherung allein ihrer Hauptdatei könnte sie nicht neu installieren.
-- **App Manager Tech prüft noch nicht, ob ein gesichertes APK in seinem Ordner verändert wurde.**
-  Stellen Sie nur Dateien wieder her, die Sie selbst gesichert haben, in einem Ordner, den keine
-  andere App verändert.
+- **Eine veränderte Sicherung wird nie wiederhergestellt.** Beim Sichern speichert App Manager Tech
+  den SHA-256-Fingerabdruck der Datei; beim Wiederherstellen kopiert es die Datei erneut in seinen
+  privaten Speicher, prüft, dass die Kopie genau diesen Fingerabdruck hat, und installiert diese
+  geprüfte Kopie, andernfalls lehnt es ab. Eine Sicherung aus einer Version vor 0.5.1 hat keinen
+  Fingerabdruck, kann nicht geprüft werden und wird daher von der App nicht wiederhergestellt: Die
+  Datei bleibt in Ihrem Ordner.
 - Wenn Sie App Manager Tech deinstallieren, werden die Verläufe, der Papierkorb und die Quarantänen
   der App gelöscht. Die gesicherten APKs und die Exporte bleiben in den Ordnern, in die Sie sie
   gelegt haben.

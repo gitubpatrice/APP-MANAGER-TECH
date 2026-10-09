@@ -1,6 +1,6 @@
 # Conditions d'utilisation — App Manager Tech
 
-_Dernière mise à jour : 8 octobre 2026_ · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
+_Dernière mise à jour : 9 octobre 2026_ · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > **Version de référence.** En cas de divergence entre ces conditions et l'une de leurs traductions,
 > c'est cette version française qui fait foi.
@@ -65,9 +65,11 @@ redistribuez pas si sa licence l'interdit.
   La quarantaine avec sauvegarde n'est pas proposée pour une application installée en plusieurs
   fichiers APK (App Bundle) ni pour une application système : la sauvegarde de son seul fichier principal ne pourrait pas
   la réinstaller.
-- **App Manager Tech ne vérifie pas encore qu'un APK sauvegardé n'a pas été modifié** dans son
-  dossier. Ne restaurez que des fichiers que vous avez vous-même sauvegardés, dans un dossier
-  qu'aucune autre application ne modifie.
+- **Une sauvegarde modifiée n'est jamais restaurée.** À la sauvegarde, App Manager Tech enregistre
+  l'empreinte SHA-256 du fichier ; à la restauration, il en refait une copie dans son espace privé,
+  vérifie qu'elle a exactement cette empreinte et installe cette copie vérifiée, sinon il refuse.
+  Une sauvegarde faite avant la version 0.5.1, sans empreinte, ne peut pas être vérifiée et n'est
+  donc pas restaurée par l'application : le fichier reste dans votre dossier.
 - Désinstaller App Manager Tech efface ses historiques, sa corbeille et ses quarantaines. Les APK
   sauvegardés et les exports restent dans les dossiers où vous les avez mis.
 

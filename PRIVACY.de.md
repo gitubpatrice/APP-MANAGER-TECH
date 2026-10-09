@@ -1,6 +1,6 @@
 # Datenschutzerklärung — App Manager Tech
 
-_Übersetzung der Fassung vom 8. Oktober 2026._ · 🇬🇧 [English](PRIVACY.md) · 🇫🇷 [Français](PRIVACY.fr.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Übersetzung der Fassung vom 9. Oktober 2026._ · 🇬🇧 [English](PRIVACY.md) · 🇫🇷 [Français](PRIVACY.fr.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > Diese Übersetzung wurde vom Entwickler maschinengestützt erstellt und noch nicht von einer
 > Muttersprachlerin oder einem Muttersprachler geprüft. **Bei Abweichungen gilt die
@@ -33,7 +33,7 @@ nicht verschlüsselt: Sie beschreibt Ihre Apps, nicht Ihre Inhalte.
 | Verlauf der Berechtigungen, die jeder App erteilt wurden — **standardmäßig deaktiviert** | Regelmäßige Erfassung, wenn Sie den Verlauf aktivieren | Standardmäßig 90 Tage, einstellbar von 7 bis 365 |
 | Verlauf der Installationen, Updates und Deinstallationen, mit dem SHA-256-Fingerabdruck jedes APK und dem Deinstallationsgrund, den Sie freiwillig angeben — **standardmäßig deaktiviert** | Meldungen von Android, die eingehen, während die App läuft, wenn Sie den Verlauf aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365 |
 | Protokoll der Aktionen, die in App Manager Tech ausgelöst wurden — **standardmäßig deaktiviert** | Ihre Aktionen, wenn Sie das Protokoll aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365 |
-| Papierkorb und Quarantänen | Ihre Aktionen | Bis Sie sie leeren oder wiederherstellen |
+| Papierkorb und Quarantänen (mit dem SHA-256-Fingerabdruck jedes gesicherten APK) | Ihre Aktionen | Bis Sie sie leeren oder wiederherstellen |
 | Einstellungen: Design, Schwellenwerte, ausgeschlossene oder geschützte Apps, Tags, und die Zugriffsberechtigung für den von Ihnen gewählten Sicherungsordner | Sie | Bis zur Deinstallation |
 
 **Tracker** werden erkannt, indem die Namen der Komponenten, die jede App gegenüber Android
@@ -123,7 +123,7 @@ Die App erhebt keine Daten und ist für alle Altersgruppen geeignet.
 Diese Erklärung kann sich mit der App weiterentwickeln; das Datum oben im Dokument gibt die letzte
 Überarbeitung an, und die Historie ist in diesem Repository öffentlich. In der Fassung vom
 23. Mai 2026 fehlten die Verläufe und ihre Aufbewahrungsfristen, die außerhalb der App
-geschriebenen Dateien und die Hälfte der Berechtigungen des APK. Die Fassung vom 8. Oktober 2026
+geschriebenen Dateien und die Hälfte der Berechtigungen des APK. Die Fassung vom 9. Oktober 2026
 fügt `REQUEST_INSTALL_PACKAGES` hinzu, ohne die Android jede Wiederherstellung aus einer Quarantäne
 verweigerte.
 

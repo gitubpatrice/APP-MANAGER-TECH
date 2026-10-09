@@ -1,5 +1,5 @@
 v0.5.1
-• Restaurar desde la cuarentena funciona (Android lo rechazaba); no se ofrece si es imposible
+• Restaurar desde la cuarentena funciona (Android lo rechazaba), solo desde una copia intacta
 • Las notificaciones se solicitan al activarlas: desde Android 13 no aparecían nunca
 • Apps protegidas: mantener 3 s también en la desinstalación por lotes y la auditoría
 • Orden predeterminado, apps del sistema y «confirmar antes de borrar» ya funcionan

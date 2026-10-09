@@ -1,5 +1,5 @@
 v0.5.1
-• Quarantäne-Wiederherstellung funktioniert (Android lehnte ab); nur, wo möglich
+• Quarantäne-Wiederherstellung funktioniert (Android lehnte ab), nur aus unveränderter Sicherung
 • Benachrichtigungen werden beim Einschalten angefordert: ab Android 13 erschienen sie nie
 • Geschützte Apps: 3-Sekunden-Halten auch bei Sammel-Deinstallation und Sicherheitsprüfung
 • Standardsortierung, System-Apps und „Vor dem Löschen bestätigen“ wirken jetzt

@@ -1,6 +1,6 @@
 # Politique de confidentialité — App Manager Tech
 
-_Dernière mise à jour : 8 octobre 2026_ · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Dernière mise à jour : 9 octobre 2026_ · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > **Version de référence.** En cas de divergence entre cette politique et l'une de ses traductions,
 > c'est cette version française qui fait foi.
@@ -32,7 +32,7 @@ elle décrit vos applications, pas vos contenus.
 | Historique des permissions accordées à chaque application — **désactivé par défaut** | Relevé périodique, si vous l'activez | 90 jours par défaut, réglable de 7 à 365 |
 | Historique des installations, mises à jour et désinstallations, avec l'empreinte SHA-256 de chaque APK et le motif de désinstallation que vous choisissez de donner — **désactivé par défaut** | Annonces d'Android reçues pendant que l'application fonctionne, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 |
 | Journal des actions lancées depuis App Manager Tech — **désactivé par défaut** | Vos actions, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 |
-| Corbeille et quarantaines | Vos actions | Jusqu'à ce que vous les vidiez ou restauriez |
+| Corbeille et quarantaines (avec l'empreinte SHA-256 de chaque APK sauvegardé) | Vos actions | Jusqu'à ce que vous les vidiez ou restauriez |
 | Réglages : thème, seuils, applications ignorées ou protégées, étiquettes, et l'autorisation d'accès au dossier de sauvegarde que vous avez choisi | Vous | Jusqu'à la désinstallation |
 
 **Les pisteurs** sont repérés en comparant les noms des composants que chaque application déclare à
@@ -123,7 +123,7 @@ L'application ne collecte aucune donnée et convient à tous les publics.
 Cette politique pourra évoluer avec l'application ; la date en tête de document indique la dernière
 révision, et l'historique est public dans ce dépôt. La version du 23 mai 2026 omettait les
 historiques et leurs durées de conservation, les fichiers écrits hors de l'application, et la
-moitié des permissions de l'APK. Celle du 8 octobre 2026 ajoute `REQUEST_INSTALL_PACKAGES`, sans
+moitié des permissions de l'APK. Celle du 9 octobre 2026 ajoute `REQUEST_INSTALL_PACKAGES`, sans
 laquelle Android refusait toute restauration d'une quarantaine.
 
 ## Éditeur et contact

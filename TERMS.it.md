@@ -1,6 +1,6 @@
 # Condizioni d'uso — App Manager Tech
 
-_Traduzione della versione dell'8 ottobre 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇪🇸 [Español](TERMS.es.md)
+_Traduzione della versione del 9 ottobre 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > Questa traduzione è stata prodotta dallo sviluppatore con l'aiuto di strumenti automatici e non è
 > ancora stata rivista da un madrelingua. **In caso di discordanza prevale la
@@ -62,9 +62,11 @@ ridistribuisca se la sua licenza lo vieta.
   prima volta, l'autorizzazione a installare app da App Manager Tech.
   La quarantena con backup non è proposta per un'app installata come più file APK (App Bundle) né per un'app di sistema:
   un backup del solo file principale non potrebbe reinstallarla.
-- **App Manager Tech non verifica ancora che un APK salvato non sia stato modificato** nella sua
-  cartella. Ripristini soltanto file che ha salvato personalmente, in una cartella che nessun'altra
-  app modifica.
+- **Un backup modificato non viene mai ripristinato.** Al momento del backup, App Manager Tech
+  registra l'impronta SHA-256 del file; per il ripristino, ne fa di nuovo una copia nel proprio
+  spazio privato, verifica che la copia abbia esattamente quell'impronta e installa quella copia
+  verificata, altrimenti rifiuta. Un backup fatto prima della versione 0.5.1, senza impronta, non
+  può essere verificato e quindi l'app non lo ripristina: il file resta nella sua cartella.
 - Disinstallare App Manager Tech ne cancella gli storici, il cestino e le quarantene. Gli APK
   salvati e le esportazioni restano nelle cartelle in cui li ha messi.
 

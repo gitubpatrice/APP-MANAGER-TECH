@@ -1,5 +1,5 @@
 v0.5.1
-• Quarantine restore works (Android refused it); not offered for apps it could not restore
+• Quarantine restore works (Android refused it), from an intact backup only (SHA-256)
 • Notifications are requested when you turn one on: on Android 13+ they never appeared
 • Protected apps: the 3-second hold also covers batch uninstall and the security audit
 • Default sort, system apps and “confirm before deleting” settings now take effect

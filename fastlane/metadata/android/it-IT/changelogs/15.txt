@@ -1,5 +1,5 @@
 v0.5.1
-• Il ripristino dalla quarantena funziona (Android lo rifiutava); non proposto se impossibile
+• Il ripristino dalla quarantena funziona (Android lo rifiutava), solo da un backup intatto
 • Le notifiche vengono richieste all'attivazione: da Android 13 non comparivano mai
 • App protette: la pressione di 3 s copre anche la disinstallazione in blocco e il controllo
 • Ordinamento predefinito, app di sistema e «conferma prima di eliminare» ora funzionano

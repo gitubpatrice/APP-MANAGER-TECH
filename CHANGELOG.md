@@ -7,7 +7,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
-## [0.5.1] — 2026-10-08 — Quarantine restore, legal texts, look aligned on the suite
+## [0.5.1] — 2026-10-09 — Quarantine restore, legal texts, look aligned on the suite
 
 ### Fixed
 - Restoring a quarantined app did nothing since v0.2.0: the system installer aborts a request from
@@ -25,6 +25,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   its base APK only, then uninstalled it: the backup could never reinstall it. Same for a system
   app, of which Android only removes the updates. Both are now refused before anything is written
   or uninstalled ("Reminder only" stays available), and before a backup folder is asked for.
+
+- A quarantine backup is restored only if it is the very file that was saved: its SHA-256 is
+  recorded while it is written (Room schema 8 → 9, `quarantine_entry.apk_sha256`), and a restore
+  installs a verified private copy of it, through a non-exported FileProvider, or refuses with a
+  reason (changed, saved before 0.5.1 without a fingerprint, unreadable). Until now a file swapped
+  in the backup folder would have been installed under the app's name. Measured on a Galaxy S9.
 
 ### Fixed — found by checking every dialog, warning and setting against the code
 - **Notifications never appeared on Android 13+**: `POST_NOTIFICATIONS` was declared but never

@@ -1,6 +1,6 @@
 # Política de privacidad — App Manager Tech
 
-_Traducción de la versión del 8 de octubre de 2026._ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md)
+_Traducción de la versión del 9 de octubre de 2026._ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md)
 
 > Esta traducción la ha realizado el desarrollador con ayuda de herramientas automáticas y todavía
 > no la ha revisado un hablante nativo. **En caso de discrepancia, prevalece la
@@ -34,7 +34,7 @@ apps, no sus contenidos.
 | Historial de los permisos concedidos a cada app — **desactivado por defecto** | Instantánea periódica, si lo activa | 90 días por defecto, ajustable de 7 a 365 |
 | Historial de las instalaciones, actualizaciones y desinstalaciones, con la huella SHA-256 de cada APK y el motivo de desinstalación que usted decida indicar — **desactivado por defecto** | Avisos de Android recibidos mientras la app está en funcionamiento, si lo activa | 180 días por defecto, ajustable de 30 a 365 |
 | Registro de las acciones iniciadas desde App Manager Tech — **desactivado por defecto** | Sus acciones, si lo activa | 180 días por defecto, ajustable de 30 a 365 |
-| Papelera y cuarentenas | Sus acciones | Hasta que usted las vacíe o las restaure |
+| Papelera y cuarentenas (con la huella SHA-256 de cada APK guardado) | Sus acciones | Hasta que usted las vacíe o las restaure |
 | Ajustes: tema, umbrales, apps ignoradas o protegidas, etiquetas, y la autorización de acceso a la carpeta de copias de seguridad que usted haya elegido | Usted | Hasta la desinstalación |
 
 **Los rastreadores** se detectan comparando los nombres de los componentes que cada app declara a
@@ -122,7 +122,7 @@ La app no recoge ningún dato y es apta para todos los públicos.
 Esta política puede evolucionar junto con la app; la fecha de arriba indica la última revisión, y
 el historial es público en este repositorio. La versión del 23 de mayo de 2026 omitía los
 historiales y sus plazos de conservación, los archivos escritos fuera de la app, y la mitad de los
-permisos del APK. La del 8 de octubre de 2026 añade `REQUEST_INSTALL_PACKAGES`, sin el cual Android
+permisos del APK. La del 9 de octubre de 2026 añade `REQUEST_INSTALL_PACKAGES`, sin el cual Android
 rechazaba cualquier restauración de una cuarentena.
 
 ## Editor y contacto

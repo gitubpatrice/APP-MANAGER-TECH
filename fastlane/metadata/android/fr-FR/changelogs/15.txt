@@ -1,5 +1,5 @@
 v0.5.1
-• Restaurer une quarantaine marche (Android refusait) ; pas proposé si impossible
+• Restaurer une quarantaine marche (Android refusait), d'une sauvegarde intacte (SHA-256)
 • Notifications demandées à l'activation : sous Android 13+, elles n'apparaissaient jamais
 • Apps protégées : l'appui de 3 s couvre aussi la désinstallation par lot et l'audit
 • Tri par défaut, apps système et « confirmer avant suppression » fonctionnent enfin

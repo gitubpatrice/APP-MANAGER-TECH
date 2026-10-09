@@ -1,6 +1,6 @@
 # Privacy Policy — App Manager Tech
 
-_Last updated: 8 October 2026_ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Last updated: 9 October 2026_ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > This is a translation. **In case of discrepancy, the [French version](PRIVACY.fr.md) prevails**:
 > the publisher is based in France and the French text is the one he writes and answers for.
@@ -31,7 +31,7 @@ your apps, not your content.
 | History of the permissions granted to each app — **off by default** | Periodic capture, if you turn it on | 90 days by default, adjustable from 7 to 365 |
 | History of installs, updates and uninstalls, with the SHA-256 fingerprint of each APK and the uninstall reason you choose to give — **off by default** | Android's announcements received while the app is running, if you turn it on | 180 days by default, adjustable from 30 to 365 |
 | Journal of the actions started from App Manager Tech — **off by default** | Your actions, if you turn it on | 180 days by default, adjustable from 30 to 365 |
-| Trash and quarantines | Your actions | Until you empty or restore them |
+| Trash and quarantines (with the SHA-256 fingerprint of each backed-up APK) | Your actions | Until you empty or restore them |
 | Settings: theme, thresholds, ignored or protected apps, tags, and the access grant to the backup folder you picked | You | Until uninstall |
 
 **Trackers** are spotted by comparing the names of the components each app declares to Android
@@ -114,7 +114,7 @@ The app collects no data and is suitable for all audiences.
 
 This policy may change with the app; the date at the top of the document shows the latest revision,
 and the history is public in this repository. The version of 23 May 2026 left out the histories and
-their retention periods, the files written outside the app, and half of the APK's permissions. The version of 8 October 2026 adds `REQUEST_INSTALL_PACKAGES`,
+their retention periods, the files written outside the app, and half of the APK's permissions. The version of 9 October 2026 adds `REQUEST_INSTALL_PACKAGES`,
 without which Android refused every restore of a quarantine.
 
 ## Publisher and contact

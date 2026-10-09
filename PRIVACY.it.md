@@ -1,6 +1,6 @@
 # Informativa sulla privacy — App Manager Tech
 
-_Traduzione della versione dell'8 ottobre 2026._ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Traduzione della versione del 9 ottobre 2026._ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > Questa traduzione è stata prodotta dallo sviluppatore con l'aiuto di strumenti automatici e non è
 > ancora stata rivista da un madrelingua. **In caso di discordanza prevale la
@@ -33,7 +33,7 @@ le sue app, non i suoi contenuti.
 | Storico delle autorizzazioni concesse a ciascuna app — **disattivato per impostazione predefinita** | Rilevazione periodica, se lo attiva | 90 giorni per impostazione predefinita, regolabile da 7 a 365 |
 | Storico di installazioni, aggiornamenti e disinstallazioni, con l'impronta SHA-256 di ciascun APK e il motivo della disinstallazione che sceglie di indicare — **disattivato per impostazione predefinita** | Segnalazioni di Android ricevute mentre l'app è in esecuzione, se lo attiva | 180 giorni per impostazione predefinita, regolabile da 30 a 365 |
 | Registro delle azioni avviate da App Manager Tech — **disattivato per impostazione predefinita** | Le sue azioni, se lo attiva | 180 giorni per impostazione predefinita, regolabile da 30 a 365 |
-| Cestino e quarantene | Le sue azioni | Finché non li svuota o non li ripristina |
+| Cestino e quarantene (con l'impronta SHA-256 di ogni APK salvato) | Le sue azioni | Finché non li svuota o non li ripristina |
 | Impostazioni: tema, soglie, app ignorate o protette, tag, e l'autorizzazione di accesso alla cartella di backup che ha scelto | Lei | Fino alla disinstallazione |
 
 **I tracker** vengono individuati confrontando i nomi dei componenti che ciascuna app dichiara ad
@@ -119,7 +119,7 @@ L'app non raccoglie alcun dato ed è adatta a tutti.
 Questa informativa può evolvere insieme all'app; la data in alto indica l'ultima revisione, e la
 cronologia è pubblica in questo repository. La versione del 23 maggio 2026 ometteva gli storici e i
 relativi tempi di conservazione, i file scritti al di fuori dell'app e metà delle autorizzazioni
-dell'APK. Quella dell'8 ottobre 2026 aggiunge `REQUEST_INSTALL_PACKAGES`, senza la quale Android
+dell'APK. Quella del 9 ottobre 2026 aggiunge `REQUEST_INSTALL_PACKAGES`, senza la quale Android
 rifiutava qualsiasi ripristino da una quarantena.
 
 ## Editore e contatti
