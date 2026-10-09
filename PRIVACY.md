@@ -28,9 +28,9 @@ your apps, not your content.
 |---|---|---|
 | List of apps: name, version, sizes, install, update and last-used dates, store of origin, state (enabled, hibernated) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Replaced at every scan |
 | Trackers detected, privacy score | Computed on the phone (see below) | Recomputed every time they are shown |
-| History of the permissions granted to each app — **off by default** | Periodic capture, if you turn it on | 90 days by default, adjustable from 7 to 365 |
-| History of installs, updates and uninstalls, with the SHA-256 fingerprint of each APK and the uninstall reason you choose to give — **off by default** | Android's announcements received while the app is running, if you turn it on | 180 days by default, adjustable from 30 to 365 |
-| Journal of the actions started from App Manager Tech — **off by default** | Your actions, if you turn it on | 180 days by default, adjustable from 30 to 365 |
+| History of the permissions granted to each app — **off by default** | Periodic capture, if you turn it on | 90 days by default, adjustable from 7 to 365; the last known state of each permission is kept as a reference; all erased when you turn it off |
+| History of installs, updates and uninstalls, with the SHA-256 fingerprint of each APK and the uninstall reason you choose to give — **off by default** | Android's announcements received while the app is running, if you turn it on | 180 days by default, adjustable from 30 to 365; erased when you turn it off |
+| Journal of the actions started from App Manager Tech — **off by default** | Your actions, if you turn it on | 180 days by default, adjustable from 30 to 365; erased when you turn it off |
 | Trash and quarantines (with the SHA-256 fingerprint of each backed-up APK) | Your actions | Until you empty or restore them |
 | Settings: theme, thresholds, ignored or protected apps, tags, and the access grant to the backup folder you picked | You | Until uninstall |
 

@@ -31,9 +31,9 @@ apps, no sus contenidos.
 |---|---|---|
 | Lista de las apps: nombre, versión, tamaños, fechas de instalación, de actualización y de último uso, tienda de origen, estado (activada, hibernada) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Se sustituye en cada análisis |
 | Rastreadores detectados, puntuación de privacidad | Calculados en el teléfono (véase más abajo) | Se recalculan cada vez que se muestran |
-| Historial de los permisos concedidos a cada app — **desactivado por defecto** | Instantánea periódica, si lo activa | 90 días por defecto, ajustable de 7 a 365 |
-| Historial de las instalaciones, actualizaciones y desinstalaciones, con la huella SHA-256 de cada APK y el motivo de desinstalación que usted decida indicar — **desactivado por defecto** | Avisos de Android recibidos mientras la app está en funcionamiento, si lo activa | 180 días por defecto, ajustable de 30 a 365 |
-| Registro de las acciones iniciadas desde App Manager Tech — **desactivado por defecto** | Sus acciones, si lo activa | 180 días por defecto, ajustable de 30 a 365 |
+| Historial de los permisos concedidos a cada app — **desactivado por defecto** | Instantánea periódica, si lo activa | 90 días por defecto, ajustable de 7 a 365; el último estado conocido de cada permiso se conserva como referencia; todo se borra al desactivarlo |
+| Historial de las instalaciones, actualizaciones y desinstalaciones, con la huella SHA-256 de cada APK y el motivo de desinstalación que usted decida indicar — **desactivado por defecto** | Avisos de Android recibidos mientras la app está en funcionamiento, si lo activa | 180 días por defecto, ajustable de 30 a 365; se borra al desactivarlo |
+| Registro de las acciones iniciadas desde App Manager Tech — **desactivado por defecto** | Sus acciones, si lo activa | 180 días por defecto, ajustable de 30 a 365; se borra al desactivarlo |
 | Papelera y cuarentenas (con la huella SHA-256 de cada APK guardado) | Sus acciones | Hasta que usted las vacíe o las restaure |
 | Ajustes: tema, umbrales, apps ignoradas o protegidas, etiquetas, y la autorización de acceso a la carpeta de copias de seguridad que usted haya elegido | Usted | Hasta la desinstalación |
 

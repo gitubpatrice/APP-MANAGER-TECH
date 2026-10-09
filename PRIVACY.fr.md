@@ -29,9 +29,9 @@ elle décrit vos applications, pas vos contenus.
 |---|---|---|
 | Liste des applications : nom, version, tailles, dates d'installation, de mise à jour et de dernière utilisation, magasin d'origine, état (activée, en veille) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Remplacée à chaque analyse |
 | Pisteurs détectés, score de confidentialité | Calculés sur le téléphone (voir plus bas) | Recalculés à chaque affichage |
-| Historique des permissions accordées à chaque application — **désactivé par défaut** | Relevé périodique, si vous l'activez | 90 jours par défaut, réglable de 7 à 365 |
-| Historique des installations, mises à jour et désinstallations, avec l'empreinte SHA-256 de chaque APK et le motif de désinstallation que vous choisissez de donner — **désactivé par défaut** | Annonces d'Android reçues pendant que l'application fonctionne, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 |
-| Journal des actions lancées depuis App Manager Tech — **désactivé par défaut** | Vos actions, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 |
+| Historique des permissions accordées à chaque application — **désactivé par défaut** | Relevé périodique, si vous l'activez | 90 jours par défaut, réglable de 7 à 365 ; le dernier état connu de chaque permission est gardé comme référence ; tout est effacé quand vous le désactivez |
+| Historique des installations, mises à jour et désinstallations, avec l'empreinte SHA-256 de chaque APK et le motif de désinstallation que vous choisissez de donner — **désactivé par défaut** | Annonces d'Android reçues pendant que l'application fonctionne, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 ; effacé quand vous le désactivez |
+| Journal des actions lancées depuis App Manager Tech — **désactivé par défaut** | Vos actions, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 ; effacé quand vous le désactivez |
 | Corbeille et quarantaines (avec l'empreinte SHA-256 de chaque APK sauvegardé) | Vos actions | Jusqu'à ce que vous les vidiez ou restauriez |
 | Réglages : thème, seuils, applications ignorées ou protégées, étiquettes, et l'autorisation d'accès au dossier de sauvegarde que vous avez choisi | Vous | Jusqu'à la désinstallation |
 

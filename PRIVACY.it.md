@@ -30,9 +30,9 @@ le sue app, non i suoi contenuti.
 |---|---|---|
 | Elenco delle app: nome, versione, dimensioni, date di installazione, di aggiornamento e di ultimo utilizzo, store di origine, stato (attivata, ibernata) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Sostituito a ogni analisi |
 | Tracker rilevati, punteggio privacy | Calcolati sul telefono (veda più avanti) | Ricalcolati a ogni visualizzazione |
-| Storico delle autorizzazioni concesse a ciascuna app — **disattivato per impostazione predefinita** | Rilevazione periodica, se lo attiva | 90 giorni per impostazione predefinita, regolabile da 7 a 365 |
-| Storico di installazioni, aggiornamenti e disinstallazioni, con l'impronta SHA-256 di ciascun APK e il motivo della disinstallazione che sceglie di indicare — **disattivato per impostazione predefinita** | Segnalazioni di Android ricevute mentre l'app è in esecuzione, se lo attiva | 180 giorni per impostazione predefinita, regolabile da 30 a 365 |
-| Registro delle azioni avviate da App Manager Tech — **disattivato per impostazione predefinita** | Le sue azioni, se lo attiva | 180 giorni per impostazione predefinita, regolabile da 30 a 365 |
+| Storico delle autorizzazioni concesse a ciascuna app — **disattivato per impostazione predefinita** | Rilevazione periodica, se lo attiva | 90 giorni per impostazione predefinita, regolabile da 7 a 365; l'ultimo stato noto di ogni autorizzazione è conservato come riferimento; tutto viene cancellato quando lo disattiva |
+| Storico di installazioni, aggiornamenti e disinstallazioni, con l'impronta SHA-256 di ciascun APK e il motivo della disinstallazione che sceglie di indicare — **disattivato per impostazione predefinita** | Segnalazioni di Android ricevute mentre l'app è in esecuzione, se lo attiva | 180 giorni per impostazione predefinita, regolabile da 30 a 365; cancellato quando lo disattiva |
+| Registro delle azioni avviate da App Manager Tech — **disattivato per impostazione predefinita** | Le sue azioni, se lo attiva | 180 giorni per impostazione predefinita, regolabile da 30 a 365; cancellato quando lo disattiva |
 | Cestino e quarantene (con l'impronta SHA-256 di ogni APK salvato) | Le sue azioni | Finché non li svuota o non li ripristina |
 | Impostazioni: tema, soglie, app ignorate o protette, tag, e l'autorizzazione di accesso alla cartella di backup che ha scelto | Lei | Fino alla disinstallazione |
 

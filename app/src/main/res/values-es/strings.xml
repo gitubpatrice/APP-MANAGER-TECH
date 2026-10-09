@@ -119,6 +119,11 @@
     <string name="critical_action_uninstall">Desinstalar</string>
     <string name="critical_action_quarantine_hard">Cuarentena + desinstalación</string>
     <string name="critical_warning_hold_hint">Por su protección, el botón de confirmación debe mantenerse pulsado 3 segundos. Suéltelo para cancelar.</string>
+    <plurals name="critical_warning_other_protected">
+        <item quantity="one">Afecta también a %1$d app protegida más.</item>
+        <item quantity="many">Afecta también a %1$d apps protegidas más.</item>
+        <item quantity="other">Afecta también a %1$d apps protegidas más.</item>
+    </plurals>
     <string name="critical_warning_hold_action">%1$s (mantener 3 s)</string>
 
     <!-- Per-category titles + bodies. %1$s in a title = app label; bodies take no argument (the action is on the button). -->
@@ -683,7 +688,7 @@
     <!-- ================================================================ -->
     <string name="settings_section_privacy_monitor">Supervisión de privacidad</string>
     <string name="settings_privacy_monitor_drift_title">Seguir los cambios de permisos</string>
-    <string name="settings_privacy_monitor_drift_desc">Toma cada día una instantánea de los permisos peligrosos de cada app y muestra las concesiones / revocaciones en la herramienta Cambios de permisos.</string>
+    <string name="settings_privacy_monitor_drift_desc">Toma cada día una instantánea de los permisos peligrosos de cada app y muestra las concesiones / revocaciones en la herramienta Cambios de permisos. Al desactivarlo se borra este historial.</string>
     <string name="settings_privacy_monitor_retention_title">Conservación del historial</string>
     <string name="settings_privacy_monitor_retention_desc">%1$d días</string>
     <string name="settings_privacy_monitor_include_system_title">Incluir apps del sistema</string>
@@ -856,7 +861,7 @@
     <!-- Settings — Lifecycle History -->
     <string name="settings_section_lifecycle">Historial del ciclo de vida de las apps</string>
     <string name="settings_lifecycle_enabled_title">Seguir las instalaciones / desinstalaciones</string>
-    <string name="settings_lifecycle_enabled_desc">Registra las instalaciones, actualizaciones y desinstalaciones que Android anuncia mientras App Manager Tech está en funcionamiento, además de una referencia inicial única de las apps ya instaladas. Android no envía estos anuncios a una app que no está en funcionamiento: los cambios hechos mientras tanto no se registran. Se queda en el dispositivo.</string>
+    <string name="settings_lifecycle_enabled_desc">Registra las instalaciones, actualizaciones y desinstalaciones que Android anuncia mientras App Manager Tech está en funcionamiento, además de una referencia inicial única de las apps ya instaladas. Android no envía estos anuncios a una app que no está en funcionamiento: los cambios hechos mientras tanto no se registran. Se queda en el dispositivo. Al desactivarlo se borra este historial.</string>
     <string name="settings_lifecycle_retention_title">Conservación del historial</string>
     <string name="settings_lifecycle_retention_desc">%1$d días</string>
     <string name="settings_lifecycle_prompt_reason_title">Preguntar el motivo al desinstalar</string>
@@ -990,7 +995,7 @@
     <string name="tool_subtitle_action_journal">Historial forense de las acciones realizadas por AMT</string>
     <string name="settings_section_action_journal">Registro de acciones</string>
     <string name="settings_action_journal_enabled_title">Registro de acciones</string>
-    <string name="settings_action_journal_enabled_desc">Registra cada acción destructiva o que cambia un estado realizada por AMT (desinstalar, borrar caché, desactivar, poner en cuarentena, …). Solo en local, nunca sale del dispositivo.</string>
+    <string name="settings_action_journal_enabled_desc">Registra cada acción destructiva o que cambia un estado realizada por AMT (desinstalar, borrar caché, desactivar, poner en cuarentena, …). Solo en local, nunca sale del dispositivo. Al desactivarlo se borra este registro.</string>
     <string name="settings_action_journal_retention_title">Conservación del historial</string>
     <string name="settings_action_journal_retention_desc">Conservar durante %1$d días</string>
     <string name="action_journal_empty_title">Todavía no hay acciones</string>

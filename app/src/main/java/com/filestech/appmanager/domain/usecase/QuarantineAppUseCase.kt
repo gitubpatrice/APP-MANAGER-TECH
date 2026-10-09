@@ -225,6 +225,7 @@ class QuarantineAppUseCase @Inject constructor(
                     apkBackupUri       = null,
                     autoRestoreEnabled = true,
                     notified           = false,
+                    apkSha256          = null,
                 ),
             )
             Timber.i("Quarantine SOFT: %s persisted, restoreAt=%d", packageName, restoreAt)

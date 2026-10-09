@@ -80,9 +80,10 @@ class PermissionSnapshotDaoTest {
         dao.insert(row("com.d", "SMS", granted = false, day = 4))
         val second = dao.insert(row("com.d", "SMS", granted = true, day = 4))
 
-        // Measured: SQLite's index scan already returns the higher id without `id DESC` (Robolectric,
-        // 2026-10-08), so this line documents the order rather than catching its removal. The purge
-        // assertion below does fail on the old query.
+        // Measured on a temporary Robolectric (JVM) copy of this test on 2026-10-08, not on a device:
+        // there, SQLite's index scan already returned the higher id without `id DESC`, and the device's
+        // SQLite may do the same — so this line documents the order rather than catching its removal.
+        // The purge assertion below does fail on the old query.
         assertThat(dao.getLatest("com.d", "SMS")?.id).isEqualTo(second)
 
         dao.purgeOlderThan(cutoffMs = 10 * DAY)

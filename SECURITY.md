@@ -28,7 +28,13 @@ Current release: **v0.5.1**
   (`cache/restore/` only), never the folder's document: no window between check and install. A
   file hash, not the signer: an older version of the same app, signed with the same key, would
   pass a signer check. Entries saved before 0.5.1 have no fingerprint and are refused. Measured on
-  a Galaxy S9: a backup with bytes appended is refused; the original file is restored.
+  a Galaxy S9: a backup with bytes appended is refused; the original file is restored. The backup is
+  read back and hashed when written; the copy is hashed in a folder nothing serves
+  (`cache/restore-work/`) and published by rename under a fresh name only on a match, so no
+  unverified byte is ever reachable through the provider and a second restore never rewrites a file
+  an installer is reading; restores are serialised (mutex).
+- **A history turned off is erased** (lifecycle, action journal, permission changes); turning one
+  off used to cancel its purge and keep its data forever.
 - **Legal texts rewritten from the code** and published in five languages (French prevails), and
   linked from About: data kept and for how long, every permission with what it actually does,
   every exchange the user can trigger (exports, APK backups, web pages, Android screens).

@@ -119,6 +119,10 @@
     <string name="critical_action_uninstall">Uninstall</string>
     <string name="critical_action_quarantine_hard">Quarantine + uninstall</string>
     <string name="critical_warning_hold_hint">For your protection, the confirm button requires a 3-second press. Release to cancel.</string>
+    <plurals name="critical_warning_other_protected">
+        <item quantity="one">This also covers %1$d other protected app.</item>
+        <item quantity="other">This also covers %1$d other protected apps.</item>
+    </plurals>
     <string name="critical_warning_hold_action">%1$s (hold 3 s)</string>
 
     <!-- Per-category titles + bodies. %1$s in a title = app label; bodies take no argument (the action is on the button). -->
@@ -667,7 +671,7 @@
     <!-- ================================================================ -->
     <string name="settings_section_privacy_monitor">Privacy monitor</string>
     <string name="settings_privacy_monitor_drift_title">Track permission changes</string>
-    <string name="settings_privacy_monitor_drift_desc">Take a daily snapshot of every app\'s dangerous permissions and surface gains / revocations in the Permission changes tool.</string>
+    <string name="settings_privacy_monitor_drift_desc">Take a daily snapshot of every app\'s dangerous permissions and surface gains / revocations in the Permission changes tool. Turning it off erases this history.</string>
     <string name="settings_privacy_monitor_retention_title">History retention</string>
     <string name="settings_privacy_monitor_retention_desc">%1$d days</string>
     <string name="settings_privacy_monitor_include_system_title">Include system apps</string>
@@ -838,7 +842,7 @@
     <!-- Settings — Lifecycle History -->
     <string name="settings_section_lifecycle">App lifecycle history</string>
     <string name="settings_lifecycle_enabled_title">Track install / uninstall events</string>
-    <string name="settings_lifecycle_enabled_desc">Record the installs, updates and uninstalls Android announces while App Manager Tech is running, plus a one-time baseline of the apps already installed. Android does not deliver these announcements to an app that is not running: changes made in the meantime are not recorded. Stays on the device.</string>
+    <string name="settings_lifecycle_enabled_desc">Record the installs, updates and uninstalls Android announces while App Manager Tech is running, plus a one-time baseline of the apps already installed. Android does not deliver these announcements to an app that is not running: changes made in the meantime are not recorded. Stays on the device. Turning it off erases this history.</string>
     <string name="settings_lifecycle_retention_title">History retention</string>
     <string name="settings_lifecycle_retention_desc">%1$d days</string>
     <string name="settings_lifecycle_prompt_reason_title">Ask the reason on uninstall</string>
@@ -969,7 +973,7 @@
     <string name="tool_subtitle_action_journal">Forensic timeline of actions AMT performed</string>
     <string name="settings_section_action_journal">Action journal</string>
     <string name="settings_action_journal_enabled_title">Action journal</string>
-    <string name="settings_action_journal_enabled_desc">Record every destructive / state-changing action AMT performs (uninstall, clear cache, disable, quarantine, …). Local only, never leaves the device.</string>
+    <string name="settings_action_journal_enabled_desc">Record every destructive / state-changing action AMT performs (uninstall, clear cache, disable, quarantine, …). Local only, never leaves the device. Turning it off erases this journal.</string>
     <string name="settings_action_journal_retention_title">History retention</string>
     <string name="settings_action_journal_retention_desc">Keep for %1$d days</string>
     <string name="action_journal_empty_title">No action yet</string>

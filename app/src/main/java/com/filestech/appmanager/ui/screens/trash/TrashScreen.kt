@@ -222,6 +222,8 @@ fun TrashScreen(
                 criticalConfirm = null
             },
             onCancel = { criticalConfirm = null },
+            otherProtectedCount = (state.action as? TrashViewModel.PendingAction.EmptyTrash)
+                ?.criticalCount?.minus(1) ?: 0,
         )
     }
 }

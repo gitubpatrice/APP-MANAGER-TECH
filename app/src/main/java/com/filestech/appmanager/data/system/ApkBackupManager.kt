@@ -10,11 +10,12 @@ import com.filestech.appmanager.core.ext.HashUtils
 import com.filestech.appmanager.di.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -60,6 +61,9 @@ class ApkBackupManager @Inject constructor(
      */
     @IoDispatcher private val io: CoroutineDispatcher,
 ) {
+
+    /** One restore at a time: two would race on the installer and on the cache. */
+    private val restoreLock = Mutex()
 
     /**
      * Result of [backupApk]: either a persisted URI string or a failure. The caller turns [Reason]
@@ -128,14 +132,14 @@ class ApkBackupManager @Inject constructor(
 
             val sha256 = copyInto(backupDoc, sourceFile)
                 ?: return@withContext Result.Failure(Reason.FOLDER_UNAVAILABLE, "Failed to open backup output stream")
-            // v0.5.1 — a provider may report success on a file it truncated. Checked here, while the app
-            // is still installed: found at restore time, the corruption would come after the uninstall.
-            if (backupDoc.length() != sourceFile.length()) {
+            // v0.5.1 — the backup is read back and hashed: a provider may report success on a file it
+            // truncated or altered. Checked here, while the app is still installed; found at restore
+            // time, the damage would come after the uninstall. Not the size: a provider that does not
+            // know it reports 0. A backup that cannot be read back could not be restored either.
+            val readBack = context.contentResolver.openInputStream(backupDoc.uri)?.use { HashUtils.sha256HexLower(it) }
+            if (readBack != sha256) {
                 backupDoc.delete()
-                return@withContext Result.Failure(
-                    Reason.FAILED,
-                    "Backup size ${backupDoc.length()} != APK size ${sourceFile.length()}",
-                )
+                return@withContext Result.Failure(Reason.FAILED, "Backup read back as $readBack, written as $sha256")
             }
 
             Timber.i("ApkBackupManager: backed up %s to %s (sha256 %s)", packageName, backupDoc.uri, sha256)
@@ -193,16 +197,11 @@ class ApkBackupManager @Inject constructor(
      * v0.5.1 — checks a HARD quarantine's backup and prepares its install.
      *
      * The backup document lives in a folder other apps may be able to write to, and until v0.5.1 it
-     * went to the installer as is. Now it is first copied into this app's private cache — no other app
-     * can write there — and the SHA-256 of the bytes copied is compared with [expectedSha256], the
-     * fingerprint recorded when the backup was written. Only an identical file is installed, and the
-     * installer is given the verified COPY, never the folder's document: what was checked is what is
-     * installed. Android still asks the user to allow installs from this app and to confirm.
-     *
-     * The intent is pinned to the SYSTEM installer: any app may declare a VIEW filter for APKs, and an
-     * implicit intent would offer it this file and its read grant. Pinned only when exactly one system
-     * package handles it (resolveActivity returns the system chooser, package "android", when there
-     * are several); otherwise left implicit, so the pinning never makes a restore impossible.
+     * went to the installer as is. Now [VerifiedCopy] copies it into this app's private cache — no other
+     * app can write there — hashing it, and publishes the copy only if its SHA-256 is [expectedSha256],
+     * the fingerprint recorded when the backup was written. The installer is given that verified COPY,
+     * never the folder's document: what was checked is what is installed. Restores are serialised
+     * ([restoreLock]). Android still asks the user to allow installs from this app and to confirm.
      */
     // SAF providers are third-party code and fail with undocumented runtime exceptions; the user must
     // get a refused restore, not a crash. No suspension point inside the `try`.
@@ -211,50 +210,52 @@ class ApkBackupManager @Inject constructor(
         apkBackupUri: String,
         expectedSha256: String?,
         packageName: String,
-    ): Restore = withContext(io) {
-        try {
-            val uri = Uri.parse(apkBackupUri)
-            val doc = DocumentFile.fromSingleUri(context, uri)
-            if (doc == null || !doc.exists()) return@withContext Restore.Missing
-            if (expectedSha256 == null) return@withContext Restore.Unverifiable
+    ): Restore = restoreLock.withLock {
+        withContext(io) {
+            try {
+                val uri = Uri.parse(apkBackupUri)
+                val doc = DocumentFile.fromSingleUri(context, uri)
+                if (doc == null || !doc.exists()) return@withContext Restore.Missing
+                if (expectedSha256 == null) return@withContext Restore.Unverifiable
 
-            // The previous restore's verified copy goes here, and only here: deleting it when the screen
-            // resumes could pull it from under an installer the user left open (review M1). At most one
-            // APK is kept, in the app-private cache, which Android may also evict.
-            val dir = File(context.cacheDir, RESTORE_DIR)
-            dir.deleteRecursively()
-            dir.mkdirs()
-            val copy = File(dir, sanitizeFilename("$packageName.apk"))
-            val actual = context.contentResolver.openInputStream(uri)?.use { input ->
-                FileOutputStream(copy).use { output -> HashUtils.copyWithSha256HexLower(input, output) }
-            } ?: return@withContext Restore.Missing
-            if (actual != expectedSha256) {
-                copy.delete()
-                Timber.w("ApkBackupManager: backup of %s changed (sha256 %s, expected %s)", packageName, actual, expectedSha256)
-                return@withContext Restore.Modified
+                // Copies older than an installer needs are dropped; recent ones stay, so a restore never
+                // deletes a file another installer may still be reading.
+                val outDir = File(context.cacheDir, RESTORE_DIR)
+                VerifiedCopy.deleteOlderThan(outDir, RESTORE_KEEP_MS, System.currentTimeMillis())
+                val stream = context.contentResolver.openInputStream(uri) ?: return@withContext Restore.Missing
+                val verified = stream.use { input ->
+                    VerifiedCopy.copyIfMatches(input, expectedSha256, File(context.cacheDir, RESTORE_WORK_DIR), outDir)
+                } ?: return@withContext Restore.Modified
+                Restore.Ready(installIntent(FileProvider.getUriForFile(context, context.packageName + AUTHORITY_SUFFIX, verified)))
+            } catch (e: SecurityException) {
+                Timber.w(e, "ApkBackupManager: backup folder no longer readable for %s", packageName)
+                Restore.Missing
+            } catch (e: Exception) {
+                Timber.e(e, "ApkBackupManager: restore preparation failed for %s", packageName)
+                Restore.Failed
             }
-
-            val copyUri = FileProvider.getUriForFile(context, context.packageName + AUTHORITY_SUFFIX, copy)
-            Restore.Ready(
-                Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(copyUri, MIME_APK)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    context.packageManager
-                        .queryIntentActivities(this, PackageManager.MATCH_SYSTEM_ONLY)
-                        .map { it.activityInfo.packageName }
-                        .distinct()
-                        .singleOrNull()
-                        ?.let { setPackage(it) }
-                },
-            )
-        } catch (e: SecurityException) {
-            Timber.w(e, "ApkBackupManager: backup folder no longer readable for %s", packageName)
-            Restore.Missing
-        } catch (e: Exception) {
-            Timber.e(e, "ApkBackupManager: restore preparation failed for %s", packageName)
-            Restore.Failed
         }
+    }
+
+    /**
+     * The install intent for a verified copy, pinned to the SYSTEM installer: any app may declare a VIEW
+     * filter for APKs, and an implicit intent would hand it this file and its read grant (a third-party
+     * handler set as default would even get it without a chooser). Among the system apps that handle it,
+     * the one holding INSTALL_PACKAGES is the installer; left implicit only if that still is not a
+     * single app, so the pinning never makes a restore impossible.
+     */
+    private fun installIntent(fileUri: Uri): Intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(fileUri, MIME_APK)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        val pm = context.packageManager
+        val system = pm.queryIntentActivities(this, PackageManager.MATCH_SYSTEM_ONLY)
+            .map { it.activityInfo.packageName }
+            .distinct()
+        val installer = system.singleOrNull()
+            ?: system.filter { pm.checkPermission(INSTALL_PACKAGES, it) == PackageManager.PERMISSION_GRANTED }
+                .singleOrNull()
+        installer?.let { setPackage(it) }
     }
 
     /**
@@ -315,8 +316,16 @@ class ApkBackupManager @Inject constructor(
     private companion object {
         const val MIME_APK = "application/vnd.android.package-archive"
 
-        /** Under `cacheDir`; declared in `res/xml/restore_paths.xml` for the FileProvider. */
+        /** Under `cacheDir`; declared in `res/xml/restore_paths.xml`: the only folder the provider serves. */
         const val RESTORE_DIR = "restore"
+
+        /** Under `cacheDir`, NOT served: where a backup is copied and hashed before it is published. */
+        const val RESTORE_WORK_DIR = "restore-work"
+
+        /** A verified copy is kept this long for an installer to stage it, then dropped. */
+        const val RESTORE_KEEP_MS = 60L * 60 * 1000
+
+        const val INSTALL_PACKAGES = "android.permission.INSTALL_PACKAGES"
 
         /** Appended to the package name: the authority declared in the manifest. */
         const val AUTHORITY_SUFFIX = ".restore"

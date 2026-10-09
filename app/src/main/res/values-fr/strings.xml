@@ -119,6 +119,11 @@
     <string name="critical_action_uninstall">Désinstaller</string>
     <string name="critical_action_quarantine_hard">Quarantaine + désinstallation</string>
     <string name="critical_warning_hold_hint">Pour votre protection, le bouton de confirmation demande une pression de 3 secondes. Relâchez pour annuler.</string>
+    <plurals name="critical_warning_other_protected">
+        <item quantity="one">Cela concerne aussi %1$d autre app protégée.</item>
+        <item quantity="many">Cela concerne aussi %1$d autres apps protégées.</item>
+        <item quantity="other">Cela concerne aussi %1$d autres apps protégées.</item>
+    </plurals>
     <string name="critical_warning_hold_action">%1$s (maintenir 3 s)</string>
 
     <!-- Titres + corps par catégorie. %1$s en titre = label app ; %1$s en corps = action. -->
@@ -676,7 +681,7 @@
     <!-- ================================================================ -->
     <string name="settings_section_privacy_monitor">Suivi vie privée</string>
     <string name="settings_privacy_monitor_drift_title">Suivre les changements de permissions</string>
-    <string name="settings_privacy_monitor_drift_desc">Capture quotidienne des permissions dangereuses de chaque application ; les octrois / révocations sont surfacés dans l\'outil « Changements de permissions ».</string>
+    <string name="settings_privacy_monitor_drift_desc">Capture quotidienne des permissions dangereuses de chaque application ; les octrois / révocations sont surfacés dans l\'outil « Changements de permissions ». Le désactiver efface cet historique.</string>
     <string name="settings_privacy_monitor_retention_title">Conservation de l\'historique</string>
     <string name="settings_privacy_monitor_retention_desc">%1$d jours</string>
     <string name="settings_privacy_monitor_include_system_title">Inclure les apps système</string>
@@ -849,7 +854,7 @@
     <!-- Paramètres — Historique cycle de vie -->
     <string name="settings_section_lifecycle">Historique du cycle de vie</string>
     <string name="settings_lifecycle_enabled_title">Suivre les événements d\'installation / désinstallation</string>
-    <string name="settings_lifecycle_enabled_desc">Enregistre les installations, mises à jour et désinstallations qu\'Android annonce pendant qu\'App Manager Tech fonctionne, plus une référence initiale des apps déjà installées. Android n\'envoie pas ces annonces à une app qui ne fonctionne pas : les changements faits entre-temps ne sont pas enregistrés. Tout reste sur votre appareil.</string>
+    <string name="settings_lifecycle_enabled_desc">Enregistre les installations, mises à jour et désinstallations qu\'Android annonce pendant qu\'App Manager Tech fonctionne, plus une référence initiale des apps déjà installées. Android n\'envoie pas ces annonces à une app qui ne fonctionne pas : les changements faits entre-temps ne sont pas enregistrés. Tout reste sur votre appareil. Le désactiver efface cet historique.</string>
     <string name="settings_lifecycle_retention_title">Conservation de l\'historique</string>
     <string name="settings_lifecycle_retention_desc">%1$d jours</string>
     <string name="settings_lifecycle_prompt_reason_title">Demander la raison à la désinstallation</string>
@@ -983,7 +988,7 @@
     <string name="tool_subtitle_action_journal">Trace forensique des actions déclenchées par AMT</string>
     <string name="settings_section_action_journal">Journal d\'actions</string>
     <string name="settings_action_journal_enabled_title">Journal d\'actions</string>
-    <string name="settings_action_journal_enabled_desc">Enregistre toute action destructive ou de changement d\'état déclenchée par AMT (désinstaller, vider le cache, désactiver, mettre en quarantaine…). Local uniquement, jamais transmis.</string>
+    <string name="settings_action_journal_enabled_desc">Enregistre toute action destructive ou de changement d\'état déclenchée par AMT (désinstaller, vider le cache, désactiver, mettre en quarantaine…). Local uniquement, jamais transmis. Le désactiver efface ce journal.</string>
     <string name="settings_action_journal_retention_title">Rétention de l\'historique</string>
     <string name="settings_action_journal_retention_desc">Conserver pendant %1$d jours</string>
     <string name="action_journal_empty_title">Aucune action enregistrée</string>

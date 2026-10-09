@@ -123,6 +123,15 @@ object HashUtils {
         return digest.digest().joinToString(separator = "") { byte -> "%02x".format(byte) }
     }
 
+    /** v0.5.1 — SHA-256 of [input], read to its end, as continuous lowercase hex. */
+    fun sha256HexLower(input: InputStream): String = copyWithSha256HexLower(input, DISCARD)
+
+    /** Swallows what it is given: hashing a stream needs somewhere to write. */
+    private val DISCARD = object : OutputStream() {
+        override fun write(b: Int) = Unit
+        override fun write(b: ByteArray, off: Int, len: Int) = Unit
+    }
+
     private const val ALGORITHM = "SHA-256"
     /** 64 KB streaming buffer — same as the prior private constant. */
     private const val STREAM_BUFFER_BYTES = 64 * 1024

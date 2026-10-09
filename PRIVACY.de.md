@@ -30,9 +30,9 @@ nicht verschlüsselt: Sie beschreibt Ihre Apps, nicht Ihre Inhalte.
 |---|---|---|
 | Liste der Apps: Name, Version, Größen, Datum der Installation, der Aktualisierung und der letzten Nutzung, Herkunfts-Store, Zustand (aktiviert, im Ruhezustand) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Bei jedem Scan ersetzt |
 | Erkannte Tracker, Datenschutz-Score | Auf dem Telefon berechnet (siehe unten) | Bei jeder Anzeige neu berechnet |
-| Verlauf der Berechtigungen, die jeder App erteilt wurden — **standardmäßig deaktiviert** | Regelmäßige Erfassung, wenn Sie den Verlauf aktivieren | Standardmäßig 90 Tage, einstellbar von 7 bis 365 |
-| Verlauf der Installationen, Updates und Deinstallationen, mit dem SHA-256-Fingerabdruck jedes APK und dem Deinstallationsgrund, den Sie freiwillig angeben — **standardmäßig deaktiviert** | Meldungen von Android, die eingehen, während die App läuft, wenn Sie den Verlauf aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365 |
-| Protokoll der Aktionen, die in App Manager Tech ausgelöst wurden — **standardmäßig deaktiviert** | Ihre Aktionen, wenn Sie das Protokoll aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365 |
+| Verlauf der Berechtigungen, die jeder App erteilt wurden — **standardmäßig deaktiviert** | Regelmäßige Erfassung, wenn Sie den Verlauf aktivieren | Standardmäßig 90 Tage, einstellbar von 7 bis 365; der letzte bekannte Stand jeder Berechtigung bleibt als Bezug erhalten; alles wird beim Ausschalten gelöscht |
+| Verlauf der Installationen, Updates und Deinstallationen, mit dem SHA-256-Fingerabdruck jedes APK und dem Deinstallationsgrund, den Sie freiwillig angeben — **standardmäßig deaktiviert** | Meldungen von Android, die eingehen, während die App läuft, wenn Sie den Verlauf aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365; wird beim Ausschalten gelöscht |
+| Protokoll der Aktionen, die in App Manager Tech ausgelöst wurden — **standardmäßig deaktiviert** | Ihre Aktionen, wenn Sie das Protokoll aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365; wird beim Ausschalten gelöscht |
 | Papierkorb und Quarantänen (mit dem SHA-256-Fingerabdruck jedes gesicherten APK) | Ihre Aktionen | Bis Sie sie leeren oder wiederherstellen |
 | Einstellungen: Design, Schwellenwerte, ausgeschlossene oder geschützte Apps, Tags, und die Zugriffsberechtigung für den von Ihnen gewählten Sicherungsordner | Sie | Bis zur Deinstallation |
 

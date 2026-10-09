@@ -31,15 +31,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   installs a verified private copy of it, through a non-exported FileProvider, or refuses with a
   reason (changed, saved before 0.5.1 without a fingerprint, unreadable). Until now a file swapped
   in the backup folder would have been installed under the app's name. Measured on a Galaxy S9.
+  The backup is read back and hashed when it is written, before the uninstall (a provider may report
+  success on a truncated file). The copy is hashed in a folder nothing serves and published under a
+  fresh name only when it matches; restores are serialised; the installer pinned is the system app
+  holding INSTALL_PACKAGES.
+- **Turning a history off now erases it** (lifecycle history, action journal, permission changes),
+  as the privacy policy said. It used to stop the recording and cancel the purge: the data stayed
+  forever. Data an older version left behind goes at the first launch.
 
 ### Fixed — found by checking every dialog, warning and setting against the code
 - **Notifications never appeared on Android 13+**: `POST_NOTIFICATIONS` was declared but never
   requested. It is now requested when a notification is turned on (cache threshold, permission
-  changes, quarantine reminder) and when a quarantine is confirmed (its reminder is on by default).
+  changes, quarantine reminder), and once at launch when one is already on — an update from a
+  version that never asked, or a quarantine with its default reminder.
   A post is counted only if Android lets it through (`areNotificationsEnabled`, channel not
   blocked): a quarantine reminder dropped by Android is no longer marked as shown.
 - **Protected apps**: batch uninstall from the app list and uninstall from the security audit
-  skipped the 3-second hold. Both now ask for it. Tests proven by sabotage.
+  skipped the 3-second hold. Both now ask for it. Tests proven by sabotage. A batch warning (app list,
+  empty trash) named one protected app only; it now counts the others.
 - **Three settings did nothing**: default sort order, show system apps, and confirm before clearing
   the cache. All three are now applied (the latter also in the Smart Cleaner).
 - **Permission-change history** lost recorded changes before their retention: the purge deleted

@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.filestech.appmanager.ui.components.NotificationPermissionHost
 import com.filestech.appmanager.ui.screens.about.AboutScreen
 import com.filestech.appmanager.ui.screens.appdetail.AppDetailScreen
 import com.filestech.appmanager.ui.screens.cleaner.CleanerSettingsScreen
@@ -71,6 +72,10 @@ fun AppRoot() {
     // outside the NavHost so the dialog can pop on ANY destination when
     // PackageMonitor records an UNINSTALLED event.
     LifecycleReasonHost()
+
+    // v0.5.1 — once per launch, asks for the notification permission a notification already turned on
+    // needs (updates from a version that never asked; quarantines with the default reminder).
+    NotificationPermissionHost()
 
     NavHost(
         navController = navController,

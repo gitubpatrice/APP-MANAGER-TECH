@@ -118,6 +118,10 @@
     <string name="critical_action_uninstall">Deinstallieren</string>
     <string name="critical_action_quarantine_hard">Quarantäne + Deinstallation</string>
     <string name="critical_warning_hold_hint">Zu Ihrem Schutz muss die Bestätigungsschaltfläche 3 Sekunden lang gedrückt werden. Loslassen bricht ab.</string>
+    <plurals name="critical_warning_other_protected">
+        <item quantity="one">Das betrifft auch %1$d weitere geschützte App.</item>
+        <item quantity="other">Das betrifft auch %1$d weitere geschützte Apps.</item>
+    </plurals>
     <string name="critical_warning_hold_action">%1$s (3 s halten)</string>
 
     <!-- Per-category titles + bodies. %1$s in a title = app label; bodies take no argument (the action is on the button). -->
@@ -664,7 +668,7 @@
     <!-- ================================================================ -->
     <string name="settings_section_privacy_monitor">Datenschutz-Überwachung</string>
     <string name="settings_privacy_monitor_drift_title">Berechtigungsänderungen verfolgen</string>
-    <string name="settings_privacy_monitor_drift_desc">Erstellt täglich eine Momentaufnahme der gefährlichen Berechtigungen jeder App und zeigt erteilte / entzogene Berechtigungen im Werkzeug „Berechtigungsänderungen“ an.</string>
+    <string name="settings_privacy_monitor_drift_desc">Erstellt täglich eine Momentaufnahme der gefährlichen Berechtigungen jeder App und zeigt erteilte / entzogene Berechtigungen im Werkzeug „Berechtigungsänderungen“ an. Beim Ausschalten wird dieser Verlauf gelöscht.</string>
     <string name="settings_privacy_monitor_retention_title">Aufbewahrung des Verlaufs</string>
     <string name="settings_privacy_monitor_retention_desc">%1$d Tage</string>
     <string name="settings_privacy_monitor_include_system_title">System-Apps einbeziehen</string>
@@ -833,7 +837,7 @@
     <!-- Settings — Lifecycle History -->
     <string name="settings_section_lifecycle">Verlauf des App-Lebenszyklus</string>
     <string name="settings_lifecycle_enabled_title">Installationen / Deinstallationen verfolgen</string>
-    <string name="settings_lifecycle_enabled_desc">Zeichnet die Installationen, Aktualisierungen und Deinstallationen auf, die Android meldet, während App Manager Tech läuft, dazu einmalig den Ausgangsstand der bereits installierten Apps. Android stellt diese Meldungen keiner App zu, die nicht läuft: Änderungen in der Zwischenzeit werden nicht aufgezeichnet. Bleibt auf dem Gerät.</string>
+    <string name="settings_lifecycle_enabled_desc">Zeichnet die Installationen, Aktualisierungen und Deinstallationen auf, die Android meldet, während App Manager Tech läuft, dazu einmalig den Ausgangsstand der bereits installierten Apps. Android stellt diese Meldungen keiner App zu, die nicht läuft: Änderungen in der Zwischenzeit werden nicht aufgezeichnet. Bleibt auf dem Gerät. Beim Ausschalten wird dieser Verlauf gelöscht.</string>
     <string name="settings_lifecycle_retention_title">Aufbewahrung des Verlaufs</string>
     <string name="settings_lifecycle_retention_desc">%1$d Tage</string>
     <string name="settings_lifecycle_prompt_reason_title">Bei Deinstallation nach dem Grund fragen</string>
@@ -964,7 +968,7 @@
     <string name="tool_subtitle_action_journal">Forensische Chronik der Aktionen von AMT</string>
     <string name="settings_section_action_journal">Aktionsprotokoll</string>
     <string name="settings_action_journal_enabled_title">Aktionsprotokoll</string>
-    <string name="settings_action_journal_enabled_desc">Zeichnet jede destruktive oder zustandsändernde Aktion von AMT auf (Deinstallieren, Cache leeren, Deaktivieren, Quarantäne …). Nur lokal, verlässt nie das Gerät.</string>
+    <string name="settings_action_journal_enabled_desc">Zeichnet jede destruktive oder zustandsändernde Aktion von AMT auf (Deinstallieren, Cache leeren, Deaktivieren, Quarantäne …). Nur lokal, verlässt nie das Gerät. Beim Ausschalten wird dieses Protokoll gelöscht.</string>
     <string name="settings_action_journal_retention_title">Aufbewahrung des Verlaufs</string>
     <string name="settings_action_journal_retention_desc">%1$d Tage aufbewahren</string>
     <string name="action_journal_empty_title">Noch keine Aktion</string>

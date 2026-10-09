@@ -48,6 +48,8 @@ fun rememberNotificationPermissionRequest(snackbarHostState: SnackbarHostState):
 
     val warnIfBlocked: (String) -> Unit = { channelId ->
         if (!canPostNotifications(context, channelId)) {
+            // One at a time: turning on three notifications must not queue three identical messages.
+            snackbarHostState.currentSnackbarData?.dismiss()
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
                     message           = resources.getString(R.string.notifications_blocked),

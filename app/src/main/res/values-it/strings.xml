@@ -119,6 +119,11 @@
     <string name="critical_action_uninstall">Disinstalla</string>
     <string name="critical_action_quarantine_hard">Quarantena + disinstallazione</string>
     <string name="critical_warning_hold_hint">Per la sua protezione, il pulsante di conferma va tenuto premuto per 3 secondi. Rilasci per annullare.</string>
+    <plurals name="critical_warning_other_protected">
+        <item quantity="one">Riguarda anche %1$d altra app protetta.</item>
+        <item quantity="many">Riguarda anche %1$d altre app protette.</item>
+        <item quantity="other">Riguarda anche %1$d altre app protette.</item>
+    </plurals>
     <string name="critical_warning_hold_action">%1$s (tenere premuto 3 s)</string>
 
     <!-- Per-category titles + bodies. %1$s in a title = app label; bodies take no argument (the action is on the button). -->
@@ -683,7 +688,7 @@
     <!-- ================================================================ -->
     <string name="settings_section_privacy_monitor">Monitoraggio privacy</string>
     <string name="settings_privacy_monitor_drift_title">Segui le modifiche alle autorizzazioni</string>
-    <string name="settings_privacy_monitor_drift_desc">Acquisisce ogni giorno un\'istantanea delle autorizzazioni pericolose di ogni app e mostra concessioni / revoche nello strumento «Modifiche alle autorizzazioni».</string>
+    <string name="settings_privacy_monitor_drift_desc">Acquisisce ogni giorno un\'istantanea delle autorizzazioni pericolose di ogni app e mostra concessioni / revoche nello strumento «Modifiche alle autorizzazioni». Disattivarlo cancella questo storico.</string>
     <string name="settings_privacy_monitor_retention_title">Conservazione dello storico</string>
     <string name="settings_privacy_monitor_retention_desc">%1$d giorni</string>
     <string name="settings_privacy_monitor_include_system_title">Includi le app di sistema</string>
@@ -856,7 +861,7 @@
     <!-- Settings — Lifecycle History -->
     <string name="settings_section_lifecycle">Storico del ciclo di vita delle app</string>
     <string name="settings_lifecycle_enabled_title">Registra installazioni / disinstallazioni</string>
-    <string name="settings_lifecycle_enabled_desc">Registra le installazioni, gli aggiornamenti e le disinstallazioni che Android segnala mentre App Manager Tech è in esecuzione, più un riferimento iniziale, una tantum, delle app già installate. Android non invia queste segnalazioni a un\'app che non è in esecuzione: le modifiche fatte nel frattempo non vengono registrate. Tutto resta sul dispositivo.</string>
+    <string name="settings_lifecycle_enabled_desc">Registra le installazioni, gli aggiornamenti e le disinstallazioni che Android segnala mentre App Manager Tech è in esecuzione, più un riferimento iniziale, una tantum, delle app già installate. Android non invia queste segnalazioni a un\'app che non è in esecuzione: le modifiche fatte nel frattempo non vengono registrate. Tutto resta sul dispositivo. Disattivarlo cancella questo storico.</string>
     <string name="settings_lifecycle_retention_title">Conservazione dello storico</string>
     <string name="settings_lifecycle_retention_desc">%1$d giorni</string>
     <string name="settings_lifecycle_prompt_reason_title">Chiedi il motivo alla disinstallazione</string>
@@ -990,7 +995,7 @@
     <string name="tool_subtitle_action_journal">Cronologia forense delle azioni eseguite da AMT</string>
     <string name="settings_section_action_journal">Registro delle azioni</string>
     <string name="settings_action_journal_enabled_title">Registro delle azioni</string>
-    <string name="settings_action_journal_enabled_desc">Registra ogni azione distruttiva o che cambia uno stato eseguita da AMT (disinstallazione, svuotamento della cache, disattivazione, quarantena…). Solo in locale, non lascia mai il dispositivo.</string>
+    <string name="settings_action_journal_enabled_desc">Registra ogni azione distruttiva o che cambia uno stato eseguita da AMT (disinstallazione, svuotamento della cache, disattivazione, quarantena…). Solo in locale, non lascia mai il dispositivo. Disattivarlo cancella questo registro.</string>
     <string name="settings_action_journal_retention_title">Conservazione dello storico</string>
     <string name="settings_action_journal_retention_desc">Conserva per %1$d giorni</string>
     <string name="action_journal_empty_title">Ancora nessuna azione</string>

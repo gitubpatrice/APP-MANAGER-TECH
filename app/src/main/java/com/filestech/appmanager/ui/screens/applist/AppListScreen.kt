@@ -153,6 +153,7 @@ fun AppListScreen(
                 is AppListViewModel.Event.RequiresCriticalConfirmation ->
                     criticalConfirm = BatchCriticalConfirm(
                         classification = event.classification,
+                        criticalCount  = event.criticalCount,
                         // The first protected app found names the warning, as for "Empty trash".
                         appLabel       = (state.listOutcome as? Outcome.Success)?.value
                             ?.firstOrNull { it.packageName == event.classification.packageName }
@@ -300,6 +301,7 @@ fun AppListScreen(
                 criticalConfirm = null
             },
             onCancel    = { criticalConfirm = null },
+            otherProtectedCount = confirm.criticalCount - 1,
         )
     }
 }
@@ -316,6 +318,7 @@ private sealed interface BatchActionIntent : java.io.Serializable {
 
 private data class BatchCriticalConfirm(
     val classification: CriticalClassification,
+    val criticalCount: Int,
     val appLabel: String,
 )
 
