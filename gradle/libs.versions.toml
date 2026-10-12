@@ -35,7 +35,7 @@ room                    = "2.8.5"
 datastore               = "1.1.1"
 
 # --- DocumentFile (SAF tree wrapping) ---
-documentfile            = "1.0.1"
+documentfile            = "1.1.0"
 
 # --- SplashScreen (compat for API 26–30) ---
 androidxSplashscreen    = "1.2.0"
