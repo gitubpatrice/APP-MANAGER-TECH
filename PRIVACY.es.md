@@ -1,6 +1,6 @@
 # Política de privacidad — App Manager Tech
 
-_Traducción de la versión del 9 de octubre de 2026._ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md)
+_Traducción de la versión del 26 de octubre de 2026._ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md)
 
 > Esta traducción la ha realizado el desarrollador con ayuda de herramientas automáticas y todavía
 > no la ha revisado un hablante nativo. **En caso de discrepancia, prevalece la
@@ -128,8 +128,13 @@ rechazaba cualquier restauración de una cuarentena.
 ## Editor y contacto
 
 App Manager Tech la edita **Patrice Haltaya** (Francia), responsable del tratamiento en el sentido
-del RGPD — aunque, como se explica más arriba, ningún dato le llega nunca. Contacto:
+del RGPD — aunque, como se explica más arriba, ningún dato de la aplicación le llega nunca. Contacto:
 **contact@files-tech.com**.
+
+Solo le llega un correo que usted decida escribirle. Solo sirve para responderle; se conserva el
+tiempo del intercambio y después se borra. Puede solicitar el acceso a él o su supresión en la misma
+dirección, y reclamar ante la CNIL, la autoridad francesa de protección de datos (www.cnil.fr), si
+considera que no se respetan sus derechos.
 
 Preguntas o avisos: abra una [issue](https://github.com/gitubpatrice/APP-MANAGER-TECH/issues) en el
 repositorio, o contáctenos a través de [files-tech.com](https://files-tech.com). Sobre seguridad,

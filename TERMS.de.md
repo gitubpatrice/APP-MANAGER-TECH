@@ -1,6 +1,6 @@
 # Nutzungsbedingungen — App Manager Tech
 
-_Übersetzung der Fassung vom 9. Oktober 2026._ · 🇬🇧 [English](TERMS.md) · 🇫🇷 [Français](TERMS.fr.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
+_Übersetzung der Fassung vom 26. Oktober 2026._ · 🇬🇧 [English](TERMS.md) · 🇫🇷 [Français](TERMS.fr.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > Diese Übersetzung wurde vom Entwickler maschinengestützt erstellt und noch nicht von einer
 > Muttersprachlerin oder einem Muttersprachler geprüft. **Bei Abweichungen gilt die
@@ -93,12 +93,11 @@ Version zu installieren liegt bei Ihnen.
 
 ## Haftung
 
-Soweit gesetzlich zulässig, haftet der Herausgeber nicht für direkte oder indirekte Schäden, die aus
-der Nutzung der App entstehen (Apache License 2.0, Abschnitt 8). Insbesondere liegt **jeder
-Datenverlust infolge einer Deinstallation, einer Datenlöschung, einer Deaktivierung, einer
-Quarantäne oder einer Wiederherstellung, die Sie ausgelöst haben, allein in der Verantwortung des
-Nutzers**. Nichts in diesen Bedingungen beschränkt eine Haftung, deren Beschränkung das Gesetz
-nicht erlaubt.
+Die App wird kostenlos von einer Privatperson bereitgestellt. Soweit gesetzlich zulässig, haftet der
+Herausgeber nicht für indirekte Schäden und nicht für Datenverluste durch Aktionen, die Sie an einer
+App auslösen — sie deinstallieren, ihre Daten löschen, sie deaktivieren, in Quarantäne setzen oder
+wiederherstellen (Apache License 2.0, Abschnitt 8). Diese Beschränkung gilt weder bei grober
+Fahrlässigkeit oder Vorsatz noch für Schäden, deren Ausschluss das Gesetz verbietet.
 
 ## Anwendbares Recht
 

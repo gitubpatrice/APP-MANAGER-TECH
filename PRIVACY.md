@@ -1,6 +1,6 @@
 # Privacy Policy — App Manager Tech
 
-_Last updated: 9 October 2026_ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Last updated: 26 October 2026_ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > This is a translation. **In case of discrepancy, the [French version](PRIVACY.fr.md) prevails**:
 > the publisher is based in France and the French text is the one he writes and answers for.
@@ -120,8 +120,13 @@ without which Android refused every restore of a quarantine.
 ## Publisher and contact
 
 App Manager Tech is published by **Patrice Haltaya** (France), data controller within the meaning
-of the GDPR — even though, as explained above, no data ever reaches him. Contact:
+of the GDPR — even though, as explained above, no data from the app ever reaches him. Contact:
 **contact@files-tech.com**.
+
+Only an e-mail you choose to write to him reaches him. It is used only to answer you; it is kept for
+the time of the exchange, then erased. You can ask for access to it or its erasure at the same
+address, and complain to the CNIL, the French data protection authority (www.cnil.fr), if you think
+your rights are not respected.
 
 Question or report: open an [issue](https://github.com/gitubpatrice/APP-MANAGER-TECH/issues) on the
 repository, or go through [files-tech.com](https://files-tech.com). For security, see

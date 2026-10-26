@@ -1,6 +1,6 @@
 # Terms of use — App Manager Tech
 
-_Last updated: 9 October 2026_ · 🇫🇷 [Français](TERMS.fr.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
+_Last updated: 26 October 2026_ · 🇫🇷 [Français](TERMS.fr.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > This is a translation. **In case of discrepancy, the [French version](TERMS.fr.md) prevails**:
 > the publisher is based in France and these terms are governed by French law.
@@ -82,11 +82,11 @@ is up to you.
 
 ## Liability
 
-To the extent permitted by law, the publisher cannot be held liable for any direct or indirect
-damage resulting from the use of the app (Apache License 2.0, section 8). In particular, **any data
-loss following an uninstall, a data clearing, a disabling, a quarantine or a restore that you
-triggered is the user's sole responsibility**. Nothing in these terms limits a liability that the
-law forbids limiting.
+The app is provided free of charge, by a private individual. To the extent permitted by law, the
+publisher is not liable for indirect damage, nor for data loss caused by the actions you trigger on
+an app — uninstalling it, clearing its data, disabling it, quarantining or restoring it (Apache
+License 2.0, section 8). This limit applies neither to gross negligence or wilful misconduct, nor to
+damage the law forbids excluding.
 
 ## Governing law
 
