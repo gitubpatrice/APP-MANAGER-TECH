@@ -1,6 +1,6 @@
 # Politique de confidentialité — App Manager Tech
 
-_Dernière mise à jour : 9 octobre 2026_ · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Dernière mise à jour : 26 octobre 2026_ · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > **Version de référence.** En cas de divergence entre cette politique et l'une de ses traductions,
 > c'est cette version française qui fait foi.
@@ -129,8 +129,13 @@ laquelle Android refusait toute restauration d'une quarantaine.
 ## Éditeur et contact
 
 App Manager Tech est édité par **Patrice Haltaya** (France), responsable du traitement au sens du
-RGPD — même si, comme expliqué plus haut, aucune donnée ne lui parvient jamais. Contact :
+RGPD — même si, comme expliqué plus haut, aucune donnée de l'application ne lui parvient. Contact :
 **contact@files-tech.com**.
+
+Seul un e-mail que vous choisissez de lui écrire lui parvient. Il sert uniquement à vous répondre ;
+il est gardé le temps de l'échange, puis effacé. Vous pouvez en demander l'accès ou l'effacement à
+la même adresse, et saisir la CNIL (www.cnil.fr) si vous estimez que vos droits ne sont pas
+respectés.
 
 Question ou signalement : ouvrez une [issue](https://github.com/gitubpatrice/APP-MANAGER-TECH/issues)
 sur le dépôt, ou via [files-tech.com](https://files-tech.com). Pour la sécurité, voir

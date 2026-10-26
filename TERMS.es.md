@@ -1,6 +1,6 @@
 # Condiciones de uso — App Manager Tech
 
-_Traducción de la versión del 9 de octubre de 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md)
+_Traducción de la versión del 26 de octubre de 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md)
 
 > Esta traducción la ha realizado el desarrollador con ayuda de herramientas automáticas y todavía
 > no la ha revisado un hablante nativo. **En caso de discrepancia, prevalece la
@@ -87,11 +87,11 @@ instalar una nueva versión le corresponde a usted.
 
 ## Responsabilidad
 
-En la medida en que la ley lo permita, el editor no será responsable de ningún daño directo o
-indirecto derivado del uso de la app (licencia Apache 2.0, sección 8). En particular, **cualquier
-pérdida de datos tras una desinstalación, un borrado de datos, una desactivación, una cuarentena o
-una restauración que usted haya iniciado es responsabilidad exclusiva del usuario**. Nada en estas
-condiciones limita una responsabilidad que la ley no permite limitar.
+La aplicación se ofrece gratuitamente, por un particular. En la medida en que la ley lo permita, el
+editor no es responsable de los daños indirectos, ni de las pérdidas de datos debidas a las acciones
+que usted inicia sobre una aplicación — desinstalarla, borrar sus datos, desactivarla, ponerla en
+cuarentena o restaurarla (licencia Apache 2.0, sección 8). Esta limitación no se aplica en caso de
+culpa grave o dolo, ni a los daños que la ley prohíbe excluir.
 
 ## Ley aplicable
 

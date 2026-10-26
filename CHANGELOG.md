@@ -7,6 +7,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- **Terms of use, liability, in the five languages.** The clause said the publisher was liable for no
+  damage at all, direct or indirect, and that any data loss was the user's alone: a clause that broad
+  risks being set aside whole. It now says the app is free and published by a private individual, and
+  limits liability to indirect damage and to the data lost through the actions you trigger on an app —
+  never gross negligence, wilful misconduct, or what the law forbids excluding (Civil Code 1231-3, 1171).
+- **Privacy policy, the e-mail you write to the developer.** It is used only to answer you, kept for the
+  time of the exchange, then erased; access and erasure on request, and the CNIL (GDPR article 13).
+
+---
+
 ## [0.5.1] — 2026-10-09 — Quarantine restore, legal texts, look aligned on the suite
 
 ### Fixed

@@ -1,6 +1,6 @@
 # Datenschutzerklärung — App Manager Tech
 
-_Übersetzung der Fassung vom 9. Oktober 2026._ · 🇬🇧 [English](PRIVACY.md) · 🇫🇷 [Français](PRIVACY.fr.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Übersetzung der Fassung vom 26. Oktober 2026._ · 🇬🇧 [English](PRIVACY.md) · 🇫🇷 [Français](PRIVACY.fr.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > Diese Übersetzung wurde vom Entwickler maschinengestützt erstellt und noch nicht von einer
 > Muttersprachlerin oder einem Muttersprachler geprüft. **Bei Abweichungen gilt die
@@ -130,8 +130,13 @@ verweigerte.
 ## Herausgeber und Kontakt
 
 App Manager Tech wird von **Patrice Haltaya** (Frankreich) herausgegeben, dem Verantwortlichen im
-Sinne der DSGVO — auch wenn, wie oben erklärt, nie Daten bei ihm ankommen. Kontakt:
+Sinne der DSGVO — auch wenn, wie oben erklärt, nie Daten der App bei ihm ankommen. Kontakt:
 **contact@files-tech.com**.
+
+Ihn erreicht nur eine E-Mail, die Sie ihm schreiben möchten. Sie dient nur dazu, Ihnen zu antworten;
+sie wird für die Dauer des Austauschs aufbewahrt und dann gelöscht. Sie können unter derselben
+Adresse Auskunft darüber oder ihre Löschung verlangen und sich bei der CNIL, der französischen
+Datenschutzbehörde (www.cnil.fr), beschweren, wenn Sie Ihre Rechte nicht gewahrt sehen.
 
 Fragen oder Meldungen: Eröffnen Sie ein [Issue](https://github.com/gitubpatrice/APP-MANAGER-TECH/issues)
 im Repository, oder erreichen Sie uns über [files-tech.com](https://files-tech.com). Zur Sicherheit
