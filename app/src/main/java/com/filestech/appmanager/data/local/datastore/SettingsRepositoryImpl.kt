@@ -18,9 +18,11 @@ import com.filestech.appmanager.domain.model.ExportFormat
 import com.filestech.appmanager.domain.model.ScanInterval
 import com.filestech.appmanager.domain.model.ThemeMode
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retryWhen
 import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
@@ -265,9 +267,14 @@ class SettingsRepositoryImpl @Inject constructor(
     // ---------------------------------------------------------------------------
     // Flow
     // ---------------------------------------------------------------------------
-    // A read error (I/O) gives the defaults instead of failing every collector: those run in the
-    // application scope, where an uncaught exception ends the process at launch.
+    // A read error (I/O) is retried a few times, then gives the defaults instead of failing every
+    // collector: those run in the application scope, where an uncaught exception ends the process at
+    // launch. Retried first because the flow ends after `catch`: a collector would then keep the
+    // defaults — the user's protected apps among them — until the next launch.
     override val flow: Flow<AppSettings> = context.dataStore.data
+        .retryWhen { cause, attempt ->
+            (cause is IOException && attempt < READ_RETRIES).also { retry -> if (retry) delay(READ_RETRY_DELAY_MS) }
+        }
         .catch { e ->
             if (e !is IOException) throw e
             Timber.w(e, "Settings unreadable, defaults used")
@@ -371,5 +378,11 @@ class SettingsRepositoryImpl @Inject constructor(
          * `AppTag.entries.size` (which is not a compile-time constant).
          */
         const val MAX_TAG_ARITY_PER_ENTRY: Int = 8
+
+        /** Re-reads of the settings after an I/O error, before falling back on the defaults. */
+        const val READ_RETRIES: Long = 3
+
+        /** Pause before each re-read: a transient error (storage busy) has time to clear. */
+        const val READ_RETRY_DELAY_MS: Long = 500
     }
 }
