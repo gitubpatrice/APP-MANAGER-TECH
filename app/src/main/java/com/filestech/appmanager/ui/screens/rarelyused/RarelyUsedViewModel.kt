@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -72,7 +73,12 @@ class RarelyUsedViewModel @Inject constructor(
     private val _events = oneShotEvents<Event>()
     val events: Flow<Event> = _events.asFlow()
 
-    val listOutcome: StateFlow<Outcome<List<AppInfo>>> = _thresholdDays
+    /** Bumped at every return to the screen: the usage read live may have changed since. */
+    private val _resumes = MutableStateFlow(0)
+
+    // Recomputed when the threshold changes, and at every return to the screen — usage access just
+    // granted, or apps used in the meantime: the list reads live usage, not a cache that would re-emit.
+    val listOutcome: StateFlow<Outcome<List<AppInfo>>> = combine(_thresholdDays, _resumes) { days, _ -> days }
         .flatMapLatest { days -> getRarelyUsed(days) }
         .stateIn(
             scope        = viewModelScope,
@@ -86,10 +92,9 @@ class RarelyUsedViewModel @Inject constructor(
 
     /**
      * v0.2.1 — re-probe PACKAGE_USAGE_STATS on ON_RESUME. When the user grants
-     * the permission in Settings and comes back, the banner disappears.
-     * Re-emission of `listOutcome` happens automatically via the reactive
-     * Flow (the underlying repository observes Room which gets a fresh
-     * lastUsedTime on next rescan tick — handled elsewhere).
+     * the permission in Settings and comes back, the banner disappears, and the
+     * list is recomputed from live usage (Room would not re-emit: nothing in the
+     * cache changed).
      */
     fun onResumed() {
         viewModelScope.launch {
@@ -97,6 +102,7 @@ class RarelyUsedViewModel @Inject constructor(
             if (_usageStatsGranted.value != now) {
                 _usageStatsGranted.update { now }
             }
+            _resumes.update { it + 1 }
         }
     }
 

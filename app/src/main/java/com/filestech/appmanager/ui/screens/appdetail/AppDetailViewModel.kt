@@ -323,11 +323,6 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun clearData() = withPackage { pkg ->
-        logAction(AmtActionType.CLEAR_DATA, AmtActionResult.INTENT_REQUESTED)
-        _events.trySend(Event.LaunchIntent(intents.appDetailsSettingsIntent(pkg)))
-    }
-
     fun forceStop() {
         val pkg = currentPackage() ?: return
         viewModelScope.launch {
@@ -451,13 +446,18 @@ class AppDetailViewModel @Inject constructor(
 
         // v0.2.0 Safety Guardrails — HARD mode wipes app data (Android non-
         // root limit) so it deserves the same friction as a raw uninstall.
-        // SOFT mode is just a reminder, no destruction → no check needed.
-        if (!bypassCriticalCheck && mode == QuarantineMode.HARD_UNINSTALL) {
+        // SOFT mode leads the user to disable the app in Android's settings: for
+        // a protected app that is losing access to it, the friction of Disable.
+        if (!bypassCriticalCheck) {
             criticalDetector.classify(pkg)?.let { classification ->
                 _events.trySend(
                     Event.RequiresCriticalConfirmation(
                         classification = classification,
-                        action         = CriticalAction.QUARANTINE_HARD,
+                        action         = if (mode == QuarantineMode.HARD_UNINSTALL) {
+                            CriticalAction.QUARANTINE_HARD
+                        } else {
+                            CriticalAction.QUARANTINE_SOFT
+                        },
                         durationDays   = durationDays,
                     ),
                 )
@@ -636,6 +636,8 @@ class AppDetailViewModel @Inject constructor(
         QUARANTINE_HARD,
         /** v0.3.1 Safety Phase B — disable a critical app (2FA / banking / etc.). */
         DISABLE,
+        /** A reminder whose next step is disabling the app in Android's settings. */
+        QUARANTINE_SOFT,
     }
 
     private companion object {

@@ -12,6 +12,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -42,13 +44,16 @@ class ScanAllTrackersUseCase @Inject constructor(
             Outcome.Loading    -> emptyList()
         }
 
-        // Fan out across IO dispatcher. An app whose scan fails (uninstalled meanwhile, a PackageManager
-        // error) has no report: counted as clean, it would lower the percentage and sit among the apps
-        // without trackers. It is counted apart, in failedAppCount.
+        // Fan out across IO dispatcher, a few apps at a time: every PackageManager answer (components and
+        // their meta-data) goes through the process's binder buffer, about 1 MB shared, and a few hundred
+        // at once would overflow it (TransactionTooLargeException). An app whose scan fails anyway
+        // (uninstalled meanwhile, a PackageManager error) has no report: counted as clean, it would lower
+        // the percentage and sit among the apps without trackers. It is counted apart, in failedAppCount.
+        val permits = Semaphore(MAX_PARALLEL_SCANS)
         val reports: List<TrackerReport> = withContext(io) {
             coroutineScope {
                 apps.map { app ->
-                    async { (detectTrackers(app.packageName) as? Outcome.Success)?.value }
+                    async { permits.withPermit { (detectTrackers(app.packageName) as? Outcome.Success)?.value } }
                 }.awaitAll()
             }
         }.filterNotNull()
@@ -101,3 +106,6 @@ class ScanAllTrackersUseCase @Inject constructor(
 }
 
 private const val PERCENT = 100
+
+// PackageManager reads in flight at once during a full scan.
+private const val MAX_PARALLEL_SCANS = 4

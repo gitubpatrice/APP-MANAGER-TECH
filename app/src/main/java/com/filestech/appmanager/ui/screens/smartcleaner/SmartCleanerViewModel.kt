@@ -170,7 +170,8 @@ class SmartCleanerViewModel @Inject constructor(
 
     /**
      * Re-probes PACKAGE_USAGE_STATS on ON_RESUME and triggers a fresh analysis
-     * when the permission just flipped from denied → granted.
+     * when the permission flipped either way: granted, the suggestions appear
+     * (sizes rescanned, usage read live); revoked, they go.
      */
     fun onResumed() {
         viewModelScope.launch {
@@ -178,7 +179,7 @@ class SmartCleanerViewModel @Inject constructor(
             val nowGranted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
             if (wasGranted != nowGranted) {
                 _state.update { it.copy(usageStatsGranted = nowGranted) }
-                if (nowGranted) refresh()
+                refresh()
             }
         }
     }

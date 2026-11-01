@@ -8,6 +8,7 @@ import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.ZombieApp
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.google.common.truth.Truth.assertThat
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,15 @@ class GetZombieAppsUseCaseTest {
     fun usageReadableNoRoles() {
         every { repository.hasUsageStatsAccess() } returns true
         every { activeRoles.packages() } returns emptySet()
+    }
+
+    @Test
+    fun `the last use is read live, not from a cache left at 0 by a scan made without access`() = runTest {
+        // The cache says never used (scanned before the access was granted); the app was opened yesterday.
+        givenAppList(listOf(sample(pkg = "com.used", lastUsed = 0L, firstInstall = now - 400 * msPerDay)))
+        coEvery { repository.getLastUseTimes() } returns mapOf("com.used" to now - msPerDay)
+
+        assertThat((useCase() as Outcome.Success).value).isEmpty()
     }
 
     @Test
@@ -164,9 +174,12 @@ class GetZombieAppsUseCaseTest {
 
     // ---------------------------------------------------------------------------
 
+    /** The catalogue, and the live usage telling the same last uses (a test may then make them differ). */
     private fun givenAppList(apps: List<AppInfo>) {
         every { repository.observeApps(includeSystemApps = false) } returns
             flowOf(Outcome.Success(apps))
+        coEvery { repository.getLastUseTimes() } returns
+            apps.filter { it.lastUsedTime > 0L }.associate { it.packageName to it.lastUsedTime }
     }
 
     private fun sample(

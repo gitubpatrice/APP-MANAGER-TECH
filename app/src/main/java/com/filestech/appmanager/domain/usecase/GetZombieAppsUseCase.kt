@@ -30,8 +30,9 @@ import javax.inject.Inject
  * always wins in the output (more specific signal).
  *
  * Without usage access every app reads "never used": the list is empty rather than false (the screen's
- * banner asks for the access). Apps that work without being opened ([ActiveRoleApps]: the keyboard, an
- * accessibility service, a device admin, the live wallpaper) are never zombies.
+ * banner asks for the access). With it, the last use is read live ([AppInfoRepository.getLastUseTimes]),
+ * never from the cache. Apps that work without being opened ([ActiveRoleApps]: the keyboard, an
+ * accessibility service, a device admin, the live wallpaper…) are never zombies.
  */
 class GetZombieAppsUseCase @Inject constructor(
     private val repository: AppInfoRepository,
@@ -75,10 +76,14 @@ class GetZombieAppsUseCase @Inject constructor(
                 repository.hasUsageStatsAccess() to activeRoles.packages()
             }
             if (!usageReadable) return@runCatchingOutcome emptyList()
+            // Usage read live: the cached one dates from the last scan, all zeros if that scan ran
+            // before the access was granted.
+            val lastUse = repository.getLastUseTimes()
 
             apps.asSequence()
                 .filter { it.isUninstallable } // can't act on system apps anyway
                 .filter { it.packageName !in inUse }
+                .map { it.copy(lastUsedTime = lastUse[it.packageName] ?: 0L) }
                 .mapNotNull { app -> classify(app, now, unusedCutoff, newInstallCutoff) }
                 .sortedByDescending { it.unusedDays }
                 .toList()

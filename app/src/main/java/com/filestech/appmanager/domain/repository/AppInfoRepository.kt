@@ -135,4 +135,11 @@ interface AppInfoRepository {
      * `dataSizeBytes`, `installSizeBytes` and `lastUsedTime` fall back to 0.
      */
     fun hasUsageStatsAccess(): Boolean
+
+    /**
+     * The last sign of use of every app, read live from usage statistics (package name → time, ms).
+     * The cached `lastUsedTime` is only as fresh as the last scan, and a scan made without usage access
+     * wrote 0 for every app: what decides that an app is unused reads this instead. Empty without access.
+     */
+    suspend fun getLastUseTimes(): Map<String, Long>
 }

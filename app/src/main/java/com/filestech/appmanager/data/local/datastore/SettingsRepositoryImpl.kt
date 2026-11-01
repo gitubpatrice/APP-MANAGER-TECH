@@ -2,7 +2,9 @@ package com.filestech.appmanager.data.local.datastore
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -17,15 +19,21 @@ import com.filestech.appmanager.domain.model.ScanInterval
 import com.filestech.appmanager.domain.model.ThemeMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 // ---------------------------------------------------------------------------
 // DataStore instance — one per application (process-scoped)
 // ---------------------------------------------------------------------------
+// A file that cannot be parsed (cut short by a power loss, say) is replaced by the defaults: without
+// this handler every read and every write would throw, for ever.
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "app_manager_tech_settings",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
 )
 
 /**
@@ -257,7 +265,15 @@ class SettingsRepositoryImpl @Inject constructor(
     // ---------------------------------------------------------------------------
     // Flow
     // ---------------------------------------------------------------------------
-    override val flow: Flow<AppSettings> = context.dataStore.data.map { it.toAppSettings() }
+    // A read error (I/O) gives the defaults instead of failing every collector: those run in the
+    // application scope, where an uncaught exception ends the process at launch.
+    override val flow: Flow<AppSettings> = context.dataStore.data
+        .catch { e ->
+            if (e !is IOException) throw e
+            Timber.w(e, "Settings unreadable, defaults used")
+            emit(emptyPreferences())
+        }
+        .map { it.toAppSettings() }
 
     // ---------------------------------------------------------------------------
     // Write

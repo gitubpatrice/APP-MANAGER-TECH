@@ -856,6 +856,8 @@ class AppInfoRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getLastUseTimes(): Map<String, Long> = withContext(io) { queryUsageMap() }
+
     private fun queryUsageMap(): Map<String, Long> {
         val mgr = usageStats ?: return emptyMap()
         return try {

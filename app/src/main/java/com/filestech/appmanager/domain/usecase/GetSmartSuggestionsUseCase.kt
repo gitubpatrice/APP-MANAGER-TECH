@@ -77,6 +77,9 @@ class GetSmartSuggestionsUseCase @Inject constructor(
         }
 
         val ignored = ignoreList.observe().first()
+        // Usage read live: the cached one dates from the last scan, all zeros if that scan ran before the
+        // access was granted.
+        val lastUse = repository.getLastUseTimes()
 
         val first = repository.observeApps(includeSystemApps = includeSystemApps)
             .first { it !is Outcome.Loading }
@@ -86,6 +89,7 @@ class GetSmartSuggestionsUseCase @Inject constructor(
             Outcome.Loading    -> emptyList()
         }
             .filter { it.isUninstallable && it.packageName !in ignored }
+            .map { it.copy(lastUsedTime = lastUse[it.packageName] ?: 0L) }
         // What the usage-based passes may judge: not an app at work in the background, not a protected one.
         val judgedOnUsage = withContext(io) {
             apps.filter { it.packageName !in inUse && criticalDetector.classify(it.packageName) == null }

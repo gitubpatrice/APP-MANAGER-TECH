@@ -374,6 +374,7 @@ fun AppDetailScreen(
                 AppDetailViewModel.CriticalAction.UNINSTALL       -> R.string.critical_action_uninstall
                 AppDetailViewModel.CriticalAction.QUARANTINE_HARD -> R.string.critical_action_quarantine_hard
                 AppDetailViewModel.CriticalAction.DISABLE         -> R.string.critical_action_disable
+                AppDetailViewModel.CriticalAction.QUARANTINE_SOFT -> R.string.critical_action_quarantine_soft
             },
         )
         CriticalWarningDialog(
@@ -392,6 +393,12 @@ fun AppDetailScreen(
                         )
                     AppDetailViewModel.CriticalAction.DISABLE ->
                         viewModel.disable(bypassCriticalCheck = true)
+                    AppDetailViewModel.CriticalAction.QUARANTINE_SOFT ->
+                        viewModel.quarantine(
+                            mode = QuarantineMode.SOFT_REMINDER,
+                            durationDays = state.durationDays,
+                            bypassCriticalCheck = true,
+                        )
                 }
                 criticalConfirm = null
             },

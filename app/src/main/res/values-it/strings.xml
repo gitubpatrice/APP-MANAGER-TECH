@@ -118,6 +118,7 @@
     <!-- ================================================================ -->
     <string name="critical_action_uninstall">Disinstalla</string>
     <string name="critical_action_quarantine_hard">Quarantena + disinstallazione</string>
+    <string name="critical_action_quarantine_soft">Quarantena + disattivazione</string>
     <string name="critical_warning_hold_hint">Per la sua protezione, il pulsante di conferma va tenuto premuto per 3 secondi. Rilasci per annullare.</string>
     <plurals name="critical_warning_other_protected">
         <item quantity="one">Riguarda anche %1$d altra app protetta.</item>

@@ -6,11 +6,13 @@ import com.filestech.appmanager.domain.model.CriticalCategory
 import com.filestech.appmanager.domain.model.CriticalClassification
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,6 +68,9 @@ class CriticalAppDetector @Inject constructor(
                 settings.flow
                     .map { it.safety.userProtectedPackages }
                     .distinctUntilChanged()
+                    // Created at process start: an error here would end the process. The built-in lists
+                    // keep protecting without the user's.
+                    .catch { e -> Timber.w(e, "Protected apps list unreadable") }
                     .collect { fresh ->
                         userProtectedCache.set(fresh.map { it.lowercase() }.toSet())
                         userListRead.complete(Unit)

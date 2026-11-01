@@ -117,6 +117,7 @@
     <!-- ================================================================ -->
     <string name="critical_action_uninstall">Deinstallieren</string>
     <string name="critical_action_quarantine_hard">Quarantäne + Deinstallation</string>
+    <string name="critical_action_quarantine_soft">Quarantäne + Deaktivierung</string>
     <string name="critical_warning_hold_hint">Zu Ihrem Schutz muss die Bestätigungsschaltfläche 3 Sekunden lang gedrückt werden. Loslassen bricht ab.</string>
     <plurals name="critical_warning_other_protected">
         <item quantity="one">Das betrifft auch %1$d weitere geschützte App.</item>

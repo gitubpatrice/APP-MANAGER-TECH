@@ -97,9 +97,9 @@ class ZombiesViewModel @Inject constructor(
 
     /**
      * v0.2.1 audit C8b — re-probe PACKAGE_USAGE_STATS on ON_RESUME. When the
-     * user grants the permission in Settings and comes back, banner disappears
-     * AND we trigger a refresh so the now-meaningful `lastUsedTime` re-classifies
-     * the zombie list correctly (was all `NEVER_OPENED` before the grant).
+     * user grants the permission in Settings and comes back, the banner
+     * disappears and the list is recomputed from live usage; when the access is
+     * revoked, the list empties. Either way the refresh runs.
      */
     fun onResumed() {
         viewModelScope.launch {
@@ -107,7 +107,7 @@ class ZombiesViewModel @Inject constructor(
             val nowGranted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
             if (wasGranted != nowGranted) {
                 _state.update { it.copy(usageStatsGranted = nowGranted) }
-                if (nowGranted) refresh()
+                refresh()
             }
         }
     }

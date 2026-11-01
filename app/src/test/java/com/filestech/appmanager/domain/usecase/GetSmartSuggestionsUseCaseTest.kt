@@ -12,6 +12,7 @@ import com.filestech.appmanager.domain.model.SmartSuggestion
 import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.repository.IgnoreListRepository
 import com.google.common.truth.Truth.assertThat
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -95,6 +96,14 @@ class GetSmartSuggestionsUseCaseTest {
     }
 
     @Test
+    fun `the last use is read live, not from a cache left at 0 by a scan made without access`() = runTest {
+        givenApps(app("com.used", AppCategory.UNDEFINED, lastUsedDaysAgo = null))
+        coEvery { repository.getLastUseTimes() } returns mapOf("com.used" to now - msPerDay)
+
+        assertThat(report().suggestions).isEmpty()
+    }
+
+    @Test
     fun `a protected app rarely opened is not proposed for uninstall`() = runTest {
         every { criticalDetector.classify("com.beemdevelopment.aegis") } returns
             CriticalClassification("com.beemdevelopment.aegis", CriticalCategory.AUTHENTICATION)
@@ -140,8 +149,11 @@ class GetSmartSuggestionsUseCaseTest {
 
     private suspend fun report(): SmartCleanerReport = (useCase() as Outcome.Success).value
 
+    /** The catalogue, and the live usage telling the same last uses (a test may then make them differ). */
     private fun givenApps(vararg apps: AppInfo) {
         every { repository.observeApps(includeSystemApps = false) } returns flowOf(Outcome.Success(apps.toList()))
+        coEvery { repository.getLastUseTimes() } returns
+            apps.filter { it.lastUsedTime > 0L }.associate { it.packageName to it.lastUsedTime }
     }
 
     /** [lastUsedDaysAgo] null: never used. */
