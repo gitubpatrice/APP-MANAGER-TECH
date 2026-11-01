@@ -61,6 +61,12 @@ data class AppSettings(
      * [com.filestech.appmanager.data.local.datastore.SettingsRepositoryImpl.decodeTags].
      */
     val appTags: Map<String, Set<com.filestech.appmanager.domain.model.AppTag>> = emptyMap(),
+    /**
+     * The settings file could not be parsed (cut short or zero-filled by a power loss) and was replaced
+     * by the defaults: these values are not the user's choice. Nothing destructive acts on them — the
+     * histories, off by default, are not erased — until the user saves a setting, which clears this.
+     */
+    val resetAfterCorruption: Boolean = false,
 ) {
 
     /**

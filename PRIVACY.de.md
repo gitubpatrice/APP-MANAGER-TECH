@@ -1,6 +1,6 @@
 # Datenschutzerklärung — App Manager Tech
 
-_Übersetzung der Fassung vom 26. Oktober 2026._ · 🇬🇧 [English](PRIVACY.md) · 🇫🇷 [Français](PRIVACY.fr.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Übersetzung der Fassung vom 1. November 2026._ · 🇬🇧 [English](PRIVACY.md) · 🇫🇷 [Français](PRIVACY.fr.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > Diese Übersetzung wurde vom Entwickler maschinengestützt erstellt und noch nicht von einer
 > Muttersprachlerin oder einem Muttersprachler geprüft. **Bei Abweichungen gilt die
@@ -29,17 +29,20 @@ nicht verschlüsselt: Sie beschreibt Ihre Apps, nicht Ihre Inhalte.
 | Daten | Woher sie stammen | Wie lange |
 |---|---|---|
 | Liste der Apps: Name, Version, Größen, Datum der Installation, der Aktualisierung und der letzten Nutzung, Herkunfts-Store, Zustand (aktiviert, im Ruhezustand) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Bei jedem Scan ersetzt |
+| Was jede App gegenüber Android deklariert: ihre Komponenten, die von ihnen registrierten Bibliotheken, die Berechtigungen, die ihre Dienste und Empfänger schützen | Android (`PackageManager`) | Für die Tracker und den Datenschutz-Score gelesen; nie gespeichert |
+| Apps, die arbeiten, ohne geöffnet zu werden: die verwendete Tastatur, die eingeschalteten Bedienungshilfen, der Autofill-Dienst, die Standard-Apps für SMS und Telefon, die aktiven Geräteadministratoren, das Live-Hintergrundbild | Android-Einstellungen (`Settings.Secure`, `AutofillManager`, `Telephony`, `TelecomManager`, `DevicePolicyManager`, `WallpaperManager`) | Gelesen, um sie aus den Listen inaktiver Apps herauszuhalten; nie gespeichert |
 | Erkannte Tracker, Datenschutz-Score | Auf dem Telefon berechnet (siehe unten) | Bei jeder Anzeige neu berechnet |
 | Verlauf der Berechtigungen, die jeder App erteilt wurden — **standardmäßig deaktiviert** | Regelmäßige Erfassung, wenn Sie den Verlauf aktivieren | Standardmäßig 90 Tage, einstellbar von 7 bis 365; der letzte bekannte Stand jeder Berechtigung bleibt als Bezug erhalten; alles wird beim Ausschalten gelöscht |
-| Verlauf der Installationen, Updates und Deinstallationen, mit dem SHA-256-Fingerabdruck jedes APK und dem Deinstallationsgrund, den Sie freiwillig angeben — **standardmäßig deaktiviert** | Meldungen von Android, die eingehen, während die App läuft, wenn Sie den Verlauf aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365; wird beim Ausschalten gelöscht |
+| Verlauf der Installationen, Updates und Deinstallationen, mit dem SHA-256-Fingerabdruck jedes APK, den gefährlichen Berechtigungen, die jede Version anfordert, und den erteilten, sowie dem Deinstallationsgrund, den Sie freiwillig angeben — **standardmäßig deaktiviert** | Meldungen von Android, die eingehen, während die App läuft, wenn Sie den Verlauf aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365; wird beim Ausschalten gelöscht |
 | Protokoll der Aktionen, die in App Manager Tech ausgelöst wurden — **standardmäßig deaktiviert** | Ihre Aktionen, wenn Sie das Protokoll aktivieren | Standardmäßig 180 Tage, einstellbar von 30 bis 365; wird beim Ausschalten gelöscht |
 | Papierkorb und Quarantänen (mit dem SHA-256-Fingerabdruck jedes gesicherten APK) | Ihre Aktionen | Bis Sie sie leeren oder wiederherstellen |
 | Einstellungen: Design, Schwellenwerte, ausgeschlossene oder geschützte Apps, Tags, und die Zugriffsberechtigung für den von Ihnen gewählten Sicherungsordner | Sie | Bis zur Deinstallation |
 
-**Tracker** werden erkannt, indem die Namen der Komponenten, die jede App gegenüber Android
-deklariert, mit einer in App Manager Tech integrierten Liste verglichen werden, die aus der
-öffentlichen Datenbank von Exodus Privacy stammt. Diese Liste wird mit der App aktualisiert; sie
-wird nie heruntergeladen.
+**Tracker** werden erkannt, indem die Namen, die jede App gegenüber Android deklariert – ihre
+Komponenten und die von ihnen registrierten Bibliotheken –, mit einer in App Manager Tech
+integrierten Liste verglichen werden, die sich an der öffentlichen Datenbank von Exodus Privacy
+orientiert. Diese Liste wird mit der App aktualisiert; sie wird nie heruntergeladen. Ein Tracker,
+der in dieser Deklaration keinen Namen hinterlässt, wird nicht erkannt.
 
 Wenn Sie App Manager Tech deinstallieren oder die Daten der App in den Android-Einstellungen
 löschen, wird alles oben Genannte gelöscht. Dateien, die **Sie** an anderer Stelle haben schreiben
@@ -60,7 +63,7 @@ ausgeführt).
 | Berechtigung | Zweck | Netzwerk? |
 |---|---|---|
 | `QUERY_ALL_PACKAGES` | Alle installierten Apps sehen: Das ist die eigentliche Funktion der App. | Nein |
-| `PACKAGE_USAGE_STATS` | Spezieller Zugriff „Zugriff auf Nutzungsdaten“, den Sie selbst in den Android-Einstellungen erteilen. Er liefert die Größen und das Datum der letzten Nutzung jeder App. Wird der Zugriff verweigert, werden die Größen mit 0 und die Apps als „Nie verwendet“ angezeigt; alles andere funktioniert weiter. | Nein |
+| `PACKAGE_USAGE_STATS` | Spezieller Zugriff „Zugriff auf Nutzungsdaten“, den Sie selbst in den Android-Einstellungen erteilen. Er liefert die Größen und das Datum der letzten Nutzung jeder App. Wird der Zugriff verweigert, werden die Größen mit 0 angezeigt, und die Listen inaktiver Apps sowie die Bereinigung bleiben leer, statt alle Apps als unbenutzt auszuweisen; alles andere funktioniert weiter. | Nein |
 | `GET_PACKAGE_SIZE` | Die Größe der Apps lesen. | Nein |
 | `REQUEST_DELETE_PACKAGES` | Das Deinstallationsfenster von Android öffnen. Android selbst fragt nach der Bestätigung und deinstalliert. | Nein |
 | `REQUEST_INSTALL_PACKAGES` | Eine unter Quarantäne gestellte App wiederherstellen: das gesicherte APK an das Installationsprogramm von Android übergeben. Android verlangt zusätzlich, dass Sie App Manager Tech selbst erlauben, Apps zu installieren, und fragt bei jeder Installation nach einer Bestätigung. Sie dient zu nichts anderem. | Nein |

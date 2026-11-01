@@ -12,6 +12,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -42,19 +44,20 @@ class ScanAllTrackersUseCase @Inject constructor(
             Outcome.Loading    -> emptyList()
         }
 
-        // Fan out across IO dispatcher.
+        // Fan out across IO dispatcher, a few apps at a time: every PackageManager answer (components and
+        // their meta-data) goes through the process's binder buffer, about 1 MB shared, which a few
+        // hundred answers in flight at once could overflow (TransactionTooLargeException; a precaution —
+        // 515 apps scanned on a Galaxy S24 with no failure). An app whose scan fails anyway
+        // (uninstalled meanwhile, a PackageManager error) has no report: counted as clean, it would lower
+        // the percentage and sit among the apps without trackers. It is counted apart, in failedAppCount.
+        val permits = Semaphore(MAX_PARALLEL_SCANS)
         val reports: List<TrackerReport> = withContext(io) {
             coroutineScope {
                 apps.map { app ->
-                    async {
-                        when (val r = detectTrackers(app.packageName)) {
-                            is Outcome.Success -> r.value
-                            else               -> TrackerReport(app.packageName, emptyList(), 0)
-                        }
-                    }
+                    async { permits.withPermit { (detectTrackers(app.packageName) as? Outcome.Success)?.value } }
                 }.awaitAll()
             }
-        }
+        }.filterNotNull()
 
         val byPackage = reports.associateBy { it.packageName }
         val appsByPackage = apps.associateBy { it.packageName }
@@ -72,10 +75,11 @@ class ScanAllTrackersUseCase @Inject constructor(
             reports          = reports.sortedByDescending { it.detectedTrackers.size },
             byPackage        = byPackage,
             apps             = appsByPackage,
-            totalAppCount    = apps.size,
+            totalAppCount    = reports.size,
             appsWithTrackers = withTrackers,
             totalDetections  = totalDetections,
             categoryHistogram = byCategory,
+            failedAppCount   = apps.size - reports.size,
         )
     }
 
@@ -83,16 +87,26 @@ class ScanAllTrackersUseCase @Inject constructor(
         val reports: List<TrackerReport>,
         val byPackage: Map<String, TrackerReport>,
         val apps: Map<String, AppInfo>,
+        /** Apps actually analysed: [failedAppCount] apps are left out of every figure. */
         val totalAppCount: Int,
         val appsWithTrackers: Int,
         val totalDetections: Int,
         /** Pairs of (category name, occurrence count) sorted desc. */
         val categoryHistogram: List<Pair<String, Int>>,
+        /** Apps whose scan failed: neither clean nor contaminated, shown apart. */
+        val failedAppCount: Int = 0,
     ) {
-        /** % of scanned apps that have at least one tracker. */
+        /** % of scanned apps that have at least one tracker, truncated: never 100 while one app is clean. */
         val contaminationPercent: Int
             get() = if (totalAppCount == 0) 0 else (appsWithTrackers * PERCENT / totalAppCount)
+
+        /** Some app has trackers yet [contaminationPercent] truncates to 0 (1 app of 230): shown as "< 1 %". */
+        val isBelowOnePercent: Boolean
+            get() = appsWithTrackers > 0 && contaminationPercent == 0
     }
 }
 
 private const val PERCENT = 100
+
+// PackageManager reads in flight at once during a full scan.
+private const val MAX_PARALLEL_SCANS = 4

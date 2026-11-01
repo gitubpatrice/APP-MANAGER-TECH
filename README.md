@@ -153,7 +153,7 @@ SHA-256 `76e8772e09951369405f58e70c4afffd41c4687553c6cfa03d08145ff60ff1cf`, unch
 
 That is the full list of the release APK (twelve), asserted by CI. Never requested: `INTERNET`,
 location, contacts, SMS, calendar, `MANAGE_EXTERNAL_STORAGE`. The app degrades gracefully if any
-optional permission is denied (sizes show 0 and apps "Never used"; notifications stay silent). The
+optional permission is denied (sizes show 0, inactive-app lists stay empty; notifications stay silent). The
 [privacy policy](PRIVACY.md) explains each one.
 
 ---

@@ -12,18 +12,18 @@ import javax.inject.Singleton
  * Loads and exposes the curated tracker signature database (asset
  * `trackers.json`).
  *
- * Lazy-init at first call to [signatures] (i.e. when the user opens the
+ * Lazy-init at first read of [all] (i.e. when the user opens the
  * Trackers screen or AppDetail) — keeps startup latency at zero for users
  * who never look at this feature.
  *
  * Why a local asset and not a remote API: the app has no INTERNET
- * permission. The asset ships a snapshot of the Exodus Privacy curated list
- * — refreshed by the developer at each release, not at runtime.
+ * permission. The asset is a list curated for manifest matching, inspired by
+ * Exodus Privacy's public tracker database; it changes only with a release of
+ * the app, never at runtime. `TrackerAssetTest` checks its shape at build time.
  *
- * Lookup is structured as `signatures: Map<String, Tracker>` where keys are
- * the FQCN prefixes. Matching is a longest-prefix scan over the keys
- * (O(N×M) on N components × M signatures, but both stay < 1000 so this is
- * a few milliseconds per app).
+ * Lookup is [signatureIndex], a flat list of (signature, tracker) pairs scanned
+ * by `matchTrackers` (O(N×M) on N names × M signatures, both small: a few
+ * milliseconds per app).
  */
 @Singleton
 class TrackerDatabase @Inject constructor(
@@ -33,7 +33,7 @@ class TrackerDatabase @Inject constructor(
     /** Parsed once, kept in memory for the process lifetime. */
     val all: List<Tracker> by lazy { load() }
 
-    /** Pre-indexed by signature prefix for O(1) prefix-startsWith scan. */
+    /** Every (signature, tracker) pair, flattened once for `matchTrackers`. */
     val signatureIndex: List<Pair<String, Tracker>> by lazy {
         all.flatMap { tracker -> tracker.signatures.map { sig -> sig to tracker } }
     }

@@ -56,8 +56,9 @@ complexity:
     # default of 11. What exceeds 11 here are ViewModels with one handler per user action
     # (SettingsViewModel: 19, one setter per setting — the flat shape a settings screen should have).
     thresholdInClasses: 20
-    # AppInfoRepository: 13 — the read and write operations of the app catalogue.
-    thresholdInInterfaces: 15
+    # AppInfoRepository: 15 — the read and write operations of the app catalogue, plus (0.5.3) the
+    # permissions guarding an app's components and the live usage that inactive-app verdicts read.
+    thresholdInInterfaces: 16
 
 exceptions:
   active: true

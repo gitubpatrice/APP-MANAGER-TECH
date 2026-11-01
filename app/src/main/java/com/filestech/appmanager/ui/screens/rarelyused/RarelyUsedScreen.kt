@@ -153,9 +153,10 @@ fun RarelyUsedScreen(
                 )
             }
             RarelyUsedBody(
-                outcome     = outcome,
-                searchQuery = searchQuery,
-                onItemClick = onItemClick,
+                outcome           = outcome,
+                searchQuery       = searchQuery,
+                usageStatsGranted = usageStatsGranted,
+                onItemClick       = onItemClick,
             )
         }
     }
@@ -176,6 +177,7 @@ fun RarelyUsedScreen(
 private fun RarelyUsedBody(
     outcome: Outcome<List<AppInfo>>,
     searchQuery: String,
+    usageStatsGranted: Boolean,
     onItemClick: (String) -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -184,11 +186,15 @@ private fun RarelyUsedBody(
             is Outcome.Failure   -> ErrorState(message = o.error.toUiText().asString())
             is Outcome.Success   -> {
                 if (o.value.isEmpty()) {
-                    EmptyState(
-                        icon  = Icons.Outlined.AccessTime,
-                        title = stringResource(R.string.rarely_used_empty_title),
-                        body  = stringResource(R.string.rarely_used_empty_body),
-                    )
+                    // Without usage access the list is empty for want of data, not for want of rarely
+                    // used apps: the banner above says so, an "all clear" would not be true.
+                    if (usageStatsGranted) {
+                        EmptyState(
+                            icon  = Icons.Outlined.AccessTime,
+                            title = stringResource(R.string.rarely_used_empty_title),
+                            body  = stringResource(R.string.rarely_used_empty_body),
+                        )
+                    }
                 } else {
                     // v0.3.2 — apply the search filter when non-blank. Memoised
                     // on (list, query) so typing is responsive even on a

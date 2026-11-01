@@ -664,6 +664,69 @@ class AppDatabaseMigrationTest {
         migrated.close()
     }
 
+    @Test
+    fun migrate_v9_to_v10_adds_requested_dangerous_perms_null_for_existing_events() {
+        // 1. Seed v9 with one lifecycle event, recorded before declared permissions were kept.
+        helper.createDatabase(TEST_DB_NAME, 9).apply {
+            execSQL(
+                """
+                INSERT INTO app_lifecycle_event
+                  (package_name, label, type, captured_at, version_name, version_code,
+                   installer_package, total_size_bytes, granted_dangerous_perms, user_reason, apk_sha256)
+                VALUES ('com.old', 'Old', 'INSTALLED', 1700000000000, '1.0', 1,
+                        NULL, 0, 'android.permission.CAMERA', NULL, NULL)
+                """.trimIndent(),
+            )
+            close()
+        }
+
+        // 2. Migrate to v10 (validates the schema against the exported 10.json).
+        val migrated = helper.runMigrationsAndValidate(
+            TEST_DB_NAME,
+            10,
+            true,
+            Migrations.MIGRATION_9_10,
+        )
+
+        // 3. The existing event survives, its granted permissions intact, no declared set: unknown,
+        //    so the drift falls back on the granted ones for it.
+        migrated.query(
+            "SELECT package_name, granted_dangerous_perms, requested_dangerous_perms FROM app_lifecycle_event",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("com.old")
+            assertThat(it.getString(1)).isEqualTo("android.permission.CAMERA")
+            assertThat(it.isNull(2)).isTrue()
+        }
+
+        // 4. A new event round-trips its declared set, and "" (none declared) stays distinct from NULL.
+        migrated.execSQL(
+            """
+            INSERT INTO app_lifecycle_event
+              (package_name, label, type, captured_at, version_name, version_code, installer_package,
+               total_size_bytes, granted_dangerous_perms, user_reason, apk_sha256, requested_dangerous_perms)
+            VALUES ('com.new', 'New', 'REPLACED', 1700000000001, '2.0', 2, NULL, 0, 'android.permission.CAMERA',
+                    NULL, NULL, 'android.permission.CAMERA|android.permission.RECORD_AUDIO'),
+                   ('com.none', 'None', 'INSTALLED', 1700000000002, '1.0', 1, NULL, 0, '', NULL, NULL, '')
+            """.trimIndent(),
+        )
+        migrated.query(
+            "SELECT requested_dangerous_perms FROM app_lifecycle_event WHERE package_name = 'com.new'",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.getString(0)).isEqualTo("android.permission.CAMERA|android.permission.RECORD_AUDIO")
+        }
+        migrated.query(
+            "SELECT requested_dangerous_perms FROM app_lifecycle_event WHERE package_name = 'com.none'",
+        ).use {
+            assertThat(it.moveToFirst()).isTrue()
+            assertThat(it.isNull(0)).isFalse()
+            assertThat(it.getString(0)).isEmpty()
+        }
+
+        migrated.close()
+    }
+
     private companion object {
         const val TEST_DB_NAME = "migration_test.db"
     }

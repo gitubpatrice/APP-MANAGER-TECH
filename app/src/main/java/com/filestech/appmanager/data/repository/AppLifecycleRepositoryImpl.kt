@@ -65,6 +65,7 @@ class AppLifecycleRepositoryImpl @Inject constructor(
         totalSizeBytes: Long,
         grantedDangerousPermissions: List<String>,
         apkSha256: String?,
+        requestedDangerousPermissions: List<String>?,
     ): Outcome<Long> {
         if (!packageName.isValidPackageName()) {
             return Outcome.Failure(AppError.Validation("Invalid package name"))
@@ -84,6 +85,8 @@ class AppLifecycleRepositoryImpl @Inject constructor(
                         grantedDangerousPerms  = encodePerms(grantedDangerousPermissions),
                         userReason             = null,
                         apkSha256              = apkSha256,
+                        // Null stays null (not recorded); an empty list is "", "none declared".
+                        requestedDangerousPerms = requestedDangerousPermissions?.let(::encodePerms),
                     ),
                 )
             }
@@ -156,6 +159,7 @@ class AppLifecycleRepositoryImpl @Inject constructor(
         grantedDangerousPermissions = decodePerms(grantedDangerousPerms),
         userReason                  = userReason?.let { parseReason(it) },
         apkSha256                   = apkSha256,
+        requestedDangerousPermissions = requestedDangerousPerms?.let(::decodePerms),
     )
 
     /**
@@ -171,10 +175,12 @@ class AppLifecycleRepositoryImpl @Inject constructor(
 
     /**
      * Encodes a list of permission constants into a single `|`-separated
-     * TEXT. The `|` character is invalid inside a permission constant
-     * (Android requires `[A-Za-z0-9._]`) so the encoding is unambiguous.
-     * Empty list → empty string (NOT null). The repository decodes both
-     * empty string and null to `emptyList()` for forward-compat.
+     * TEXT. Android's own permissions never contain `|`; a third-party one
+     * could, so the capture ([com.filestech.appmanager.domain.usecase.RecordLifecycleEventUseCase])
+     * leaves such names out, and the encoding stays unambiguous.
+     * Empty list → empty string (NOT null). Decoding: `granted_dangerous_perms`
+     * reads empty and NULL alike as `emptyList()`; `requested_dangerous_perms`
+     * keeps NULL as null (not recorded) — see `toDomain`.
      */
     private fun encodePerms(perms: List<String>): String =
         if (perms.isEmpty()) "" else perms.joinToString(separator = "|")

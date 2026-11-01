@@ -62,6 +62,13 @@ data class LifecycleEvent(
      * source-safe.
      */
     val apkSha256: String?,
+    /**
+     * v0.5.3 — Sorted list of the dangerous permissions the app declared at capture time, granted or
+     * not: what the permission drift compares, since a permission an update adds is granted only later,
+     * if ever. Null when not recorded (rows before v0.5.3, UNINSTALLED rows) — the drift then falls back
+     * on [grantedDangerousPermissions]. No default, like [apkSha256]: every constructor site says which.
+     */
+    val requestedDangerousPermissions: List<String>?,
 )
 
 /**

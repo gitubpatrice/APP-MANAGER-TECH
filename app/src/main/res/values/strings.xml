@@ -118,6 +118,7 @@
     <!-- ================================================================ -->
     <string name="critical_action_uninstall">Uninstall</string>
     <string name="critical_action_quarantine_hard">Quarantine + uninstall</string>
+    <string name="critical_action_quarantine_soft">Quarantine + disable</string>
     <string name="critical_warning_hold_hint">For your protection, the confirm button requires a 3-second press. Release to cancel.</string>
     <plurals name="critical_warning_other_protected">
         <item quantity="one">This also covers %1$d other protected app.</item>
@@ -359,9 +360,13 @@
         <item quantity="one">%1$d of %2$d apps contains trackers · detections: %3$d</item>
         <item quantity="other">%1$d of %2$d apps contain trackers · detections: %3$d</item>
     </plurals>
+    <plurals name="trackers_summary_failed">
+        <item quantity="one">%d app could not be scanned</item>
+        <item quantity="other">%d apps could not be scanned</item>
+    </plurals>
     <string name="trackers_summary_categories">By category</string>
     <string name="trackers_section_with_trackers">Apps with trackers (%1$d)</string>
-    <string name="trackers_section_clean">Clean apps (%1$d)</string>
+    <string name="trackers_section_clean">No tracker detected (%1$d)</string>
 
     <!-- Privacy score badge -->
     <string name="privacy_score_label">Privacy score</string>
@@ -391,7 +396,7 @@
     <string name="screen_transparency_title">Transparency</string>
     <string name="transparency_intro">App Manager Tech works entirely on your phone. Below is what this app reads, what it keeps and what it sends. The privacy policy details each point, permission by permission.</string>
     <string name="transparency_section_reads">What we read from your device</string>
-    <string name="transparency_reads_packages">The list of installed apps (label, version, package name, install / update / last-used dates, install source, declared permissions, signing certificate). Source: Android PackageManager + StorageStatsManager + UsageStatsManager.</string>
+    <string name="transparency_reads_packages">The list of installed apps (label, version, package name, install / update / last-used dates, install source, declared permissions, signing certificate) and what each app declares to Android: its components, the libraries they register, the permissions guarding its services and receivers. Source: Android PackageManager + StorageStatsManager + UsageStatsManager. Also which apps work without being opened (keyboard in use, accessibility services switched on, autofill service, default SMS and phone apps, active device admins, live wallpaper), so as never to call them unused: read when needed, never stored.</string>
     <string name="transparency_reads_sizes">App sizes: install / data / cache bytes per package. Requires PACKAGE_USAGE_STATS granted in OS Settings.</string>
     <string name="transparency_reads_apk">An app\'s installation file (APK): to copy it to the backup folder you picked when you quarantine the app, and to compute its SHA-256 fingerprint for the install history, if you turned it on.</string>
     <string name="transparency_section_stores">What we store on your device</string>
@@ -412,7 +417,8 @@
     <!-- AppDetail Privacy Data Panel (clear-text permission descriptions) -->
     <string name="appdetail_privacy_panel_title">What this app does</string>
     <string name="appdetail_privacy_panel_no_dangerous">No dangerous permissions granted.</string>
-    <string name="appdetail_privacy_panel_trackers_clean">No known tracker detected in declared components.</string>
+    <string name="appdetail_privacy_panel_trackers_clean">No known tracker found in what this app declares to Android.</string>
+    <string name="appdetail_privacy_panel_trackers_unavailable">The tracker scan failed for this app.</string>
     <plurals name="appdetail_privacy_panel_trackers_count">
         <item quantity="one">%1$d tracker detected</item>
         <item quantity="other">%1$d trackers detected</item>
@@ -425,19 +431,24 @@
     <string name="perm_group_location">read your precise location</string>
     <string name="perm_group_location_approx">read your approximate location</string>
     <string name="perm_group_location_background">read your location even in the background</string>
-    <string name="perm_group_contacts">read your contacts</string>
-    <string name="perm_group_calendar">read your calendar</string>
-    <string name="perm_group_sms">read or send SMS</string>
-    <string name="perm_group_call_log">read your call log</string>
+    <string name="perm_group_contacts">read or change your contacts and accounts</string>
+    <string name="perm_group_calendar">read or change your calendar</string>
+    <string name="perm_group_sms">read, receive or send SMS and MMS</string>
+    <string name="perm_group_call_log">read or change your call log</string>
     <string name="perm_group_phone">access your phone state, make calls</string>
+    <string name="perm_group_health">read or write your health data</string>
     <string name="perm_group_storage">read or write external storage</string>
     <string name="perm_group_media">read your photos, videos, audio</string>
+    <string name="perm_group_media_location">read the places stored in your photos</string>
     <string name="perm_group_activity">read your physical activity</string>
     <string name="perm_group_sensors">read your body sensors</string>
     <string name="perm_group_bluetooth">scan nearby Bluetooth devices and connect</string>
+    <string name="perm_group_nearby">find and range nearby devices (Wi-Fi, ultra-wideband)</string>
     <string name="perm_group_notifications">post notifications</string>
     <string name="perm_group_internet">access the Internet</string>
+    <string name="perm_group_foreground_service">keep running in the foreground (with a persistent notification)</string>
     <string name="perm_group_overlay">draw over other apps</string>
+    <string name="perm_group_all_files">access all your files</string>
     <string name="perm_group_device_admin">act as device administrator (can block its own uninstall)</string>
     <string name="perm_group_accessibility">use accessibility services (can read screen content and inject inputs)</string>
 
@@ -914,8 +925,8 @@
     <!-- v0.3.2 — Permission delta on REPLACED events                     -->
     <!-- ================================================================ -->
     <plurals name="lifecycle_row_perms_gained">
-        <item quantity="one">+%1$d dangerous permission gained: %2$s</item>
-        <item quantity="other">+%1$d dangerous permissions gained: %2$s</item>
+        <item quantity="one">+%1$d dangerous permission added: %2$s</item>
+        <item quantity="other">+%1$d dangerous permissions added: %2$s</item>
     </plurals>
 
     <!-- ================================================================ -->
@@ -1042,6 +1053,7 @@
     <string name="tracker_category_push">Push notifications</string>
     <string name="tracker_category_session_replay">Session replay</string>
     <string name="trackers_contamination_percent">%1$d%%</string>
+    <string name="trackers_contamination_below_one" formatted="false">&lt;1%</string>
     <string name="rarely_used_days_short">%1$d d</string>
     <string name="notif_channel_scan_name">Background scan</string>
     <string name="notif_channel_scan_desc">Notifications from the periodic catalogue scan.</string>

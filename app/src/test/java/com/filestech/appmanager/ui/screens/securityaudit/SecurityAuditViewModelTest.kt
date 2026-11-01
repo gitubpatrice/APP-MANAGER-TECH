@@ -1,11 +1,14 @@
 package com.filestech.appmanager.ui.screens.securityaudit
 
 import android.content.Intent
+import com.filestech.appmanager.core.result.AppError
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.system.AmtActionLogger
 import com.filestech.appmanager.data.system.CriticalAppDetector
+import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.CriticalCategory
 import com.filestech.appmanager.domain.model.CriticalClassification
+import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.GetAccessibilityServiceAppsUseCase
 import com.filestech.appmanager.domain.usecase.GetDeviceAdminAppsUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
@@ -39,12 +42,14 @@ class SecurityAuditViewModelTest {
     private val criticalDetector: CriticalAppDetector = mockk()
     private val getDeviceAdmins: GetDeviceAdminAppsUseCase = mockk()
     private val getAccessibility: GetAccessibilityServiceAppsUseCase = mockk()
+    private val appInfoRepo: AppInfoRepository = mockk()
 
     @BeforeEach
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         coEvery { getDeviceAdmins() } returns Outcome.Success(emptyList())
         coEvery { getAccessibility() } returns Outcome.Success(emptyList())
+        coEvery { appInfoRepo.getApp(any()) } returns Outcome.Failure(AppError.PackageNotFound("any"))
         every { uninstallApp(any()) } answers { Outcome.Success(mockk<Intent>()) }
         every { criticalDetector.classify(any()) } returns null
         every { criticalDetector.classify(PROTECTED) } returns
@@ -63,6 +68,35 @@ class SecurityAuditViewModelTest {
         intents          = mockk(relaxed = true),
         actionLogger     = actionLogger,
         criticalDetector = criticalDetector,
+        appInfoRepo      = appInfoRepo,
+    )
+
+    @Test
+    fun `the System badge goes to a listed publisher only when it is preinstalled`() = runTest(dispatcher) {
+        val talkback = "com.google.android.marvin.talkback"
+        val settings = "com.android.settings"
+        coEvery { getAccessibility() } returns Outcome.Success(listOf(talkback, settings))
+        // TalkBack sideloaded under its package name on a phone that lacks it; Settings preinstalled.
+        coEvery { appInfoRepo.getApp(talkback) } returns Outcome.Success(app(talkback, system = false))
+        coEvery { appInfoRepo.getApp(settings) } returns Outcome.Success(app(settings, system = true))
+
+        val vm = viewModel()
+
+        assertThat(vm.state.value.systemBadged).containsExactly(settings)
+    }
+
+    private fun app(pkg: String, system: Boolean) = AppInfo(
+        packageName      = pkg,
+        label            = pkg,
+        versionName      = "1.0",
+        versionCode      = 1L,
+        installSizeBytes = 0L,
+        cacheSizeBytes   = 0L,
+        dataSizeBytes    = 0L,
+        firstInstallTime = 0L,
+        lastUpdateTime   = 0L,
+        isSystemApp      = system,
+        isUninstallable  = !system,
     )
 
     /** The init refresh posts a RefreshDone first: skip it. */

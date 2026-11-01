@@ -1,6 +1,6 @@
 # Politique de confidentialité — App Manager Tech
 
-_Dernière mise à jour : 26 octobre 2026_ · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Dernière mise à jour : 1er novembre 2026_ · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > **Version de référence.** En cas de divergence entre cette politique et l'une de ses traductions,
 > c'est cette version française qui fait foi.
@@ -28,16 +28,19 @@ elle décrit vos applications, pas vos contenus.
 | Donnée | D'où elle vient | Combien de temps |
 |---|---|---|
 | Liste des applications : nom, version, tailles, dates d'installation, de mise à jour et de dernière utilisation, magasin d'origine, état (activée, en veille) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Remplacée à chaque analyse |
+| Ce que chaque application déclare à Android : ses composants, les bibliothèques qu'ils enregistrent, les permissions qui protègent ses services et récepteurs | Android (`PackageManager`) | Lu pour les pisteurs et le score de confidentialité ; jamais conservé |
+| Applications qui travaillent sans être ouvertes : clavier utilisé, services d'accessibilité activés, service de saisie automatique, applications SMS et téléphone par défaut, administrateurs de l'appareil actifs, fond d'écran animé | Réglages d'Android (`Settings.Secure`, `AutofillManager`, `Telephony`, `TelecomManager`, `DevicePolicyManager`, `WallpaperManager`) | Lu pour les tenir hors des listes d'applications inactives ; jamais conservé |
 | Pisteurs détectés, score de confidentialité | Calculés sur le téléphone (voir plus bas) | Recalculés à chaque affichage |
 | Historique des permissions accordées à chaque application — **désactivé par défaut** | Relevé périodique, si vous l'activez | 90 jours par défaut, réglable de 7 à 365 ; le dernier état connu de chaque permission est gardé comme référence ; tout est effacé quand vous le désactivez |
-| Historique des installations, mises à jour et désinstallations, avec l'empreinte SHA-256 de chaque APK et le motif de désinstallation que vous choisissez de donner — **désactivé par défaut** | Annonces d'Android reçues pendant que l'application fonctionne, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 ; effacé quand vous le désactivez |
+| Historique des installations, mises à jour et désinstallations, avec l'empreinte SHA-256 de chaque APK, les permissions dangereuses que chaque version demande et celles accordées, et le motif de désinstallation que vous choisissez de donner — **désactivé par défaut** | Annonces d'Android reçues pendant que l'application fonctionne, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 ; effacé quand vous le désactivez |
 | Journal des actions lancées depuis App Manager Tech — **désactivé par défaut** | Vos actions, si vous l'activez | 180 jours par défaut, réglable de 30 à 365 ; effacé quand vous le désactivez |
 | Corbeille et quarantaines (avec l'empreinte SHA-256 de chaque APK sauvegardé) | Vos actions | Jusqu'à ce que vous les vidiez ou restauriez |
 | Réglages : thème, seuils, applications ignorées ou protégées, étiquettes, et l'autorisation d'accès au dossier de sauvegarde que vous avez choisi | Vous | Jusqu'à la désinstallation |
 
-**Les pisteurs** sont repérés en comparant les noms des composants que chaque application déclare à
-Android à une liste intégrée à App Manager Tech, tirée de la base publique d'Exodus Privacy. Cette
-liste est mise à jour avec l'application ; elle n'est jamais téléchargée.
+**Les pisteurs** sont repérés en comparant les noms que chaque application déclare à Android — ses
+composants et les bibliothèques qu'ils enregistrent — à une liste intégrée à App Manager Tech,
+inspirée de la base publique d'Exodus Privacy. Cette liste est mise à jour avec l'application ; elle
+n'est jamais téléchargée. Un pisteur qui ne laisse aucun nom dans cette déclaration n'est pas vu.
 
 Désinstaller App Manager Tech, ou effacer ses données dans les réglages d'Android, supprime tout ce
 qui précède. Les fichiers que **vous** avez fait écrire ailleurs (voir « Partage ») restent où vous
@@ -58,7 +61,7 @@ intégration continue).
 | Permission | Usage | Réseau ? |
 |---|---|---|
 | `QUERY_ALL_PACKAGES` | Voir toutes les applications installées : c'est la fonction même de l'application. | Non |
-| `PACKAGE_USAGE_STATS` | Accès spécial « Accès aux données d'utilisation », que vous accordez vous-même dans les réglages d'Android. Il donne les tailles et la date de dernière utilisation de chaque application. Refusé, les tailles s'affichent à 0 et les applications comme « Jamais utilisée » ; rien d'autre ne cesse de fonctionner. | Non |
+| `PACKAGE_USAGE_STATS` | Accès spécial « Accès aux données d'utilisation », que vous accordez vous-même dans les réglages d'Android. Il donne les tailles et la date de dernière utilisation de chaque application. Refusé, les tailles s'affichent à 0, et les listes d'applications inactives comme le nettoyeur restent vides plutôt que de dire toutes les applications inutilisées ; rien d'autre ne cesse de fonctionner. | Non |
 | `GET_PACKAGE_SIZE` | Lire la taille des applications. | Non |
 | `REQUEST_DELETE_PACKAGES` | Ouvrir la fenêtre de désinstallation d'Android. C'est Android qui demande confirmation et qui désinstalle. | Non |
 | `REQUEST_INSTALL_PACKAGES` | Restaurer une application mise en quarantaine : remettre l'APK sauvegardé à l'installateur d'Android. Android exige en plus que vous autorisiez vous-même App Manager Tech à installer des applications, et demande confirmation à chaque installation. Elle ne sert à rien d'autre. | Non |

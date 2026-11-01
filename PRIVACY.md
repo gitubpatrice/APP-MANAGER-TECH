@@ -1,6 +1,6 @@
 # Privacy Policy — App Manager Tech
 
-_Last updated: 26 October 2026_ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
+_Last updated: 1 November 2026_ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md) · 🇪🇸 [Español](PRIVACY.es.md)
 
 > This is a translation. **In case of discrepancy, the [French version](PRIVACY.fr.md) prevails**:
 > the publisher is based in France and the French text is the one he writes and answers for.
@@ -27,16 +27,19 @@ your apps, not your content.
 | Data | Where it comes from | How long |
 |---|---|---|
 | List of apps: name, version, sizes, install, update and last-used dates, store of origin, state (enabled, hibernated) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Replaced at every scan |
+| What each app declares to Android: its components, the libraries they register, the permissions guarding its services and receivers | Android (`PackageManager`) | Read for the trackers and the privacy score; never stored |
+| Apps that work without being opened: the keyboard in use, the accessibility services switched on, the autofill service, the default SMS and phone apps, the active device admins, the live wallpaper | Android's settings (`Settings.Secure`, `AutofillManager`, `Telephony`, `TelecomManager`, `DevicePolicyManager`, `WallpaperManager`) | Read to keep them out of the lists of inactive apps; never stored |
 | Trackers detected, privacy score | Computed on the phone (see below) | Recomputed every time they are shown |
 | History of the permissions granted to each app — **off by default** | Periodic capture, if you turn it on | 90 days by default, adjustable from 7 to 365; the last known state of each permission is kept as a reference; all erased when you turn it off |
-| History of installs, updates and uninstalls, with the SHA-256 fingerprint of each APK and the uninstall reason you choose to give — **off by default** | Android's announcements received while the app is running, if you turn it on | 180 days by default, adjustable from 30 to 365; erased when you turn it off |
+| History of installs, updates and uninstalls, with the SHA-256 fingerprint of each APK, the dangerous permissions each version asks for and those granted, and the uninstall reason you choose to give — **off by default** | Android's announcements received while the app is running, if you turn it on | 180 days by default, adjustable from 30 to 365; erased when you turn it off |
 | Journal of the actions started from App Manager Tech — **off by default** | Your actions, if you turn it on | 180 days by default, adjustable from 30 to 365; erased when you turn it off |
 | Trash and quarantines (with the SHA-256 fingerprint of each backed-up APK) | Your actions | Until you empty or restore them |
 | Settings: theme, thresholds, ignored or protected apps, tags, and the access grant to the backup folder you picked | You | Until uninstall |
 
-**Trackers** are spotted by comparing the names of the components each app declares to Android
-with a list built into App Manager Tech, taken from Exodus Privacy's public database. That list is
-updated with the app; it is never downloaded.
+**Trackers** are spotted by comparing the names each app declares to Android — its components
+and the libraries they register — with a list built into App Manager Tech, inspired by Exodus
+Privacy's public database. That list is updated with the app; it is never downloaded. A tracker
+that leaves no name in that declaration is not seen.
 
 Uninstalling App Manager Tech, or clearing its data in Android's settings, deletes all of the
 above. Files that **you** had written elsewhere (see "Sharing") stay where you put them.
@@ -55,7 +58,7 @@ brought with it. An automated check rejects any build whose APK departs from thi
 | Permission | Use | Network? |
 |---|---|---|
 | `QUERY_ALL_PACKAGES` | See every installed app: this is what the app is for. | No |
-| `PACKAGE_USAGE_STATS` | Special access "Usage data access", which you grant yourself in Android's settings. It provides each app's sizes and last-used date. If refused, sizes show 0 and apps show as "Never used"; nothing else stops working. | No |
+| `PACKAGE_USAGE_STATS` | Special access "Usage data access", which you grant yourself in Android's settings. It provides each app's sizes and last-used date. If refused, sizes show 0, and the lists of inactive apps and the cleaner stay empty rather than call every app unused; nothing else stops working. | No |
 | `GET_PACKAGE_SIZE` | Read the size of apps. | No |
 | `REQUEST_DELETE_PACKAGES` | Open Android's uninstall window. Android asks for confirmation and uninstalls. | No |
 | `REQUEST_INSTALL_PACKAGES` | Restore a quarantined app: hand the backed-up APK to Android's installer. Android additionally requires you to allow App Manager Tech to install apps yourself, and asks for confirmation at every install. It serves nothing else. | No |

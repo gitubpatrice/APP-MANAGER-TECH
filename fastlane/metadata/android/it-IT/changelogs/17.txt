@@ -1,0 +1,7 @@
+v0.5.3
+• Tracker: Firebase Analytics e Crashlytics rilevati; un'analisi fallita non è più «pulita»
+• App protette: 38 nomi di pacchetto errati corretti (banche, Wise, 1Password…)
+• Punteggio privacy: contano accessibilità, amministratore e tutti i permessi pericolosi
+• App inattive: utilizzo letto dal vivo su 2 anni; senza accesso, nessun elenco falso
+• Aggiornamenti: i nuovi permessi richiesti visibili prima della concessione
+• Impostazioni danneggiate: valori predefiniti, niente più arresti

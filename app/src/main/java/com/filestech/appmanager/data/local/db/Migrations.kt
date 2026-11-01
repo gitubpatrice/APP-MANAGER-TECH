@@ -269,6 +269,24 @@ object Migrations {
     }
 
     /**
+     * v0.5.3 — adds `requested_dangerous_perms` TEXT column to `app_lifecycle_event`.
+     *
+     * The dangerous permissions an app declares at each event, granted or not: the permission drift
+     * compares them, so a permission an update adds is seen before the user grants it. NULL for every
+     * row written before (the drift then falls back on the granted ones, as until 0.5.2).
+     *
+     * Strict additive: `ALTER TABLE ADD COLUMN ... TEXT` — NULLable so no
+     * DEFAULT clause is necessary, pre-existing rows read NULL.
+     */
+    val MIGRATION_9_10: Migration = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE `app_lifecycle_event` ADD COLUMN `requested_dangerous_perms` TEXT",
+            )
+        }
+    }
+
+    /**
      * All migrations in version order. Spread (`*ALL_MIGRATIONS`) into
      * `Room.databaseBuilder(...).addMigrations()`.
      */
@@ -281,5 +299,6 @@ object Migrations {
         MIGRATION_6_7,
         MIGRATION_7_8,
         MIGRATION_8_9,
+        MIGRATION_9_10,
     )
 }

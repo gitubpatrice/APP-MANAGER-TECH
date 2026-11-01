@@ -20,7 +20,7 @@ enum class CriticalCategory {
 
     /**
      * 2FA / TOTP authenticators (Aegis, andOTP, FreeOTP, Google
-     * Authenticator, Microsoft Authenticator, Authy, Raivo).
+     * Authenticator, Microsoft Authenticator, Authy, 2FAS).
      *
      * Uninstall risk: lose access to every account whose 2FA shared secret is
      * only stored in this app. May lock the user out for days without a

@@ -98,6 +98,14 @@ import com.filestech.appmanager.data.local.db.entity.TrashItemEntity
  *     Pre-v0.5.1 entries read NULL — their backup cannot be checked.
  *     Migration `MIGRATION_8_9`: 1× ALTER TABLE ADD COLUMN (NULLable).
  *
+ * - v10 (v0.5.3 — permission drift on declared permissions)
+ *     Adds `requested_dangerous_perms` TEXT NULLable column to
+ *     `app_lifecycle_event`: the dangerous permissions the app declares at
+ *     each event, granted or not, so an update's new permission shows before
+ *     it is granted. Pre-v0.5.3 rows read NULL — the drift falls back on the
+ *     granted ones for them.
+ *     Migration `MIGRATION_9_10`: 1× ALTER TABLE ADD COLUMN (NULLable).
+ *
  * Migration rules (STRICT — enforced by code review):
  * - Every version bump MUST ship an additive Migration in [Migrations].
  * - Only `ALTER TABLE ... ADD COLUMN`, `CREATE INDEX IF NOT EXISTS`, `CREATE TABLE` are allowed.
@@ -128,6 +136,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         const val DATABASE_NAME = "app_manager_tech.db"
-        const val SCHEMA_VERSION = 9
+        const val SCHEMA_VERSION = 10
     }
 }

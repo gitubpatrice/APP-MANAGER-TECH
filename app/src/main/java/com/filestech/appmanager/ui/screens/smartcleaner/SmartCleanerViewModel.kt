@@ -169,16 +169,19 @@ class SmartCleanerViewModel @Inject constructor(
     }
 
     /**
-     * Re-probes PACKAGE_USAGE_STATS on ON_RESUME and triggers a fresh analysis
-     * when the permission just flipped from denied → granted.
+     * Re-probes PACKAGE_USAGE_STATS on ON_RESUME, then re-analyses at every
+     * return: the suggestions read live usage, which changes as soon as an app
+     * is opened elsewhere. When the access flipped, with a rescan first (sizes
+     * need the access too); otherwise from the cache, which is cheap.
      */
     fun onResumed() {
         viewModelScope.launch {
-            val wasGranted = _state.value.usageStatsGranted
             val nowGranted = withContext(io) { appInfoRepo.hasUsageStatsAccess() }
-            if (wasGranted != nowGranted) {
+            if (_state.value.usageStatsGranted != nowGranted) {
                 _state.update { it.copy(usageStatsGranted = nowGranted) }
-                if (nowGranted) refresh()
+                refresh()
+            } else {
+                analyze(rescanFirst = false)
             }
         }
     }

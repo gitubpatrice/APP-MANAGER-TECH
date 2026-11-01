@@ -110,9 +110,10 @@ class QuarantinePickerViewModel @Inject constructor(
         val label = knownLabel ?: packageName
 
         // v0.2.0 Safety Guardrails — same friction layer as AppDetail.
-        // HARD mode wipes user data; require a hold-3s confirmation when the
-        // target is a critical app (authenticator, banking, etc.).
-        if (!bypassCriticalCheck && mode == QuarantineMode.HARD_UNINSTALL) {
+        // HARD mode wipes user data, SOFT mode leads the user to disable the app:
+        // either way a protected app (authenticator, banking, etc.) asks for the
+        // hold-3s confirmation.
+        if (!bypassCriticalCheck) {
             criticalDetector.classify(packageName)?.let { classification ->
                 _events.trySend(
                     Event.RequiresCriticalConfirmation(
@@ -120,6 +121,7 @@ class QuarantinePickerViewModel @Inject constructor(
                         label          = label,
                         classification = classification,
                         durationDays   = durationDays,
+                        mode           = mode,
                     ),
                 )
                 return
@@ -199,6 +201,7 @@ class QuarantinePickerViewModel @Inject constructor(
             val label: String,
             val classification: CriticalClassification,
             val durationDays: Int,
+            val mode: QuarantineMode,
         ) : Event
     }
 }

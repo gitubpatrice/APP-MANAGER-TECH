@@ -7,6 +7,104 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.5.3] — 2026-11-01 — Verdicts you can trust
+
+Every rule that gives the user a verdict was reviewed (external reviews by Claude API and GPT, a
+false-positive audit that ran each rule on the real SDK manifests and store listings, a 3-axes audit and
+a security deep dive); what was confirmed is fixed below, each with a test proven by sabotage
+(99 → 164 unit tests).
+
+### Fixed — trackers
+- **Firebase Analytics and Crashlytics, the two most common trackers, were never detected.** Analytics
+  declares its components under `com.google.android.gms.measurement.` (manifest of
+  play-services-measurement 24.0.0), a prefix the list lacked; Crashlytics declares no component of its
+  own, only a registration in Firebase's shared discovery service. The scan now also reads the classes
+  components register in their meta-data (Firebase registrars, AndroidX Startup initializers), and
+  includes disabled components — a tracker waiting for consent is still in the APK.
+- **A scan that failed counted the app as clean**, lowering the percentage; it is now counted apart
+  ("N apps could not be scanned", also when every scan failed), and the app's detail says the scan
+  failed instead of "no tracker".
+- **"0 %" next to "1 app of 230 contains trackers"**: shown as "< 1 %".
+- The list: Smartlook was listed twice (45 entries, 44 trackers); Smartling, a translation SDK, and
+  App Center, whose only detectable part distributes updates, are not trackers and are removed; Vungle 7
+  (`com.vungle.ads.`) and Facebook's core SDK (app events, logged automatically) added; a class
+  signature now matches that class only. 43 trackers. "Clean apps" becomes "No tracker detected": some
+  SDKs leave no name in a manifest, and the method cannot see them.
+
+### Fixed — privacy score and "What this app does"
+- **The −20 for an accessibility service and the −20 for a device admin never applied**: they looked for
+  `BIND_ACCESSIBILITY_SERVICE` and `BIND_DEVICE_ADMIN` among requested permissions, where no app puts
+  them. They are now read where apps declare them, on their services and receivers, and shown in the
+  panel.
+- The dangerous permissions are the platform's own list (read from Android 14 and 16): 13 were missing
+  (`GET_ACCOUNTS`, `RECEIVE_MMS`, `ACCESS_MEDIA_LOCATION`, `BLUETOOTH_ADVERTISE`…), health data
+  permissions are counted, and `USE_BIOMETRIC`, a normal permission, no longer costs 5 points. One
+  penalty per capability (precise and approximate location are one), and every deduction of the score
+  has its line in the panel — `CALL_PHONE`, `RECEIVE_SMS` or a foreground service were scored but never
+  shown.
+- A capability shows as granted when any of its permissions is (music allowed, photos refused).
+- A permission list that cannot be read gives no score, not 100/100.
+- Install source: every F-Droid client earns the bonus, the phone makers' stores are mainstream, a
+  preinstalled app is not "sideloaded", the package installer and adb are.
+- The "What this app does" title appeared twice.
+
+### Fixed — protected apps (hold 3 s before uninstalling)
+- **38 of the 75 built-in package names matched no real app**, so most French banks (BNP Paribas,
+  BoursoBank, Banque Populaire, La Banque Postale, SG, Hello bank!), Wise, 1Password 8, Keeper,
+  Doctolib, SNCF Connect, Uber… went unprotected while the Protected apps screen listed them. Every name
+  was checked against the Play Store and F-Droid; wrong ones are corrected, non-existent ones removed,
+  and 2FAS, Ente Auth, Proton Authenticator, Bitwarden Authenticator, FreeOTP+, Keepass2Android and Pass
+  Tech added. La Poste's postal app is no longer protected as a bank.
+- Fitbit was never protected: its name has capitals, the comparison was in lowercase.
+- A protected app could lose its warning on a screen restored after the process was killed, before the
+  user's list had been read: the list is now read at start, and a classification waits for it.
+- The reminder ("soft") quarantine tells the user to disable the app: for a protected app it now asks
+  for the same hold-3s confirmation as Disable, from the app's page and from the quarantine picker.
+
+### Fixed — inactive apps, rarely used, Smart Cleaner
+- **Without usage access every app was "never opened" and proposed for uninstall.** The lists and the
+  cleaner now stay empty, under the banner that asks for the access.
+- **The usage history covered 30 days only**: an app opened 45 days ago read "never opened", and the
+  60/90/180-day thresholds meant nothing. It now covers two years, and counts an app visible on screen
+  or running a foreground service as used (Android 10+).
+- **Usage is read live**, no longer from the app-list cache: a scan made before the usage access was
+  granted had cached every app as never used, and the lists kept saying so after the access was given.
+  The lists recompute when you come back to them, and empty again if the access is revoked.
+- The keyboard in use, accessibility services switched on, the autofill service, the default SMS and
+  phone apps, device admins and the live wallpaper work without being opened: they are never inactive.
+- Rarely used: an app installed yesterday and never opened is not "unused for 30 days".
+- Smart Cleaner: protected apps are never proposed for uninstall; "large and rarely used" could never
+  fire and now covers big apps unopened for half the zombie threshold; days are counted as on the
+  inactive-apps screen; "duplicates" no longer add to the reclaimable space.
+
+### Fixed — other
+- Security audit: an accessibility service switched on but not bound (crashed) was missed; the
+  reassuring "System" badge went by package name alone and now requires a preinstalled app.
+- **Permission changes after an update compared the permissions granted**, not those declared: a
+  permission an update adds is granted only when you allow it, so it went unseen — and the update was
+  blamed for a permission you had granted to the old version. The install history now keeps the
+  dangerous permissions each version declares (database schema 10, an added column; events recorded
+  before keep the old comparison). "Permissions gained" reads "added".
+- Permission changes: the previous event is found by recording order, not by the clock; an unreadable
+  history is an error, not "no comparison".
+- **A settings file damaged by a power loss** (cut short or zero-filled) ended the app at launch. It is
+  now replaced by the defaults, marked as such, so that the histories they turn off are not erased:
+  measured on a Galaxy S24, a zero-filled settings file leaves the install history intact (and erases it
+  with that mark ignored). A read error is retried, never answered with made-up settings; a setting that
+  cannot be saved no longer crashes the screen. A full tracker scan reads four apps at a time rather
+  than all at once.
+- The Android system package itself, named `android` (one segment), was refused as an invalid package
+  name: with system apps shown, its tracker scan failed and its detail page could not open. Measured on
+  a Galaxy S24 and a S9: every app is now scanned (515 and 440).
+
+### Changed
+- Transparency screen, privacy policy and terms (5 languages): the app reads what each app declares
+  (components, the libraries they register, the permissions guarding its services and receivers) and
+  which apps work without being opened; the install history keeps each version's dangerous permissions;
+  the tracker list is inspired by, not taken from, Exodus Privacy's database.
+
+---
+
 ## [0.5.2] — 2026-11-01 — Home: a tag filter you can leave
 
 ### Fixed

@@ -1,6 +1,6 @@
 # Condiciones de uso — App Manager Tech
 
-_Traducción de la versión del 26 de octubre de 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md)
+_Traducción de la versión del 1 de noviembre de 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md)
 
 > Esta traducción la ha realizado el desarrollador con ayuda de herramientas automáticas y todavía
 > no la ha revisado un hablante nativo. **En caso de discrepancia, prevalece la
@@ -37,10 +37,10 @@ redistribuya si su licencia lo prohíbe.
   Nunca elude esas confirmaciones.
 - **«Forzar detención» solo detiene los procesos en segundo plano.** Android no permite a una app
   detener otra que esté visible o que ejecute un servicio en primer plano.
-- **La detección de rastreadores no es una auditoría de seguridad.** Compara los componentes que
-  cada app declara con una lista congelada en la fecha de la versión: puede pasar por alto un
-  rastreador ausente de esa lista, renombrado o integrado de otra forma, y señalar uno que está
-  presente pero que nunca se utiliza.
+- **La detección de rastreadores no es una auditoría de seguridad.** Compara los nombres que cada
+  app declara a Android —sus componentes y las bibliotecas que registran— con una lista congelada en
+  la fecha de la versión: puede pasar por alto un rastreador ausente de esa lista, renombrado o
+  integrado sin dejar allí ningún nombre, y señalar uno que está presente pero que nunca se utiliza.
 - **La puntuación de privacidad es una estimación.** Se calcula a partir de los permisos
   declarados, de ciertos accesos especiales y del origen de la instalación. Mide el alcance de los
   accesos de una app, no sus intenciones: una puntuación baja no significa que la app sea maliciosa, y una puntuación alta no garantiza nada.
@@ -48,7 +48,7 @@ redistribuya si su licencia lo prohíbe.
   como crítica, o que usted ha protegido, la app exige mantener pulsado durante tres segundos. No
   las reconoce todas: desactivar o desinstalar una app del sistema puede volver inestable el
   teléfono.
-- Sin el «Acceso a datos de uso», los tamaños aparecen en 0 y las apps como «Nunca usada». Android
+- Sin el «Acceso a datos de uso», los tamaños aparecen en 0, y las listas de apps inactivas y la limpieza quedan vacías. Android
   puede retrasar o bloquear las notificaciones; la app no puede garantizar su entrega.
 
 ## Pérdida de datos

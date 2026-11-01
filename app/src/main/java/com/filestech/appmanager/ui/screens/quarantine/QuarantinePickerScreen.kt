@@ -116,6 +116,7 @@ fun QuarantinePickerScreen(
                         label          = event.label,
                         classification = event.classification,
                         durationDays   = event.durationDays,
+                        mode           = event.mode,
                     )
             }
         }
@@ -205,7 +206,13 @@ fun QuarantinePickerScreen(
     }
 
     criticalConfirm?.let { confirm ->
-        val actionLabel = stringResource(R.string.critical_action_quarantine_hard)
+        val actionLabel = stringResource(
+            if (confirm.mode == com.filestech.appmanager.domain.model.QuarantineMode.HARD_UNINSTALL) {
+                R.string.critical_action_quarantine_hard
+            } else {
+                R.string.critical_action_quarantine_soft
+            },
+        )
         CriticalWarningDialog(
             appLabel    = confirm.label,
             actionLabel = actionLabel,
@@ -213,7 +220,7 @@ fun QuarantinePickerScreen(
             onConfirm   = {
                 viewModel.quarantine(
                     packageName  = confirm.packageName,
-                    mode         = com.filestech.appmanager.domain.model.QuarantineMode.HARD_UNINSTALL,
+                    mode         = confirm.mode,
                     durationDays = confirm.durationDays,
                     bypassCriticalCheck = true,
                 )
@@ -235,6 +242,7 @@ private data class PickerCriticalConfirm(
     val label: String,
     val classification: CriticalClassification,
     val durationDays: Int,
+    val mode: com.filestech.appmanager.domain.model.QuarantineMode,
 )
 
 @Composable

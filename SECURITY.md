@@ -1,6 +1,40 @@
 # App Manager Tech — Security model
 
-Current release: **v0.5.2**
+Current release: **v0.5.3**
+
+## v0.5.3 — Verdicts you can trust
+
+No permission change, no new dependency, still no `INTERNET`.
+
+- **Protected apps (hold 3 s) protected again.** 38 of the 75 built-in package names matched no real
+  app, so most French banks, Wise, 1Password 8, Keeper, Doctolib or SNCF Connect lost their warning;
+  every name is now checked against the Play Store and F-Droid, the list is lowercased (Fitbit never
+  matched), and the user's own list is read at start and awaited by a classification. The reminder
+  quarantine, which tells the user to disable the app, asks for the confirmation too. A test fails the
+  build of any ViewModel that can uninstall, disable or quarantine without injecting the detector.
+- **Accessibility services and device admins** are read where apps declare them (the permission
+  guarding their services and receivers), not among requested permissions, where no app puts them:
+  the privacy score's two −20 never applied. The security audit also lists an accessibility service
+  switched on but not bound (`Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES`), and its "System" badge
+  requires a preinstalled app, not a familiar package name.
+- **Trackers**: Firebase Analytics and Crashlytics were invisible to the manifest scan; it now reads
+  component meta-data registrations and disabled components. A failed scan no longer counts as clean.
+- **Permission drift** compares the dangerous permissions each version declares (Room schema 10,
+  additive `ALTER TABLE ADD COLUMN`, instrumented migration test): an update's new permission shows
+  before the user grants it.
+- **Robustness**: a settings file that cannot be parsed is replaced by the defaults
+  (`ReplaceFileCorruptionHandler`) with a mark, and the history eraser ignores marked defaults (all
+  histories read "off" there: erasing on them would delete the user's data for a damaged file — measured
+  on a Galaxy S24 with a zero-filled file, with a negative control); a read error is retried with a
+  growing delay instead of an uncaught exception in the application scope at launch, and is never
+  answered with made-up settings; a failed write is logged, not thrown. The full tracker scan reads four
+  apps at a time. The
+  package-name check, which guards every intent and PackageManager call, now accepts the framework's own
+  `android` and nothing else with a single segment.
+- **What is read, never stored**: what each app declares (components, registered libraries, guarding
+  permissions) and which apps work without being opened (keyboard, accessibility, autofill, default
+  SMS / phone apps, device admins, live wallpaper) — public APIs, no permission, documented in the
+  privacy policy and the Transparency screen.
 
 ## v0.5.1 — Quarantine restore, legal texts
 
@@ -356,6 +390,7 @@ Tink AEAD (AES-256-GCM). No home-grown crypto.
 
 | Version | Date | Scope | Findings |
 |---|---|---|---|
+| v0.5.3 | 2026-11-01 | Every rule that gives a verdict (trackers, privacy score, protected apps, inactive apps, Smart Cleaner, security audit, permission drift): Claude API review (2 batches), GPT reviews (rules, then the branch diff twice), a false-positive audit that ran each rule on the real SDK manifests (Google Maven), the Play Store / F-Droid listings and `dumpsys` of two devices, a 3-axes audit and a security deep dive of the delta | 0 CRITICAL. HIGH: protected-app list mostly wrong ids; accessibility / device-admin penalties never applied; Firebase trackers unseen; inactive-app lists built on a usage cache left at 0. All fixed before tag, with tests proven by sabotage; the security deep dive found no bypass of the hold-3s guard and nothing new persisted or logged. |
 | v0.5.1 | 2026-10-09 | Every public statement (privacy policy, terms, Transparency screen, README, store listings) and every dialog, warning and setting of the app checked against the code and the release APK; Claude API review of the restore fix, GPT review of the legal translations, a security review of `REQUEST_INSTALL_PACKAGES` | Quarantine restore never worked since v0.2.0 (installer refused, measured on a Galaxy S9) and dropped its entry before the install; real quarantine of split-APK and system apps could never be restored; notifications never requested on Android 13+; the protected-app hold missing on two uninstall paths; three settings with no effect; permission history losing changes before their retention; misleading texts — **all fixed before tag**. Security review: no path to the installer other than the user's own restore; restore intent pinned to the system installer. The integrity check of a backed-up APK, deferred since v0.5.0, is done (SHA-256 recorded at backup, Room schema 9). |
 | v0.5.0 | 2026-10-08 | Pre-release 3-axes audit of v0.4.0..v0.5.0 (CI, toolchain, detekt, German / Italian / Spanish), plus Claude API and GPT reviews of each change and of each translation | 0 CRITICAL, 0 HIGH, 3 MEDIUM (expert app-op state read without the permission behind it, cache notification re-alerting at every scan, release hygiene) + 7 LOW — **the 3 MEDIUM and 5 LOW fixed before tag**. Deferred: integrity check of a backed-up APK before restore (needs a schema column), English deduction labels of the privacy score (internal, never displayed, pinned by tests), CI actions pinned by tag rather than SHA. |
 | v0.2.1 | 2026-05-24 | FULL-APP "peigne fin" audit (3-axes + cohérence transversale) post-v0.2.0 + 6 user-reported UX bugs (Trash ghost rows, SecurityAudit refresh stuck, Zombies row tap, Storage refresh, AppDetail "last used", Settings shortcut Outils) | 0 CRITICAL, 8 HIGH (H1 SystemClock vs wall-clock in hold-3s timer, H3 SettingsScreen missing PermissionDrift+Quarantine callbacks, C2a/b + C8a/b RarelyUsed+Zombies missing UsageStats banner+ON_RESUME, C7a/b/c/d 4 withTimeout sites missing) + 12 MEDIUM (C1a/b/c/d AtomicBoolean replacing racy guards, M1 IntentFactory require validPkg, M2 notif ID negative hashCode mask, M4 AppDetail load fan-out timeout, M5 SecurityAuditScreen BrandDanger, M-1 delta hasUsageStatsAccess off-main, M-4/L-2 Box weight, C3a Trackers ScanDone snackbar, C6a BatchAction filter) + 12 LOW — **all blocking findings fixed before tag**. CI fix: CodeQL `--no-build-cache --rerun-tasks` so tracer observes compilation. |

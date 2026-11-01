@@ -258,6 +258,9 @@ private fun SmartCleanerBody(
             when {
                 state.isAnalyzing && state.report.suggestions.isEmpty() ->
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                // Without usage access the report is empty for want of data: the banner above says so,
+                // "nothing to clean" would not be true.
+                !state.usageStatsGranted && state.report.suggestions.isEmpty() -> Unit
                 state.report.suggestions.isEmpty() -> EmptyState(
                     icon  = Icons.Outlined.AutoFixHigh,
                     title = stringResource(R.string.smart_cleaner_empty_title),

@@ -97,6 +97,14 @@ interface AppInfoRepository {
 
     suspend fun getRequestedPermissions(packageName: String): Outcome<List<String>>
 
+    /**
+     * The permissions guarding the app's own services and receivers (`android:permission`), disabled
+     * ones included: BIND_ACCESSIBILITY_SERVICE on an accessibility service, BIND_DEVICE_ADMIN on a
+     * device-admin receiver. An app never *requests* these, so they are absent from
+     * [getRequestedPermissions].
+     */
+    suspend fun getComponentPermissions(packageName: String): Outcome<Set<String>>
+
     suspend fun getGrantedPermissions(packageName: String): Outcome<List<String>>
 
     /**
@@ -127,4 +135,11 @@ interface AppInfoRepository {
      * `dataSizeBytes`, `installSizeBytes` and `lastUsedTime` fall back to 0.
      */
     fun hasUsageStatsAccess(): Boolean
+
+    /**
+     * The last sign of use of every app, read live from usage statistics (package name → time, ms).
+     * The cached `lastUsedTime` is only as fresh as the last scan, and a scan made without usage access
+     * wrote 0 for every app: what decides that an app is unused reads this instead. Empty without access.
+     */
+    suspend fun getLastUseTimes(): Map<String, Long>
 }

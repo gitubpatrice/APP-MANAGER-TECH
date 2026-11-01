@@ -1,5 +1,6 @@
 package com.filestech.appmanager.domain.usecase
 
+import com.filestech.appmanager.data.local.datastore.AppSettings
 import com.filestech.appmanager.domain.repository.AmtActionRepository
 import com.filestech.appmanager.domain.repository.AppLifecycleRepository
 import com.filestech.appmanager.domain.repository.PermissionSnapshotRepository
@@ -21,6 +22,20 @@ class EraseDisabledHistoriesUseCase @Inject constructor(
     private val journal: AmtActionRepository,
     private val permissions: PermissionSnapshotRepository,
 ) {
+
+    /**
+     * Erases the histories [settings] turn off — unless those settings are the defaults put back after a
+     * corrupted settings file ([AppSettings.resetAfterCorruption]): every history reads "off" there, and
+     * erasing on them would delete what the user had chosen to keep, for a damaged file.
+     */
+    suspend operator fun invoke(settings: AppSettings) {
+        if (settings.resetAfterCorruption) return
+        invoke(
+            lifecycleOn   = settings.lifecycle.enabled,
+            journalOn     = settings.actionJournal.enabled,
+            permissionsOn = settings.privacyMonitor.permissionDriftEnabled,
+        )
+    }
 
     // The permission repository returns a count, not an Outcome, and Room fails with more than
     // SQLException (IllegalStateException on a database that cannot open). Called from the

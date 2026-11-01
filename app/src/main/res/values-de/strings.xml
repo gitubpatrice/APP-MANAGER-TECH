@@ -117,6 +117,7 @@
     <!-- ================================================================ -->
     <string name="critical_action_uninstall">Deinstallieren</string>
     <string name="critical_action_quarantine_hard">Quarantäne + Deinstallation</string>
+    <string name="critical_action_quarantine_soft">Quarantäne + Deaktivierung</string>
     <string name="critical_warning_hold_hint">Zu Ihrem Schutz muss die Bestätigungsschaltfläche 3 Sekunden lang gedrückt werden. Loslassen bricht ab.</string>
     <plurals name="critical_warning_other_protected">
         <item quantity="one">Das betrifft auch %1$d weitere geschützte App.</item>
@@ -352,9 +353,13 @@
         <item quantity="one">%1$d von %2$d Apps enthält Tracker · Erkennungen: %3$d</item>
         <item quantity="other">%1$d von %2$d Apps enthalten Tracker · Erkennungen: %3$d</item>
     </plurals>
+    <plurals name="trackers_summary_failed">
+        <item quantity="one">%d App konnte nicht analysiert werden</item>
+        <item quantity="other">%d Apps konnten nicht analysiert werden</item>
+    </plurals>
     <string name="trackers_summary_categories">Nach Kategorie</string>
     <string name="trackers_section_with_trackers">Apps mit Trackern (%1$d)</string>
-    <string name="trackers_section_clean">Apps ohne Tracker (%1$d)</string>
+    <string name="trackers_section_clean">Kein Tracker erkannt (%1$d)</string>
 
     <!-- Privacy score badge -->
     <string name="privacy_score_label">Datenschutz-Score</string>
@@ -384,7 +389,7 @@
     <string name="screen_transparency_title">Transparenz</string>
     <string name="transparency_intro">App Manager Tech arbeitet vollständig auf Ihrem Telefon. Hier steht, was diese App liest, aufbewahrt und sendet. Die Datenschutzerklärung erläutert jeden Punkt, Berechtigung für Berechtigung.</string>
     <string name="transparency_section_reads">Was wir auf Ihrem Gerät lesen</string>
-    <string name="transparency_reads_packages">Die Liste der installierten Apps (Name, Version, Paketname, Datum der Installation / Aktualisierung / letzten Nutzung, Installationsquelle, deklarierte Berechtigungen, Signaturzertifikat). Quelle: Android PackageManager + StorageStatsManager + UsageStatsManager.</string>
+    <string name="transparency_reads_packages">Die Liste der installierten Apps (Name, Version, Paketname, Datum der Installation / Aktualisierung / letzten Nutzung, Installationsquelle, deklarierte Berechtigungen, Signaturzertifikat) und was jede App gegenüber Android deklariert: ihre Komponenten, die von ihnen registrierten Bibliotheken, die Berechtigungen, die ihre Dienste und Empfänger schützen. Quelle: Android PackageManager + StorageStatsManager + UsageStatsManager. Außerdem, welche Apps arbeiten, ohne geöffnet zu werden (verwendete Tastatur, eingeschaltete Bedienungshilfen, Autofill-Dienst, Standard-Apps für SMS und Telefon, aktive Geräteadministratoren, Live-Hintergrundbild), damit sie nie als unbenutzt gelten: bei Bedarf gelesen, nie gespeichert.</string>
     <string name="transparency_reads_sizes">App-Größen: Bytes für Installation / Daten / Cache je Paket. Erfordert die in den Systemeinstellungen erteilte Berechtigung PACKAGE_USAGE_STATS.</string>
     <string name="transparency_reads_apk">Die Installationsdatei (APK) einer App: um sie in den von Ihnen gewählten Sicherungsordner zu kopieren, wenn Sie die App unter Quarantäne stellen, und um ihren SHA-256-Fingerabdruck für den Installationsverlauf zu berechnen, wenn Sie ihn aktiviert haben.</string>
     <string name="transparency_section_stores">Was wir auf Ihrem Gerät speichern</string>
@@ -405,7 +410,8 @@
     <!-- AppDetail Privacy Data Panel (clear-text permission descriptions) -->
     <string name="appdetail_privacy_panel_title">Was diese App tut</string>
     <string name="appdetail_privacy_panel_no_dangerous">Keine gefährlichen Berechtigungen erteilt.</string>
-    <string name="appdetail_privacy_panel_trackers_clean">In den deklarierten Komponenten wurde kein bekannter Tracker erkannt.</string>
+    <string name="appdetail_privacy_panel_trackers_clean">In den Angaben dieser App an Android wurde kein bekannter Tracker gefunden.</string>
+    <string name="appdetail_privacy_panel_trackers_unavailable">Die Tracker-Analyse ist für diese App fehlgeschlagen.</string>
     <plurals name="appdetail_privacy_panel_trackers_count">
         <item quantity="one">%1$d Tracker erkannt</item>
         <item quantity="other">%1$d Tracker erkannt</item>
@@ -418,19 +424,24 @@
     <string name="perm_group_location">Ihren genauen Standort abrufen</string>
     <string name="perm_group_location_approx">Ihren ungefähren Standort abrufen</string>
     <string name="perm_group_location_background">Ihren Standort auch im Hintergrund abrufen</string>
-    <string name="perm_group_contacts">Ihre Kontakte lesen</string>
-    <string name="perm_group_calendar">Ihren Kalender lesen</string>
-    <string name="perm_group_sms">SMS lesen oder senden</string>
-    <string name="perm_group_call_log">Ihre Anrufliste lesen</string>
+    <string name="perm_group_contacts">Ihre Kontakte und Konten lesen oder ändern</string>
+    <string name="perm_group_calendar">Ihren Kalender lesen oder ändern</string>
+    <string name="perm_group_sms">SMS und MMS lesen, empfangen oder senden</string>
+    <string name="perm_group_call_log">Ihre Anrufliste lesen oder ändern</string>
     <string name="perm_group_phone">auf den Telefonstatus zugreifen, Anrufe tätigen</string>
+    <string name="perm_group_health">Ihre Gesundheitsdaten lesen oder schreiben</string>
     <string name="perm_group_storage">den externen Speicher lesen oder beschreiben</string>
     <string name="perm_group_media">Ihre Fotos, Videos und Audiodateien lesen</string>
+    <string name="perm_group_media_location">die in Ihren Fotos gespeicherten Orte lesen</string>
     <string name="perm_group_activity">Ihre körperliche Aktivität lesen</string>
     <string name="perm_group_sensors">Ihre Körpersensoren lesen</string>
     <string name="perm_group_bluetooth">Bluetooth-Geräte in der Nähe suchen und sich mit ihnen verbinden</string>
+    <string name="perm_group_nearby">Geräte in der Nähe finden und orten (WLAN, Ultrabreitband)</string>
     <string name="perm_group_notifications">Benachrichtigungen anzeigen</string>
     <string name="perm_group_internet">auf das Internet zugreifen</string>
+    <string name="perm_group_foreground_service">im Vordergrund weiterlaufen (mit einer dauerhaften Benachrichtigung)</string>
     <string name="perm_group_overlay">über anderen Apps einblenden</string>
+    <string name="perm_group_all_files">auf alle Ihre Dateien zugreifen</string>
     <string name="perm_group_device_admin">als Geräteadministrator agieren (kann die eigene Deinstallation blockieren)</string>
     <string name="perm_group_accessibility">Dienste für Bedienungshilfen nutzen (kann Bildschirminhalte lesen und Eingaben einschleusen)</string>
 
@@ -1035,6 +1046,7 @@
     <string name="tracker_category_push">Push-Benachrichtigungen</string>
     <string name="tracker_category_session_replay">Sitzungsaufzeichnung</string>
     <string name="trackers_contamination_percent">%1$d\u00A0%%</string>
+    <string name="trackers_contamination_below_one" formatted="false">&lt;\u00A01\u00A0%</string>
     <string name="rarely_used_days_short">%1$d T.</string>
     <string name="notif_channel_scan_name">Hintergrund-Scan</string>
     <string name="notif_channel_scan_desc">Benachrichtigungen des regelmäßigen Katalog-Scans.</string>

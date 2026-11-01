@@ -13,6 +13,7 @@ import com.filestech.appmanager.data.system.IntentFactory
 import com.filestech.appmanager.domain.model.AmtActionResult
 import com.filestech.appmanager.domain.model.AmtActionType
 import com.filestech.appmanager.domain.model.CriticalClassification
+import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.filestech.appmanager.domain.usecase.GetAccessibilityServiceAppsUseCase
 import com.filestech.appmanager.domain.usecase.GetDeviceAdminAppsUseCase
 import com.filestech.appmanager.domain.usecase.UninstallAppUseCase
@@ -60,6 +61,7 @@ class SecurityAuditViewModel @Inject constructor(
      */
     private val actionLogger: AmtActionLogger,
     private val criticalDetector: CriticalAppDetector,
+    private val appInfoRepo: AppInfoRepository,
 ) : ViewModel() {
 
     // v0.1.3 audit L-2 fix — init with isLoading=true so the very first
@@ -98,11 +100,19 @@ class SecurityAuditViewModel @Inject constructor(
                         val (adminR, a11yR) = awaitAll(adminD, a11yD)
                         val admins  = (adminR as? Outcome.Success)?.value.orEmpty()
                         val a11ySvc = (a11yR  as? Outcome.Success)?.value.orEmpty()
+                        // The reassuring "System" badge only for a listed publisher that is really
+                        // preinstalled: on a phone without it, a sideloaded app can take its package
+                        // name (TalkBack's on a Samsung) and would otherwise wear the badge.
+                        val systemBadged = (admins + a11ySvc).filter { pkg ->
+                            pkg in SYSTEM_PUBLISHERS &&
+                                (appInfoRepo.getApp(pkg) as? Outcome.Success)?.value?.isSystemApp == true
+                        }.toSet()
                         _state.update {
                             it.copy(
                                 isLoading            = false,
                                 deviceAdmins         = admins,
                                 accessibilityServices = a11ySvc,
+                                systemBadged         = systemBadged,
                                 error                = null,
                             )
                         }
@@ -169,6 +179,8 @@ class SecurityAuditViewModel @Inject constructor(
         val isLoading: Boolean = false,
         val deviceAdmins: List<String> = emptyList(),
         val accessibilityServices: List<String> = emptyList(),
+        /** Listed in [SYSTEM_PUBLISHERS] AND preinstalled: the rows that show the "System" badge. */
+        val systemBadged: Set<String> = emptySet(),
         val error: UiText? = null,
     )
 

@@ -1,7 +1,7 @@
 # Third-party notices
 
 App Manager Tech bundles the following third-party open-source libraries
-(versions from `gradle/libs.versions.toml`, v0.5.2). All are under the Apache
+(versions from `gradle/libs.versions.toml`, v0.5.3). All are under the Apache
 License 2.0; none collects or transmits user data.
 
 | Library | Version | License | Source |

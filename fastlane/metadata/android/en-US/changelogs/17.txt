@@ -1,0 +1,7 @@
+v0.5.3
+• Trackers: Firebase Analytics and Crashlytics now detected; a failed scan is no longer "clean"
+• Protected apps: 38 wrong package names fixed (banks, Wise, 1Password…)
+• Privacy score: accessibility and device admin now counted, full list of dangerous permissions
+• Inactive apps: usage read live over 2 years; without access, no false list
+• Updates: newly requested permissions show before they are granted
+• Damaged settings: defaults instead of a crash

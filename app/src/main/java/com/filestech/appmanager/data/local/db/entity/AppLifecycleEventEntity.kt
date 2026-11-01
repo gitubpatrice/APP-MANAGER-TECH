@@ -95,4 +95,14 @@ data class AppLifecycleEventEntity(
      */
     @ColumnInfo(name = "apk_sha256")
     val apkSha256: String?,
+
+    /**
+     * v0.5.3 (schema v10) — Pipe-separated list of the dangerous permissions the app DECLARES at capture
+     * time, granted or not. A permission an update adds is declared at once but granted only when the
+     * user allows it: the permission drift compares these, so it sees the new one before it is granted.
+     * Empty string: no dangerous permission declared. NULL on rows written before schema 10, and on
+     * UNINSTALLED rows (the package is gone).
+     */
+    @ColumnInfo(name = "requested_dangerous_perms")
+    val requestedDangerousPerms: String?,
 )

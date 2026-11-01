@@ -76,6 +76,7 @@ class RecordLifecycleEventUseCase @Inject constructor(
                     totalSizeBytes              = snapshot.totalSizeBytes,
                     grantedDangerousPermissions = snapshot.grantedDangerousPermissions,
                     apkSha256                   = snapshot.apkSha256,
+                    requestedDangerousPermissions = snapshot.requestedDangerousPermissions,
                 )
                 when (insertOutcome) {
                     is Outcome.Success -> insertOutcome.value
@@ -118,6 +119,8 @@ class RecordLifecycleEventUseCase @Inject constructor(
             // REPLACED row already carries the hash for the version that
             // was just removed.
             apkSha256                   = null,
+            // Not recorded: no live PackageManager answer to read them from.
+            requestedDangerousPermissions = null,
         )
     }
 
@@ -139,6 +142,7 @@ class RecordLifecycleEventUseCase @Inject constructor(
             // the rescan cache, so no UX regression.
             totalSizeBytes              = 0L,
             grantedDangerousPermissions = collectGrantedDangerous(pkg),
+            requestedDangerousPermissions = collectRequestedDangerous(pkg),
             // v0.3.4 — best-effort base-APK hash. Failure (IO, security,
             // file gone between PM resolve and read) is non-fatal: we log
             // and store NULL so the row still records the lifecycle event.
@@ -241,10 +245,27 @@ class RecordLifecycleEventUseCase @Inject constructor(
                 val granted = (flags[i] and PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0
                 if (!granted) continue
                 val name = names[i] ?: continue
-                if (dangerousInspector.isDangerous(name)) add(name)
+                if (isStorable(name) && dangerousInspector.isDangerous(name)) add(name)
             }
         }.sorted()
     }
+
+    /**
+     * A name the `|`-separated storage can hold. Android's own permissions never contain `|`; a
+     * third-party "dangerous" one could, and would decode as two permissions that do not exist.
+     */
+    private fun isStorable(permission: String): Boolean = PERMISSION_SEPARATOR !in permission
+
+    /**
+     * v0.5.3 — The dangerous permissions the app declares, granted or not, sorted. A permission an update
+     * adds is declared at once and granted only later: the permission drift compares these.
+     */
+    private fun collectRequestedDangerous(pkg: PackageInfo): List<String> =
+        pkg.requestedPermissions.orEmpty()
+            .filterNotNull()
+            .filter { isStorable(it) && dangerousInspector.isDangerous(it) }
+            .distinct()
+            .sorted()
 
     private data class Snapshot(
         val label: String?,
@@ -255,9 +276,14 @@ class RecordLifecycleEventUseCase @Inject constructor(
         val grantedDangerousPermissions: List<String>,
         /** v0.3.4 — hex SHA-256 of the base APK at capture time, or NULL. */
         val apkSha256: String?,
+        /** v0.5.3 — declared dangerous permissions, or NULL when not read live. */
+        val requestedDangerousPermissions: List<String>?,
     )
 
     private companion object {
+        /** Separator of the stored permission lists (see AppLifecycleRepositoryImpl.encodePerms). */
+        const val PERMISSION_SEPARATOR = '|'
+
         /**
          * Hard cap on the APK size we hash. 500 MB easily covers every Play
          * Store app a user is likely to install (Chrome ~250 MB, big
