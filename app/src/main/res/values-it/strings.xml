@@ -970,6 +970,8 @@
     <!-- v0.3.4 — Tag filter chip row (AppList toolbar)                   -->
     <!-- ================================================================ -->
     <string name="tag_filter_all">Tutte</string>
+    <string name="tag_filter_empty_title">Nessuna app per questo filtro</string>
+    <string name="tag_filter_empty_body">Aggiunga un tag dai dettagli di un\'app, oppure tocchi «Tutte» per mostrarle tutte.</string>
 
     <!-- ================================================================ -->
     <!-- v0.3.4 — Tag stats card (Settings)                               -->

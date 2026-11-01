@@ -1,0 +1,6 @@
+v0.5.2
+• Accueil : un tag qu'aucune app ne porte ne cache plus les puces, « Tous » reste à portée
+• Retour lève le filtre par tag au lieu de quitter l'appli
+• Toucher Accueil à nouveau efface le filtre et remonte en haut
+• Retour depuis Outils ou À propos ramène à l'Accueil
+• Conditions : clause de responsabilité revue ; confidentialité : sort d'un e-mail envoyé

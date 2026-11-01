@@ -963,6 +963,8 @@
     <!-- v0.3.4 — Bandeau de filtre par tag (barre AppList)               -->
     <!-- ================================================================ -->
     <string name="tag_filter_all">Tous</string>
+    <string name="tag_filter_empty_title">Aucune application pour ce filtre</string>
+    <string name="tag_filter_empty_body">Ajoutez un tag depuis les détails d\'une application, ou touchez « Tous » pour tout afficher.</string>
 
     <!-- ================================================================ -->
     <!-- v0.3.4 — Carte « Répartition des tags » (Paramètres)             -->

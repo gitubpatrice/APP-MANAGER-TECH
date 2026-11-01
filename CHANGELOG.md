@@ -7,7 +7,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
-## [Unreleased]
+## [0.5.2] — 2026-11-01 — Home: a tag filter you can leave
+
+### Fixed
+
+- **Home, a tag filter that matched no app trapped you.** Tapping a tag chip (Work, Family…) that no
+  app carries replaced the whole list with "No apps to show", chip row included: "All" was gone, Back
+  sent the app to the background and tapping Home did nothing. The chips now stay above a "No app
+  matches this filter" message; Back lifts the filter, and tapping Home while on it lifts the filter
+  and returns to the top of the list. Reproduced on a Galaxy S24; the fix checked on the S24 and a S9.
+- **Back from Tools or About** returns to Home instead of leaving the app. Back on Home, with no
+  filter, leaves the app as before.
 
 ### Changed
 

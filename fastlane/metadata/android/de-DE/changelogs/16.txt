@@ -1,0 +1,6 @@
+v0.5.2
+• Start: Ein Tag ohne App blendet die Chips nicht mehr aus, „Alle“ bleibt erreichbar
+• Zurück hebt einen aktiven Tag-Filter auf, statt die App zu verlassen
+• Erneutes Tippen auf Start löscht den Filter und springt nach oben
+• Zurück aus Werkzeuge oder Über führt zum Start
+• Bedingungen: Haftungsklausel überarbeitet; Datenschutz: was mit Ihrer E-Mail geschieht

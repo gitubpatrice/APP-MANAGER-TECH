@@ -1,0 +1,6 @@
+v0.5.2
+• Home: a tag no app carries no longer hides the chip row, so “All” stays at hand
+• Back lifts an active tag filter instead of leaving the app
+• Tapping Home again clears the filter and returns to the top
+• Back from Tools or About returns to Home
+• Terms: a liability clause that holds; privacy: what happens to an e-mail you send

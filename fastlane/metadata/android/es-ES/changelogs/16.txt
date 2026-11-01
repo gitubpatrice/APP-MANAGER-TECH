@@ -1,0 +1,6 @@
+v0.5.2
+• Inicio: una etiqueta sin apps ya no oculta los chips, «Todas» sigue a mano
+• Atrás quita el filtro por etiqueta en vez de salir de la app
+• Tocar de nuevo Inicio borra el filtro y vuelve arriba
+• Atrás desde Herramientas o Acerca de vuelve a Inicio
+• Condiciones: cláusula de responsabilidad revisada; privacidad: qué pasa con un e-mail enviado

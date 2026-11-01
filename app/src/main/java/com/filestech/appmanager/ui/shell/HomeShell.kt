@@ -1,5 +1,6 @@
 package com.filestech.appmanager.ui.shell
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -24,6 +26,7 @@ import com.filestech.appmanager.R
 import com.filestech.appmanager.ui.screens.about.AboutScreen
 import com.filestech.appmanager.ui.screens.applist.AppListScreen
 import com.filestech.appmanager.ui.screens.tools.ToolsScreen
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 /**
  * Root shell with a 3-tab Material 3 [NavigationBar]
@@ -42,6 +45,9 @@ import com.filestech.appmanager.ui.screens.tools.ToolsScreen
  * navigation intent to the host NavController via the [onNavigate*] callbacks.
  * That keeps the shell trivially testable and the NavGraph in [AppRoot]
  * uniformly shaped.
+ *
+ * Accueil is the start tab: Back from Outils or À propos returns to it before
+ * leaving the app, and tapping Accueil while on it resets the app list.
  */
 @Composable
 fun HomeShell(
@@ -66,6 +72,11 @@ fun HomeShell(
     onNavigateToActionJournal: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableStateOf(HomeTab.HOME) }
+    val homeReselected = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
+
+    BackHandler(enabled = tab != HomeTab.HOME) {
+        tab = HomeTab.HOME
+    }
 
     Scaffold(
         bottomBar = {
@@ -73,7 +84,10 @@ fun HomeShell(
                 HomeTab.entries.forEach { entry ->
                     NavigationBarItem(
                         selected = tab == entry,
-                        onClick  = { tab = entry },
+                        onClick  = {
+                            if (entry == HomeTab.HOME && tab == HomeTab.HOME) homeReselected.tryEmit(Unit)
+                            tab = entry
+                        },
                         icon     = {
                             Icon(
                                 imageVector        = entry.icon,
@@ -106,6 +120,7 @@ fun HomeShell(
                 HomeTab.HOME -> AppListScreen(
                     onNavigateToDetail   = onNavigateToDetail,
                     onNavigateToSettings = onNavigateToSettings,
+                    homeReselected       = homeReselected,
                 )
                 HomeTab.TOOLS -> ToolsScreen(
                     onSmartCleaner    = onNavigateToSmartCleaner,
