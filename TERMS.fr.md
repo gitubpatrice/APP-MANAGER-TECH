@@ -1,6 +1,6 @@
 # Conditions d'utilisation — App Manager Tech
 
-_Dernière mise à jour : 26 octobre 2026_ · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
+_Dernière mise à jour : 1er novembre 2026_ · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > **Version de référence.** En cas de divergence entre ces conditions et l'une de leurs traductions,
 > c'est cette version française qui fait foi.
@@ -36,10 +36,10 @@ redistribuez pas si sa licence l'interdit.
   ne contourne jamais ces confirmations.
 - **« Forcer l'arrêt » n'arrête que les processus d'arrière-plan.** Android ne permet pas à une
   application d'en arrêter une autre qui est visible ou qui fait tourner un service de premier plan.
-- **La détection des pisteurs n'est pas un audit de sécurité.** Elle compare les composants que
-  chaque application déclare à une liste figée à la date de la version : elle peut manquer un
-  pisteur absent de cette liste, renommé ou intégré autrement, et en signaler un qui est présent
-  mais jamais utilisé.
+- **La détection des pisteurs n'est pas un audit de sécurité.** Elle compare les noms que chaque
+  application déclare à Android — ses composants et les bibliothèques qu'ils enregistrent — à une
+  liste figée à la date de la version : elle peut manquer un pisteur absent de cette liste, renommé
+  ou intégré sans y laisser de nom, et en signaler un qui est présent mais jamais utilisé.
 - **Le score de confidentialité est une estimation.** Il est calculé à partir des permissions
   déclarées, de certains accès spéciaux et de la source d'installation. Il mesure l'étendue des
   accès d'une application, pas ses intentions : un score bas ne désigne pas un logiciel malveillant,
@@ -48,8 +48,8 @@ redistribuez pas si sa licence l'interdit.
   application qu'elle reconnaît comme critique, ou que vous avez protégée, l'application exige un
   appui maintenu trois secondes. Elle ne les reconnaît pas toutes : désactiver ou désinstaller une application système
   peut rendre le téléphone instable.
-- Sans l'« Accès aux données d'utilisation », les tailles s'affichent à 0 et les applications
-  comme « Jamais utilisée ». Android peut retarder ou bloquer les notifications ; l'application ne peut pas en
+- Sans l'« Accès aux données d'utilisation », les tailles s'affichent à 0, et les listes
+  d'applications inactives comme le nettoyeur restent vides. Android peut retarder ou bloquer les notifications ; l'application ne peut pas en
   garantir la remise.
 
 ## Perte de données

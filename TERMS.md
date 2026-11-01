@@ -1,6 +1,6 @@
 # Terms of use — App Manager Tech
 
-_Last updated: 26 October 2026_ · 🇫🇷 [Français](TERMS.fr.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
+_Last updated: 1 November 2026_ · 🇫🇷 [Français](TERMS.fr.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > This is a translation. **In case of discrepancy, the [French version](TERMS.fr.md) prevails**:
 > the publisher is based in France and these terms are governed by French law.
@@ -34,16 +34,17 @@ forbids it.
   Android asks for confirmation and acts. It never bypasses those confirmations.
 - **"Force stop" only stops background processes.** Android does not let an app stop another one
   that is visible or running a foreground service.
-- **Tracker detection is not a security audit.** It compares the components each app declares with
-  a list frozen at the date of the release: it can miss a tracker absent from that list, renamed or
-  embedded differently, and report one that is present but never used.
+- **Tracker detection is not a security audit.** It compares the names each app declares to Android
+  — its components and the libraries they register — with a list frozen at the date of the release:
+  it can miss a tracker absent from that list, renamed, or embedded without leaving a name there, and
+  report one that is present but never used.
 - **The privacy score is an estimate.** It is computed from the declared permissions, some special
   accesses and the install source. It measures how much access an app has, not what it intends: a
   low score does not mean malware, a high score guarantees nothing.
 - **The "critical app" warning is not exhaustive.** Before an action on an app it recognises as
   critical, or that you protected, the app requires a three-second press. It does not recognise
   them all: disabling or uninstalling a system app can make the phone unstable.
-- Without "Usage data access", sizes show 0 and apps show as "Never used". Android can delay or
+- Without "Usage data access", sizes show 0, and the lists of inactive apps and the cleaner stay empty. Android can delay or
   block notifications; the app cannot guarantee their delivery.
 
 ## Data loss

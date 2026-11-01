@@ -1,6 +1,6 @@
 # Nutzungsbedingungen — App Manager Tech
 
-_Übersetzung der Fassung vom 26. Oktober 2026._ · 🇬🇧 [English](TERMS.md) · 🇫🇷 [Français](TERMS.fr.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
+_Übersetzung der Fassung vom 1. November 2026._ · 🇬🇧 [English](TERMS.md) · 🇫🇷 [Français](TERMS.fr.md) · 🇮🇹 [Italiano](TERMS.it.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > Diese Übersetzung wurde vom Entwickler maschinengestützt erstellt und noch nicht von einer
 > Muttersprachlerin oder einem Muttersprachler geprüft. **Bei Abweichungen gilt die
@@ -38,10 +38,11 @@ dieser App: Verbreiten Sie das APK nicht weiter, wenn die Lizenz der App dies ve
   Bestätigung und führt die Aktion aus. App Manager Tech umgeht diese Bestätigungen nie.
 - **„Beenden erzwingen“ beendet nur Hintergrundprozesse.** Android erlaubt einer App nicht, eine
   andere zu beenden, die sichtbar ist oder einen Vordergrunddienst ausführt.
-- **Die Tracker-Erkennung ist kein Sicherheitsaudit.** Sie vergleicht die Komponenten, die jede App
-  deklariert, mit einer Liste, die zum Datum der jeweiligen Version festgeschrieben ist: Sie kann
-  einen Tracker übersehen, der in dieser Liste fehlt, umbenannt oder anders eingebunden ist, und
-  einen melden, der zwar vorhanden ist, aber nie verwendet wird.
+- **Die Tracker-Erkennung ist kein Sicherheitsaudit.** Sie vergleicht die Namen, die jede App
+  gegenüber Android deklariert – ihre Komponenten und die von ihnen registrierten Bibliotheken –,
+  mit einer Liste, die zum Datum der jeweiligen Version festgeschrieben ist: Sie kann einen Tracker
+  übersehen, der in dieser Liste fehlt, umbenannt oder eingebunden ist, ohne dort einen Namen zu
+  hinterlassen, und einen melden, der zwar vorhanden ist, aber nie verwendet wird.
 - **Der Datenschutz-Score ist eine Schätzung.** Er wird aus den deklarierten Berechtigungen,
   bestimmten speziellen Zugriffen und der Installationsquelle berechnet. Er misst den Umfang der
   Zugriffe einer App, nicht ihre Absichten: Ein niedriger Score bedeutet nicht, dass es sich um
@@ -50,7 +51,7 @@ dieser App: Verbreiten Sie das APK nicht weiter, wenn die Lizenz der App dies ve
   kritisch erkennt oder die Sie geschützt haben, verlangt die App ein drei Sekunden langes
   Gedrückthalten. Die App erkennt nicht alle kritischen Apps: Das Deaktivieren oder Deinstallieren
   einer System-App kann das Telefon instabil machen.
-- Ohne den „Zugriff auf Nutzungsdaten“ werden die Größen mit 0 und die Apps als „Nie verwendet“ angezeigt. Android kann Benachrichtigungen verzögern oder blockieren; die App kann ihre Zustellung
+- Ohne den „Zugriff auf Nutzungsdaten“ werden die Größen mit 0 angezeigt, und die Listen inaktiver Apps sowie die Bereinigung bleiben leer. Android kann Benachrichtigungen verzögern oder blockieren; die App kann ihre Zustellung
   nicht garantieren.
 
 ## Datenverlust

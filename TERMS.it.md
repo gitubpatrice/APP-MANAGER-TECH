@@ -1,6 +1,6 @@
 # Condizioni d'uso — App Manager Tech
 
-_Traduzione della versione del 26 ottobre 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇪🇸 [Español](TERMS.es.md)
+_Traduzione della versione del 1° novembre 2026._ · 🇫🇷 [Français](TERMS.fr.md) · 🇬🇧 [English](TERMS.md) · 🇩🇪 [Deutsch](TERMS.de.md) · 🇪🇸 [Español](TERMS.es.md)
 
 > Questa traduzione è stata prodotta dallo sviluppatore con l'aiuto di strumenti automatici e non è
 > ancora stata rivista da un madrelingua. **In caso di discordanza prevale la
@@ -37,9 +37,10 @@ ridistribuisca se la sua licenza lo vieta.
   conferme.
 - **«Forza interruzione» interrompe soltanto i processi in background.** Android non consente a
   un'app di interromperne un'altra che sia visibile o che esegua un servizio in primo piano.
-- **Il rilevamento dei tracker non è un audit di sicurezza.** Confronta i componenti che ciascuna
-  app dichiara con un elenco fermo alla data della versione: può non rilevare un tracker assente da
-  questo elenco, rinominato o integrato in altro modo, e segnalarne uno presente ma mai utilizzato.
+- **Il rilevamento dei tracker non è un audit di sicurezza.** Confronta i nomi che ciascuna app
+  dichiara ad Android — i suoi componenti e le librerie che registrano — con un elenco fermo alla
+  data della versione: può non rilevare un tracker assente da questo elenco, rinominato o integrato
+  senza lasciarvi alcun nome, e segnalarne uno presente ma mai utilizzato.
 - **Il punteggio privacy è una stima.** Viene calcolato a partire dalle autorizzazioni dichiarate,
   da alcuni accessi speciali e dalla fonte di installazione. Misura l'ampiezza degli accessi di
   un'app, non le sue intenzioni: un punteggio basso non indica un software dannoso, un punteggio
@@ -47,7 +48,7 @@ ridistribuisca se la sua licenza lo vieta.
 - **L'avviso «app critica» non è esaustivo.** Prima di un'azione su un'app che riconosce come
   critica, o che lei ha protetto, l'app richiede una pressione prolungata di tre secondi. Non le
   riconosce tutte: disattivare o disinstallare un'app di sistema può rendere instabile il telefono.
-- Senza l'«Accesso ai dati di utilizzo», le dimensioni risultano 0 e le app «Mai usata».
+- Senza l'«Accesso ai dati di utilizzo», le dimensioni risultano 0, e gli elenchi di app inattive e la pulizia restano vuoti.
   Android può ritardare o bloccare le notifiche; l'app non può garantirne la consegna.
 
 ## Perdita di dati

@@ -1,6 +1,6 @@
 # Política de privacidad — App Manager Tech
 
-_Traducción de la versión del 26 de octubre de 2026._ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md)
+_Traducción de la versión del 1 de noviembre de 2026._ · 🇫🇷 [Français](PRIVACY.fr.md) · 🇬🇧 [English](PRIVACY.md) · 🇩🇪 [Deutsch](PRIVACY.de.md) · 🇮🇹 [Italiano](PRIVACY.it.md)
 
 > Esta traducción la ha realizado el desarrollador con ayuda de herramientas automáticas y todavía
 > no la ha revisado un hablante nativo. **En caso de discrepancia, prevalece la
@@ -30,6 +30,8 @@ apps, no sus contenidos.
 | Dato | De dónde procede | Durante cuánto tiempo |
 |---|---|---|
 | Lista de las apps: nombre, versión, tamaños, fechas de instalación, de actualización y de último uso, tienda de origen, estado (activada, hibernada) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Se sustituye en cada análisis |
+| Lo que cada app declara a Android: sus componentes, las bibliotecas que registran, los permisos que los protegen | Android (`PackageManager`) | Se lee para los rastreadores y la puntuación de privacidad; nunca se conserva |
+| Apps que trabajan sin abrirse: el teclado en uso, los servicios de accesibilidad activados, los administradores del dispositivo activos, el fondo de pantalla animado | Ajustes de Android (`Settings.Secure`, `DevicePolicyManager`, `WallpaperManager`) | Se lee para mantenerlas fuera de las listas de apps inactivas; nunca se conserva |
 | Rastreadores detectados, puntuación de privacidad | Calculados en el teléfono (véase más abajo) | Se recalculan cada vez que se muestran |
 | Historial de los permisos concedidos a cada app — **desactivado por defecto** | Instantánea periódica, si lo activa | 90 días por defecto, ajustable de 7 a 365; el último estado conocido de cada permiso se conserva como referencia; todo se borra al desactivarlo |
 | Historial de las instalaciones, actualizaciones y desinstalaciones, con la huella SHA-256 de cada APK y el motivo de desinstalación que usted decida indicar — **desactivado por defecto** | Avisos de Android recibidos mientras la app está en funcionamiento, si lo activa | 180 días por defecto, ajustable de 30 a 365; se borra al desactivarlo |
@@ -37,9 +39,10 @@ apps, no sus contenidos.
 | Papelera y cuarentenas (con la huella SHA-256 de cada APK guardado) | Sus acciones | Hasta que usted las vacíe o las restaure |
 | Ajustes: tema, umbrales, apps ignoradas o protegidas, etiquetas, y la autorización de acceso a la carpeta de copias de seguridad que usted haya elegido | Usted | Hasta la desinstalación |
 
-**Los rastreadores** se detectan comparando los nombres de los componentes que cada app declara a
-Android con una lista integrada en App Manager Tech, extraída de la base de datos pública de
-Exodus Privacy. Esta lista se actualiza con la app; nunca se descarga.
+**Los rastreadores** se detectan comparando los nombres que cada app declara a Android —sus
+componentes y las bibliotecas que registran— con una lista integrada en App Manager Tech, inspirada
+en la base de datos pública de Exodus Privacy. Esta lista se actualiza con la app; nunca se descarga.
+Un rastreador que no deja ningún nombre en esa declaración no se detecta.
 
 Desinstalar App Manager Tech, o borrar sus datos en los ajustes de Android, elimina todo lo
 anterior. Los archivos que **usted** haya pedido guardar en otra ubicación (véase «Comunicación a
@@ -59,7 +62,7 @@ integración continua).
 | Permiso | Finalidad | ¿Red? |
 |---|---|---|
 | `QUERY_ALL_PACKAGES` | Ver todas las apps instaladas: es la función misma de la app. | No |
-| `PACKAGE_USAGE_STATS` | Acceso especial «Acceso a datos de uso», que usted mismo concede en los ajustes de Android. Proporciona los tamaños y la fecha de último uso de cada app. Si se deniega, los tamaños aparecen en 0 y las apps como «Nunca usada»; nada más deja de funcionar. | No |
+| `PACKAGE_USAGE_STATS` | Acceso especial «Acceso a datos de uso», que usted mismo concede en los ajustes de Android. Proporciona los tamaños y la fecha de último uso de cada app. Si se deniega, los tamaños aparecen en 0, y las listas de apps inactivas y la limpieza quedan vacías en lugar de declarar sin uso todas las apps; nada más deja de funcionar. | No |
 | `GET_PACKAGE_SIZE` | Leer el tamaño de las apps. | No |
 | `REQUEST_DELETE_PACKAGES` | Abrir la ventana de desinstalación de Android. Es Android quien pide confirmación y quien desinstala. | No |
 | `REQUEST_INSTALL_PACKAGES` | Restaurar una app puesta en cuarentena: entregar el APK guardado al instalador de Android. Android exige además que usted mismo autorice a App Manager Tech a instalar apps, y pide confirmación en cada instalación. No sirve para nada más. | No |
