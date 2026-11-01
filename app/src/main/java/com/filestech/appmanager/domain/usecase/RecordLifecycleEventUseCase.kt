@@ -245,10 +245,16 @@ class RecordLifecycleEventUseCase @Inject constructor(
                 val granted = (flags[i] and PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0
                 if (!granted) continue
                 val name = names[i] ?: continue
-                if (dangerousInspector.isDangerous(name)) add(name)
+                if (isStorable(name) && dangerousInspector.isDangerous(name)) add(name)
             }
         }.sorted()
     }
+
+    /**
+     * A name the `|`-separated storage can hold. Android's own permissions never contain `|`; a
+     * third-party "dangerous" one could, and would decode as two permissions that do not exist.
+     */
+    private fun isStorable(permission: String): Boolean = PERMISSION_SEPARATOR !in permission
 
     /**
      * v0.5.3 — The dangerous permissions the app declares, granted or not, sorted. A permission an update
@@ -257,7 +263,7 @@ class RecordLifecycleEventUseCase @Inject constructor(
     private fun collectRequestedDangerous(pkg: PackageInfo): List<String> =
         pkg.requestedPermissions.orEmpty()
             .filterNotNull()
-            .filter { dangerousInspector.isDangerous(it) }
+            .filter { isStorable(it) && dangerousInspector.isDangerous(it) }
             .distinct()
             .sorted()
 
@@ -275,6 +281,9 @@ class RecordLifecycleEventUseCase @Inject constructor(
     )
 
     private companion object {
+        /** Separator of the stored permission lists (see AppLifecycleRepositoryImpl.encodePerms). */
+        const val PERMISSION_SEPARATOR = '|'
+
         /**
          * Hard cap on the APK size we hash. 500 MB easily covers every Play
          * Store app a user is likely to install (Chrome ~250 MB, big

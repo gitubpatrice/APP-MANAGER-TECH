@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -20,7 +20,6 @@ import com.filestech.appmanager.domain.model.ThemeMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retryWhen
 import timber.log.Timber
@@ -31,11 +30,18 @@ import javax.inject.Singleton
 // ---------------------------------------------------------------------------
 // DataStore instance — one per application (process-scoped)
 // ---------------------------------------------------------------------------
-// A file that cannot be parsed (cut short by a power loss, say) is replaced by the defaults: without
-// this handler every read and every write would throw, for ever.
+/** Set when a corrupted settings file was replaced by the defaults: see [AppSettings.resetAfterCorruption]. */
+private val RESET_AFTER_CORRUPTION = booleanPreferencesKey("settings_reset_after_corruption")
+
+// A file that cannot be parsed (cut short or zero-filled by a power loss) is replaced by the defaults:
+// without this handler every read and every write would throw, for ever. The defaults carry a mark, so
+// that nothing destructive takes them for the user's choice (the history eraser, notably).
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "app_manager_tech_settings",
-    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+    corruptionHandler = ReplaceFileCorruptionHandler { e ->
+        Timber.w(e, "Settings file corrupted, replaced by the defaults")
+        preferencesOf(RESET_AFTER_CORRUPTION to true)
+    },
 )
 
 /**
@@ -194,6 +200,7 @@ class SettingsRepositoryImpl @Inject constructor(
             ignoredPackages = this[Keys.IGNORED_PACKAGES]
                 ?: defaults.ignoredPackages,
             appTags = decodeTags(this[Keys.APP_TAGS]).ifEmpty { defaults.appTags },
+            resetAfterCorruption = this[RESET_AFTER_CORRUPTION] ?: false,
         )
     }
 
@@ -267,18 +274,17 @@ class SettingsRepositoryImpl @Inject constructor(
     // ---------------------------------------------------------------------------
     // Flow
     // ---------------------------------------------------------------------------
-    // A read error (I/O) is retried a few times, then gives the defaults instead of failing every
-    // collector: those run in the application scope, where an uncaught exception ends the process at
-    // launch. Retried first because the flow ends after `catch`: a collector would then keep the
-    // defaults — the user's protected apps among them — until the next launch.
+    // A read error (I/O) is retried, ever more slowly, and never answered with made-up settings: the
+    // defaults turn every history off, and the history eraser would delete them for a storage hiccup.
+    // Nor does it reach the collectors, which run in the application scope, where an uncaught exception
+    // ends the process at launch. A collector waits until the file reads again. (A file that cannot be
+    // parsed is another case: the corruption handler above replaces it, with a mark.)
     override val flow: Flow<AppSettings> = context.dataStore.data
         .retryWhen { cause, attempt ->
-            (cause is IOException && attempt < READ_RETRIES).also { retry -> if (retry) delay(READ_RETRY_DELAY_MS) }
-        }
-        .catch { e ->
-            if (e !is IOException) throw e
-            Timber.w(e, "Settings unreadable, defaults used")
-            emit(emptyPreferences())
+            if (cause !is IOException) return@retryWhen false
+            Timber.w(cause, "Settings unreadable, read again (attempt %d)", attempt + 1)
+            delay((READ_RETRY_BASE_MS shl attempt.coerceAtMost(READ_RETRY_MAX_SHIFT).toInt()).coerceAtMost(READ_RETRY_MAX_MS))
+            true
         }
         .map { it.toAppSettings() }
 
@@ -286,6 +292,17 @@ class SettingsRepositoryImpl @Inject constructor(
     // Write
     // ---------------------------------------------------------------------------
     override suspend fun update(transform: AppSettings.() -> AppSettings) {
+        try {
+            write(transform)
+        } catch (e: IOException) {
+            // A file that cannot be read cannot be edited either (edit reads first): the change is
+            // dropped, the screens keep the stored values. Never an exception into the caller's scope —
+            // a ViewModel's, or the application's at launch.
+            Timber.w(e, "Settings not saved")
+        }
+    }
+
+    private suspend fun write(transform: AppSettings.() -> AppSettings) {
         // DataStore.edit is atomic: the lambda reads current Preferences,
         // reconstructs the AppSettings snapshot, applies [transform], writes
         // all keys back. DataStore deduplicates keys that did not change.
@@ -341,6 +358,9 @@ class SettingsRepositoryImpl @Inject constructor(
                 .coerceIn(MIN_LIFECYCLE_RETENTION_DAYS, MAX_LIFECYCLE_RETENTION_DAYS)
 
             prefs[Keys.IGNORED_PACKAGES]           = updated.ignoredPackages
+
+            // The user has now chosen: the values written are theirs, no longer a reset's.
+            prefs.remove(RESET_AFTER_CORRUPTION)
         }
     }
 
@@ -379,10 +399,13 @@ class SettingsRepositoryImpl @Inject constructor(
          */
         const val MAX_TAG_ARITY_PER_ENTRY: Int = 8
 
-        /** Re-reads of the settings after an I/O error, before falling back on the defaults. */
-        const val READ_RETRIES: Long = 3
+        /** First pause before re-reading the settings after an I/O error; doubled at each attempt… */
+        const val READ_RETRY_BASE_MS: Long = 500
 
-        /** Pause before each re-read: a transient error (storage busy) has time to clear. */
-        const val READ_RETRY_DELAY_MS: Long = 500
+        /** …up to 2^6 times… */
+        const val READ_RETRY_MAX_SHIFT: Long = 6
+
+        /** …and never more than this. */
+        const val READ_RETRY_MAX_MS: Long = 30_000
     }
 }

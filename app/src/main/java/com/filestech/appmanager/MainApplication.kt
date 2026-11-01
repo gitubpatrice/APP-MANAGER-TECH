@@ -114,13 +114,20 @@ class MainApplication : Application(), Configuration.Provider {
         }
     }
 
-    /** v0.5.1 — a history turned off is erased: see [EraseDisabledHistoriesUseCase]. */
+    /**
+     * v0.5.1 — a history turned off is erased: see [EraseDisabledHistoriesUseCase], which also ignores
+     * defaults put back after a corrupted settings file.
+     */
     private fun eraseHistoriesTurnedOff() {
         appScope.launch {
             settingsRepository.flow
-                .map { Triple(it.lifecycle.enabled, it.actionJournal.enabled, it.privacyMonitor.permissionDriftEnabled) }
-                .distinctUntilChanged()
-                .collect { (lifecycle, journal, permissions) -> eraseDisabledHistories(lifecycle, journal, permissions) }
+                .distinctUntilChanged { old, new ->
+                    old.resetAfterCorruption == new.resetAfterCorruption &&
+                        old.lifecycle.enabled == new.lifecycle.enabled &&
+                        old.actionJournal.enabled == new.actionJournal.enabled &&
+                        old.privacyMonitor.permissionDriftEnabled == new.privacyMonitor.permissionDriftEnabled
+                }
+                .collect { settings -> eraseDisabledHistories(settings) }
         }
     }
 

@@ -23,8 +23,12 @@ No permission change, no new dependency, still no `INTERNET`.
   additive `ALTER TABLE ADD COLUMN`, instrumented migration test): an update's new permission shows
   before the user grants it.
 - **Robustness**: a settings file that cannot be parsed is replaced by the defaults
-  (`ReplaceFileCorruptionHandler`) and a read error gives the defaults, instead of an uncaught
-  exception in the application scope at launch; the full tracker scan reads four apps at a time. The
+  (`ReplaceFileCorruptionHandler`) with a mark, and the history eraser ignores marked defaults (all
+  histories read "off" there: erasing on them would delete the user's data for a damaged file — measured
+  on a Galaxy S24 with a zero-filled file, with a negative control); a read error is retried with a
+  growing delay instead of an uncaught exception in the application scope at launch, and is never
+  answered with made-up settings; a failed write is logged, not thrown. The full tracker scan reads four
+  apps at a time. The
   package-name check, which guards every intent and PackageManager call, now accepts the framework's own
   `android` and nothing else with a single segment.
 - **What is read, never stored**: what each app declares (components, registered libraries, guarding

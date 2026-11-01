@@ -175,10 +175,12 @@ class AppLifecycleRepositoryImpl @Inject constructor(
 
     /**
      * Encodes a list of permission constants into a single `|`-separated
-     * TEXT. The `|` character is invalid inside a permission constant
-     * (Android requires `[A-Za-z0-9._]`) so the encoding is unambiguous.
-     * Empty list → empty string (NOT null). The repository decodes both
-     * empty string and null to `emptyList()` for forward-compat.
+     * TEXT. Android's own permissions never contain `|`; a third-party one
+     * could, so the capture ([com.filestech.appmanager.domain.usecase.RecordLifecycleEventUseCase])
+     * leaves such names out, and the encoding stays unambiguous.
+     * Empty list → empty string (NOT null). Decoding: `granted_dangerous_perms`
+     * reads empty and NULL alike as `emptyList()`; `requested_dangerous_perms`
+     * keeps NULL as null (not recorded) — see `toDomain`.
      */
     private fun encodePerms(perms: List<String>): String =
         if (perms.isEmpty()) "" else perms.joinToString(separator = "|")

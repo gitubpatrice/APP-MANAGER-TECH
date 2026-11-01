@@ -1,6 +1,7 @@
 package com.filestech.appmanager.domain.usecase
 
 import com.filestech.appmanager.core.result.Outcome
+import com.filestech.appmanager.data.local.datastore.AppSettings
 import com.filestech.appmanager.domain.repository.AmtActionRepository
 import com.filestech.appmanager.domain.repository.AppLifecycleRepository
 import com.filestech.appmanager.domain.repository.PermissionSnapshotRepository
@@ -35,6 +36,25 @@ class EraseDisabledHistoriesUseCaseTest {
 
         coVerify(exactly = 1) { lifecycle.deleteAll() }
         coVerify(exactly = 1) { journal.deleteAll() }
+        coVerify(exactly = 1) { permissions.deleteAll() }
+    }
+
+    @Test
+    fun `settings put back after a corrupted file erase nothing`() = runTest {
+        // Every history reads "off" in the defaults: they are not the user's choice.
+        useCase(AppSettings(resetAfterCorruption = true))
+
+        coVerify(exactly = 0) { lifecycle.deleteAll() }
+        coVerify(exactly = 0) { journal.deleteAll() }
+        coVerify(exactly = 0) { permissions.deleteAll() }
+    }
+
+    @Test
+    fun `the user's own settings erase the histories they turn off`() = runTest {
+        useCase(AppSettings(actionJournal = AppSettings.ActionJournal(enabled = true)))
+
+        coVerify(exactly = 1) { lifecycle.deleteAll() }
+        coVerify(exactly = 0) { journal.deleteAll() }
         coVerify(exactly = 1) { permissions.deleteAll() }
     }
 

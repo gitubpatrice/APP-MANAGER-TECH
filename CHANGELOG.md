@@ -87,8 +87,12 @@ a security deep dive); what was confirmed is fixed below, each with a test prove
   before keep the old comparison). "Permissions gained" reads "added".
 - Permission changes: the previous event is found by recording order, not by the clock; an unreadable
   history is an error, not "no comparison".
-- Settings that cannot be read (a file damaged by a power loss) give the defaults: they ended the app at
-  launch. A full tracker scan reads four apps at a time rather than all at once.
+- **A settings file damaged by a power loss** (cut short or zero-filled) ended the app at launch. It is
+  now replaced by the defaults, marked as such, so that the histories they turn off are not erased:
+  measured on a Galaxy S24, a zero-filled settings file leaves the install history intact (and erases it
+  with that mark ignored). A read error is retried, never answered with made-up settings; a setting that
+  cannot be saved no longer crashes the screen. A full tracker scan reads four apps at a time rather
+  than all at once.
 - The Android system package itself, named `android` (one segment), was refused as an invalid package
   name: with system apps shown, its tracker scan failed and its detail page could not open. Measured on
   a Galaxy S24 and a S9: every app is now scanned (515 and 440).
