@@ -38,8 +38,14 @@ fun String.truncate(maxLength: Int, ellipsis: String = "…"): String {
 fun String.packageNameToLabel(): String =
     substringAfterLast('.').replaceFirstChar { it.uppercaseChar() }
 
-/** Returns true if this string is a syntactically plausible Android package name. */
+/**
+ * Returns true if this string is a syntactically plausible Android package name: at least two segments —
+ * or `android`, the framework itself, the one installed package with a single segment (listed among
+ * system apps; refused, its tracker scan and its detail page failed).
+ */
 fun String.isValidPackageName(): Boolean {
     if (length > MAX_PACKAGE_NAME_LENGTH || isBlank()) return false
-    return PACKAGE_NAME_REGEX.matches(this)
+    return this == FRAMEWORK_PACKAGE || PACKAGE_NAME_REGEX.matches(this)
 }
+
+private const val FRAMEWORK_PACKAGE = "android"

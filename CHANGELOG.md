@@ -88,7 +88,10 @@ a security deep dive); what was confirmed is fixed below, each with a test prove
 - Permission changes: the previous event is found by recording order, not by the clock; an unreadable
   history is an error, not "no comparison".
 - Settings that cannot be read (a file damaged by a power loss) give the defaults: they ended the app at
-  launch. A tracker scan reads four apps at a time, so large apps no longer overflow Android's buffer.
+  launch. A full tracker scan reads four apps at a time rather than all at once.
+- The Android system package itself, named `android` (one segment), was refused as an invalid package
+  name: with system apps shown, its tracker scan failed and its detail page could not open. Measured on
+  a Galaxy S24 and a S9: every app is now scanned (515 and 440).
 
 ### Changed
 - Transparency screen, privacy policy and terms (5 languages): the app reads what each app declares

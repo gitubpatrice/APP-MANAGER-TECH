@@ -45,8 +45,9 @@ class ScanAllTrackersUseCase @Inject constructor(
         }
 
         // Fan out across IO dispatcher, a few apps at a time: every PackageManager answer (components and
-        // their meta-data) goes through the process's binder buffer, about 1 MB shared, and a few hundred
-        // at once would overflow it (TransactionTooLargeException). An app whose scan fails anyway
+        // their meta-data) goes through the process's binder buffer, about 1 MB shared, which a few
+        // hundred answers in flight at once could overflow (TransactionTooLargeException; a precaution —
+        // 515 apps scanned on a Galaxy S24 with no failure). An app whose scan fails anyway
         // (uninstalled meanwhile, a PackageManager error) has no report: counted as clean, it would lower
         // the percentage and sit among the apps without trackers. It is counted apart, in failedAppCount.
         val permits = Semaphore(MAX_PARALLEL_SCANS)

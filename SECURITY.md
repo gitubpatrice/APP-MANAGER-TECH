@@ -24,8 +24,9 @@ No permission change, no new dependency, still no `INTERNET`.
   before the user grants it.
 - **Robustness**: a settings file that cannot be parsed is replaced by the defaults
   (`ReplaceFileCorruptionHandler`) and a read error gives the defaults, instead of an uncaught
-  exception in the application scope at launch; the full tracker scan reads four apps at a time, under
-  the binder buffer.
+  exception in the application scope at launch; the full tracker scan reads four apps at a time. The
+  package-name check, which guards every intent and PackageManager call, now accepts the framework's own
+  `android` and nothing else with a single segment.
 - **What is read, never stored**: what each app declares (components, registered libraries, guarding
   permissions) and which apps work without being opened (keyboard, accessibility, autofill, default
   SMS / phone apps, device admins, live wallpaper) — public APIs, no permission, documented in the
