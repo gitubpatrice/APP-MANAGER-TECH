@@ -1,0 +1,7 @@
+v0.5.3
+• Tracker: Firebase Analytics und Crashlytics erkannt; fehlgeschlagene Analyse nicht mehr „sauber“
+• Geschützte Apps: 38 falsche Paketnamen korrigiert (Banken, Wise, 1Password…)
+• Datenschutz-Score: Bedienungshilfen, Geräteadmin und alle gefährlichen Berechtigungen zählen
+• Inaktive Apps: Nutzung live über 2 Jahre; ohne Zugriff keine falsche Liste
+• Updates: neu angeforderte Berechtigungen sind vor der Erteilung sichtbar
+• Beschädigte Einstellungen: Standardwerte statt Absturz

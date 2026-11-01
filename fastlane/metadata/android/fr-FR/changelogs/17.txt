@@ -1,0 +1,7 @@
+v0.5.3
+• Pisteurs : Firebase Analytics et Crashlytics enfin détectés ; un échec n'est plus « propre »
+• Applis protégées : 38 identifiants faux corrigés (banques, Wise, 1Password…)
+• Score : accessibilité et administrateur comptés, liste complète des permissions dangereuses
+• Applis inactives : usage lu en direct sur 2 ans ; sans accès, aucune fausse liste
+• Mises à jour : nouvelles permissions demandées visibles avant d'être accordées
+• Réglages abîmés : valeurs par défaut, plus de plantage

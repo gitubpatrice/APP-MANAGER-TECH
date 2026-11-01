@@ -7,11 +7,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
-## [Unreleased]
+## [0.5.3] — 2026-11-01 — Verdicts you can trust
 
-Every rule that gives the user a verdict was reviewed (two external reviews, Claude API and GPT, and a
-false-positive audit that ran each rule on the real SDK manifests and store listings); what was
-confirmed is fixed below, each with a test proven by sabotage.
+Every rule that gives the user a verdict was reviewed (external reviews by Claude API and GPT, a
+false-positive audit that ran each rule on the real SDK manifests and store listings, a 3-axes audit and
+a security deep dive); what was confirmed is fixed below, each with a test proven by sabotage
+(99 → 164 unit tests).
 
 ### Fixed — trackers
 - **Firebase Analytics and Crashlytics, the two most common trackers, were never detected.** Analytics
@@ -57,6 +58,8 @@ confirmed is fixed below, each with a test proven by sabotage.
 - Fitbit was never protected: its name has capitals, the comparison was in lowercase.
 - A protected app could lose its warning on a screen restored after the process was killed, before the
   user's list had been read: the list is now read at start, and a classification waits for it.
+- The reminder ("soft") quarantine tells the user to disable the app: for a protected app it now asks
+  for the same hold-3s confirmation as Disable, from the app's page and from the quarantine picker.
 
 ### Fixed — inactive apps, rarely used, Smart Cleaner
 - **Without usage access every app was "never opened" and proposed for uninstall.** The lists and the
@@ -64,8 +67,11 @@ confirmed is fixed below, each with a test proven by sabotage.
 - **The usage history covered 30 days only**: an app opened 45 days ago read "never opened", and the
   60/90/180-day thresholds meant nothing. It now covers two years, and counts an app visible on screen
   or running a foreground service as used (Android 10+).
-- The keyboard in use, accessibility services switched on, device admins and the live wallpaper work
-  without being opened: they are never inactive.
+- **Usage is read live**, no longer from the app-list cache: a scan made before the usage access was
+  granted had cached every app as never used, and the lists kept saying so after the access was given.
+  The lists recompute when you come back to them, and empty again if the access is revoked.
+- The keyboard in use, accessibility services switched on, the autofill service, the default SMS and
+  phone apps, device admins and the live wallpaper work without being opened: they are never inactive.
 - Rarely used: an app installed yesterday and never opened is not "unused for 30 days".
 - Smart Cleaner: protected apps are never proposed for uninstall; "large and rarely used" could never
   fire and now covers big apps unopened for half the zombie threshold; days are counted as on the
@@ -74,13 +80,20 @@ confirmed is fixed below, each with a test proven by sabotage.
 ### Fixed — other
 - Security audit: an accessibility service switched on but not bound (crashed) was missed; the
   reassuring "System" badge went by package name alone and now requires a preinstalled app.
-- Permission changes after an update: the previous event is found by recording order, not by the clock;
-  an unreadable history is an error, not "no comparison".
+- **Permission changes after an update compared the permissions granted**, not those declared: a
+  permission an update adds is granted only when you allow it, so it went unseen — and the update was
+  blamed for a permission you had granted to the old version. The install history now keeps the
+  dangerous permissions each version declares (database schema 10, an added column; events recorded
+  before keep the old comparison). "Permissions gained" reads "added".
+- Permission changes: the previous event is found by recording order, not by the clock; an unreadable
+  history is an error, not "no comparison".
+- Settings that cannot be read (a file damaged by a power loss) give the defaults: they ended the app at
+  launch. A tracker scan reads four apps at a time, so large apps no longer overflow Android's buffer.
 
 ### Changed
 - Transparency screen, privacy policy and terms (5 languages): the app reads what each app declares
   (components, the libraries they register, the permissions guarding its services and receivers) and
-  which apps work without being opened;
+  which apps work without being opened; the install history keeps each version's dangerous permissions;
   the tracker list is inspired by, not taken from, Exodus Privacy's database.
 
 ---

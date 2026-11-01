@@ -1,0 +1,7 @@
+v0.5.3
+• Rastreadores: Firebase Analytics y Crashlytics detectados; un análisis fallido ya no es «limpio»
+• Apps protegidas: corregidos 38 nombres de paquete erróneos (bancos, Wise, 1Password…)
+• Privacidad: cuentan accesibilidad, administrador y todos los permisos peligrosos
+• Apps inactivas: uso leído en directo durante 2 años; sin acceso, ninguna lista falsa
+• Actualizaciones: los nuevos permisos solicitados se ven antes de concederse
+• Ajustes dañados: valores por defecto, sin cierres
