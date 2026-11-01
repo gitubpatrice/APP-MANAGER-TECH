@@ -4,3 +4,4 @@ v0.5.2
 • Tapping Home again clears the filter and returns to the top
 • Back from Tools or About returns to Home
 • Terms: a liability clause that holds; privacy: what happens to an e-mail you send
+• Libraries updated: DataStore 1.3.0, DocumentFile 1.1.0, Gradle 9.8.2

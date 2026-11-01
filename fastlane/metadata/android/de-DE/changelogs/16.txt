@@ -4,3 +4,4 @@ v0.5.2
 • Erneutes Tippen auf Start löscht den Filter und springt nach oben
 • Zurück aus Werkzeuge oder Über führt zum Start
 • Bedingungen: Haftungsklausel überarbeitet; Datenschutz: was mit Ihrer E-Mail geschieht
+• Bibliotheken aktualisiert: DataStore 1.3.0, DocumentFile 1.1.0, Gradle 9.8.2

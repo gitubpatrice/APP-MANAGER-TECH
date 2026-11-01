@@ -19,6 +19,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - **Back from Tools or About** returns to Home instead of leaving the app. Back on Home, with no
   filter, leaves the app as before.
 
+### Dependencies
+
+- DataStore Preferences 1.1.1 → 1.3.0 (raises Okio to 3.17.0), DocumentFile 1.0.1 → 1.1.0,
+  kotlinx-serialization-core constraint 1.8.1 → 1.12.0, Gradle wrapper 9.8.1 → 9.8.2. No permission
+  change; the settings saved by 0.5.1 are read back after the update.
+
 ### Changed
 
 - **Terms of use, liability, in the five languages.** The clause said the publisher was liable for no

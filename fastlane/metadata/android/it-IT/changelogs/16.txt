@@ -4,3 +4,4 @@ v0.5.2
 • Toccare di nuovo Home cancella il filtro e torna in cima
 • Indietro da Strumenti o Informazioni torna alla Home
 • Condizioni: clausola di responsabilità rivista; privacy: cosa succede a un'e-mail inviata
+• Librerie aggiornate: DataStore 1.3.0, DocumentFile 1.1.0, Gradle 9.8.2

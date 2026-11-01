@@ -4,3 +4,4 @@ v0.5.2
 • Toucher Accueil à nouveau efface le filtre et remonte en haut
 • Retour depuis Outils ou À propos ramène à l'Accueil
 • Conditions : clause de responsabilité revue ; confidentialité : sort d'un e-mail envoyé
+• Bibliothèques à jour : DataStore 1.3.0, DocumentFile 1.1.0, Gradle 9.8.2
