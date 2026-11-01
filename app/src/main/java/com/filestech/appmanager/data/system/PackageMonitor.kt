@@ -214,6 +214,8 @@ class PackageMonitor @Inject constructor(
             // [RecordLifecycleEventUseCase] (already in Room by the
             // time this emits) is the one that carries the actual hash.
             apkSha256                   = null,
+            // Same for the declared permissions: the canonical row carries them.
+            requestedDangerousPermissions = null,
         )
         _events.emit(skeleton)
     }

@@ -946,9 +946,9 @@
     <!-- v0.3.2 — Permission delta on REPLACED events                     -->
     <!-- ================================================================ -->
     <plurals name="lifecycle_row_perms_gained">
-        <item quantity="one">+%1$d autorizzazione pericolosa ottenuta: %2$s</item>
-        <item quantity="many">+%1$d autorizzazioni pericolose ottenute: %2$s</item>
-        <item quantity="other">+%1$d autorizzazioni pericolose ottenute: %2$s</item>
+        <item quantity="one">+%1$d autorizzazione pericolosa aggiunta: %2$s</item>
+        <item quantity="many">+%1$d autorizzazioni pericolose aggiunte: %2$s</item>
+        <item quantity="other">+%1$d autorizzazioni pericolose aggiunte: %2$s</item>
     </plurals>
 
     <!-- ================================================================ -->

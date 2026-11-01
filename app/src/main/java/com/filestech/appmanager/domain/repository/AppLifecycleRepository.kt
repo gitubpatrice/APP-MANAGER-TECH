@@ -50,6 +50,8 @@ interface AppLifecycleRepository {
         totalSizeBytes: Long,
         grantedDangerousPermissions: List<String>,
         apkSha256: String? = null,
+        /** Declared dangerous permissions, granted or not; null when unknown (UNINSTALLED). */
+        requestedDangerousPermissions: List<String>? = null,
     ): Outcome<Long>
 
     /**

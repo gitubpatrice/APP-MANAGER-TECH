@@ -939,9 +939,9 @@
     <!-- v0.3.2 — Delta permissions sur événements REPLACED               -->
     <!-- ================================================================ -->
     <plurals name="lifecycle_row_perms_gained">
-        <item quantity="one">+%1$d permission dangereuse gagnée : %2$s</item>
-        <item quantity="many">+%1$d permissions dangereuses gagnées : %2$s</item>
-        <item quantity="other">+%1$d permissions dangereuses gagnées : %2$s</item>
+        <item quantity="one">+%1$d permission dangereuse ajoutée : %2$s</item>
+        <item quantity="many">+%1$d permissions dangereuses ajoutées : %2$s</item>
+        <item quantity="other">+%1$d permissions dangereuses ajoutées : %2$s</item>
     </plurals>
 
     <!-- ================================================================ -->

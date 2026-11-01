@@ -13,7 +13,10 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
-/** Tests [DetectPermissionDeltaUseCase]: which earlier event is the baseline, and an unreadable history. */
+/**
+ * Tests [DetectPermissionDeltaUseCase]: declared permissions compared (granted ones for rows before
+ * 0.5.3), which earlier event is the baseline, and an unreadable history.
+ */
 class DetectPermissionDeltaUseCaseTest {
 
     private val repository: AppLifecycleRepository = mockk()
@@ -23,6 +26,56 @@ class DetectPermissionDeltaUseCaseTest {
     fun `the update gained what its snapshot has and the previous one lacks`() = runTest {
         val installed = event(id = 1, type = LifecycleEventType.INSTALLED, at = 1_000, perms = listOf(CAMERA))
         val replaced = event(id = 2, type = LifecycleEventType.REPLACED, at = 2_000, perms = listOf(CAMERA, MIC))
+        givenHistory(replaced, installed)
+
+        val delta = (useCase(replaced) as Outcome.Success).value
+
+        assertThat(delta?.gained).containsExactly(MIC)
+    }
+
+    @Test
+    fun `a permission the update declares counts before the user grants it`() = runTest {
+        // The update asks for the microphone; the user has not answered yet: granted sets are equal.
+        val installed = event(
+            id = 1, type = LifecycleEventType.INSTALLED, at = 1_000,
+            perms = listOf(CAMERA), declared = listOf(CAMERA),
+        )
+        val replaced = event(
+            id = 2, type = LifecycleEventType.REPLACED, at = 2_000,
+            perms = listOf(CAMERA), declared = listOf(CAMERA, MIC),
+        )
+        givenHistory(replaced, installed)
+
+        val delta = (useCase(replaced) as Outcome.Success).value
+
+        assertThat(delta?.gained).containsExactly(MIC)
+    }
+
+    @Test
+    fun `a permission the user granted to the old version is not one the update gained`() = runTest {
+        // Declared by both versions; the user only granted it in between.
+        val installed = event(
+            id = 1, type = LifecycleEventType.INSTALLED, at = 1_000,
+            perms = emptyList(), declared = listOf(CAMERA),
+        )
+        val replaced = event(
+            id = 2, type = LifecycleEventType.REPLACED, at = 2_000,
+            perms = listOf(CAMERA), declared = listOf(CAMERA),
+        )
+        givenHistory(replaced, installed)
+
+        val delta = (useCase(replaced) as Outcome.Success).value
+
+        assertThat(delta?.gained).isEmpty()
+    }
+
+    @Test
+    fun `against an event recorded before 0_5_3 the granted permissions are compared`() = runTest {
+        val installed = event(id = 1, type = LifecycleEventType.INSTALLED, at = 1_000, perms = listOf(CAMERA))
+        val replaced = event(
+            id = 2, type = LifecycleEventType.REPLACED, at = 2_000,
+            perms = listOf(CAMERA, MIC), declared = listOf(CAMERA, MIC),
+        )
         givenHistory(replaced, installed)
 
         val delta = (useCase(replaced) as Outcome.Success).value
@@ -67,7 +120,14 @@ class DetectPermissionDeltaUseCaseTest {
         every { repository.observeByPackage(PKG) } returns flowOf(Outcome.Success(events.toList()))
     }
 
-    private fun event(id: Long, type: LifecycleEventType, at: Long, perms: List<String>) = LifecycleEvent(
+    /** [perms]: granted; [declared]: declared, null as on a row recorded before 0.5.3. */
+    private fun event(
+        id: Long,
+        type: LifecycleEventType,
+        at: Long,
+        perms: List<String>,
+        declared: List<String>? = null,
+    ) = LifecycleEvent(
         id                          = id,
         packageName                 = PKG,
         label                       = "Example",
@@ -80,6 +140,7 @@ class DetectPermissionDeltaUseCaseTest {
         grantedDangerousPermissions = perms,
         userReason                  = null,
         apkSha256                   = null,
+        requestedDangerousPermissions = declared,
     )
 
     private companion object {

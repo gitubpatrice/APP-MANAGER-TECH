@@ -925,8 +925,8 @@
     <!-- v0.3.2 — Permission delta on REPLACED events                     -->
     <!-- ================================================================ -->
     <plurals name="lifecycle_row_perms_gained">
-        <item quantity="one">+%1$d dangerous permission gained: %2$s</item>
-        <item quantity="other">+%1$d dangerous permissions gained: %2$s</item>
+        <item quantity="one">+%1$d dangerous permission added: %2$s</item>
+        <item quantity="other">+%1$d dangerous permissions added: %2$s</item>
     </plurals>
 
     <!-- ================================================================ -->

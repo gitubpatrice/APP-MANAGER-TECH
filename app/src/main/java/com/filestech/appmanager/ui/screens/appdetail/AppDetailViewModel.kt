@@ -427,6 +427,28 @@ class AppDetailViewModel @Inject constructor(
     }
 
     /**
+     * v0.2.0 Safety Guardrails — for a protected app, asks for the hold-3s confirmation and returns
+     * true. HARD mode wipes app data (Android non-root limit): the friction of a raw uninstall. SOFT mode
+     * leads the user to disable the app in Android's settings: for a protected app that is losing access
+     * to it, the friction of Disable.
+     */
+    private fun askedQuarantineConfirmation(pkg: String, mode: QuarantineMode, durationDays: Int): Boolean {
+        val classification = criticalDetector.classify(pkg) ?: return false
+        _events.trySend(
+            Event.RequiresCriticalConfirmation(
+                classification = classification,
+                action         = if (mode == QuarantineMode.HARD_UNINSTALL) {
+                    CriticalAction.QUARANTINE_HARD
+                } else {
+                    CriticalAction.QUARANTINE_SOFT
+                },
+                durationDays   = durationDays,
+            ),
+        )
+        return true
+    }
+
+    /**
      * v0.2.0 — Quarantine the current app with the user-chosen mode + duration.
      *
      * HARD mode requires a SAF backup folder; if the user has not picked one
@@ -444,26 +466,7 @@ class AppDetailViewModel @Inject constructor(
         val pkg = currentPackage() ?: return
         val label = (_state.value.detailOutcome as? Outcome.Success)?.value?.info?.label ?: pkg
 
-        // v0.2.0 Safety Guardrails — HARD mode wipes app data (Android non-
-        // root limit) so it deserves the same friction as a raw uninstall.
-        // SOFT mode leads the user to disable the app in Android's settings: for
-        // a protected app that is losing access to it, the friction of Disable.
-        if (!bypassCriticalCheck) {
-            criticalDetector.classify(pkg)?.let { classification ->
-                _events.trySend(
-                    Event.RequiresCriticalConfirmation(
-                        classification = classification,
-                        action         = if (mode == QuarantineMode.HARD_UNINSTALL) {
-                            CriticalAction.QUARANTINE_HARD
-                        } else {
-                            CriticalAction.QUARANTINE_SOFT
-                        },
-                        durationDays   = durationDays,
-                    ),
-                )
-                return
-            }
-        }
+        if (!bypassCriticalCheck && askedQuarantineConfirmation(pkg, mode, durationDays)) return
 
         viewModelScope.launch {
             val backupTreeUri = if (mode == QuarantineMode.HARD_UNINSTALL) {

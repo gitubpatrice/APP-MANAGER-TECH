@@ -76,6 +76,7 @@ class RecordLifecycleEventUseCase @Inject constructor(
                     totalSizeBytes              = snapshot.totalSizeBytes,
                     grantedDangerousPermissions = snapshot.grantedDangerousPermissions,
                     apkSha256                   = snapshot.apkSha256,
+                    requestedDangerousPermissions = snapshot.requestedDangerousPermissions,
                 )
                 when (insertOutcome) {
                     is Outcome.Success -> insertOutcome.value
@@ -118,6 +119,8 @@ class RecordLifecycleEventUseCase @Inject constructor(
             // REPLACED row already carries the hash for the version that
             // was just removed.
             apkSha256                   = null,
+            // Not recorded: no live PackageManager answer to read them from.
+            requestedDangerousPermissions = null,
         )
     }
 
@@ -139,6 +142,7 @@ class RecordLifecycleEventUseCase @Inject constructor(
             // the rescan cache, so no UX regression.
             totalSizeBytes              = 0L,
             grantedDangerousPermissions = collectGrantedDangerous(pkg),
+            requestedDangerousPermissions = collectRequestedDangerous(pkg),
             // v0.3.4 — best-effort base-APK hash. Failure (IO, security,
             // file gone between PM resolve and read) is non-fatal: we log
             // and store NULL so the row still records the lifecycle event.
@@ -246,6 +250,17 @@ class RecordLifecycleEventUseCase @Inject constructor(
         }.sorted()
     }
 
+    /**
+     * v0.5.3 — The dangerous permissions the app declares, granted or not, sorted. A permission an update
+     * adds is declared at once and granted only later: the permission drift compares these.
+     */
+    private fun collectRequestedDangerous(pkg: PackageInfo): List<String> =
+        pkg.requestedPermissions.orEmpty()
+            .filterNotNull()
+            .filter { dangerousInspector.isDangerous(it) }
+            .distinct()
+            .sorted()
+
     private data class Snapshot(
         val label: String?,
         val versionName: String?,
@@ -255,6 +270,8 @@ class RecordLifecycleEventUseCase @Inject constructor(
         val grantedDangerousPermissions: List<String>,
         /** v0.3.4 — hex SHA-256 of the base APK at capture time, or NULL. */
         val apkSha256: String?,
+        /** v0.5.3 — declared dangerous permissions, or NULL when not read live. */
+        val requestedDangerousPermissions: List<String>?,
     )
 
     private companion object {

@@ -22,9 +22,12 @@ import javax.inject.Inject
  * Source of truth: the append-only `app_lifecycle_event` log. The previous
  * baseline is the latest event of type [LifecycleEventType.INSTALLED],
  * [LifecycleEventType.REPLACED] or [LifecycleEventType.BASELINE] recorded
- * before [event]. We compare the granted-dangerous-perms snapshots
- * captured by [RecordLifecycleEventUseCase] (no live PM call — pure history
- * arithmetic).
+ * before [event]. We compare the DECLARED dangerous permissions captured by
+ * [RecordLifecycleEventUseCase] (no live PM call — pure history arithmetic):
+ * a permission an update adds is declared at once but granted only when the
+ * user allows it, so comparing granted ones missed it. Events recorded before
+ * v0.5.3 have no declared set; when either side lacks it, the granted
+ * snapshots are compared, as before.
  *
  * Returns:
  * - [PermissionDelta] with `gained` = perms in the new snapshot but not in
@@ -57,8 +60,13 @@ class DetectPermissionDeltaUseCase @Inject constructor(
                 val baseline = findBaseline(history = history, current = event)
                     ?: return@withContext null
 
-                val before = baseline.grantedDangerousPermissions.toSet()
-                val after  = event.grantedDangerousPermissions.toSet()
+                val declaredBefore = baseline.requestedDangerousPermissions
+                val declaredAfter  = event.requestedDangerousPermissions
+                val (before, after) = if (declaredBefore != null && declaredAfter != null) {
+                    declaredBefore.toSet() to declaredAfter.toSet()
+                } else {
+                    baseline.grantedDangerousPermissions.toSet() to event.grantedDangerousPermissions.toSet()
+                }
                 val gained = (after - before).sorted()
                 PermissionDelta(
                     packageName = event.packageName,
