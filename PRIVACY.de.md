@@ -29,7 +29,7 @@ nicht verschlüsselt: Sie beschreibt Ihre Apps, nicht Ihre Inhalte.
 | Daten | Woher sie stammen | Wie lange |
 |---|---|---|
 | Liste der Apps: Name, Version, Größen, Datum der Installation, der Aktualisierung und der letzten Nutzung, Herkunfts-Store, Zustand (aktiviert, im Ruhezustand) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Bei jedem Scan ersetzt |
-| Was jede App gegenüber Android deklariert: ihre Komponenten, die von ihnen registrierten Bibliotheken, die Berechtigungen, die sie schützen | Android (`PackageManager`) | Für die Tracker und den Datenschutz-Score gelesen; nie gespeichert |
+| Was jede App gegenüber Android deklariert: ihre Komponenten, die von ihnen registrierten Bibliotheken, die Berechtigungen, die ihre Dienste und Empfänger schützen | Android (`PackageManager`) | Für die Tracker und den Datenschutz-Score gelesen; nie gespeichert |
 | Apps, die arbeiten, ohne geöffnet zu werden: die verwendete Tastatur, die eingeschalteten Bedienungshilfen, die aktiven Geräteadministratoren, das Live-Hintergrundbild | Android-Einstellungen (`Settings.Secure`, `DevicePolicyManager`, `WallpaperManager`) | Gelesen, um sie aus den Listen inaktiver Apps herauszuhalten; nie gespeichert |
 | Erkannte Tracker, Datenschutz-Score | Auf dem Telefon berechnet (siehe unten) | Bei jeder Anzeige neu berechnet |
 | Verlauf der Berechtigungen, die jeder App erteilt wurden — **standardmäßig deaktiviert** | Regelmäßige Erfassung, wenn Sie den Verlauf aktivieren | Standardmäßig 90 Tage, einstellbar von 7 bis 365; der letzte bekannte Stand jeder Berechtigung bleibt als Bezug erhalten; alles wird beim Ausschalten gelöscht |

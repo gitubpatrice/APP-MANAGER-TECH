@@ -395,7 +395,7 @@
     <string name="screen_transparency_title">Transparency</string>
     <string name="transparency_intro">App Manager Tech works entirely on your phone. Below is what this app reads, what it keeps and what it sends. The privacy policy details each point, permission by permission.</string>
     <string name="transparency_section_reads">What we read from your device</string>
-    <string name="transparency_reads_packages">The list of installed apps (label, version, package name, install / update / last-used dates, install source, declared permissions, signing certificate) and what each app declares to Android: its components, the libraries they register, the permissions guarding them. Source: Android PackageManager + StorageStatsManager + UsageStatsManager. Also which apps work without being opened (keyboard in use, accessibility services switched on, active device admins, live wallpaper), so as never to call them unused: read when needed, never stored.</string>
+    <string name="transparency_reads_packages">The list of installed apps (label, version, package name, install / update / last-used dates, install source, declared permissions, signing certificate) and what each app declares to Android: its components, the libraries they register, the permissions guarding its services and receivers. Source: Android PackageManager + StorageStatsManager + UsageStatsManager. Also which apps work without being opened (keyboard in use, accessibility services switched on, active device admins, live wallpaper), so as never to call them unused: read when needed, never stored.</string>
     <string name="transparency_reads_sizes">App sizes: install / data / cache bytes per package. Requires PACKAGE_USAGE_STATS granted in OS Settings.</string>
     <string name="transparency_reads_apk">An app\'s installation file (APK): to copy it to the backup folder you picked when you quarantine the app, and to compute its SHA-256 fingerprint for the install history, if you turned it on.</string>
     <string name="transparency_section_stores">What we store on your device</string>
@@ -445,6 +445,7 @@
     <string name="perm_group_nearby">find and range nearby devices (Wi-Fi, ultra-wideband)</string>
     <string name="perm_group_notifications">post notifications</string>
     <string name="perm_group_internet">access the Internet</string>
+    <string name="perm_group_foreground_service">keep running in the foreground (with a persistent notification)</string>
     <string name="perm_group_overlay">draw over other apps</string>
     <string name="perm_group_all_files">access all your files</string>
     <string name="perm_group_device_admin">act as device administrator (can block its own uninstall)</string>

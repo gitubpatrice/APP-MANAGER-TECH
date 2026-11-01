@@ -30,7 +30,7 @@ apps, no sus contenidos.
 | Dato | De dónde procede | Durante cuánto tiempo |
 |---|---|---|
 | Lista de las apps: nombre, versión, tamaños, fechas de instalación, de actualización y de último uso, tienda de origen, estado (activada, hibernada) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Se sustituye en cada análisis |
-| Lo que cada app declara a Android: sus componentes, las bibliotecas que registran, los permisos que los protegen | Android (`PackageManager`) | Se lee para los rastreadores y la puntuación de privacidad; nunca se conserva |
+| Lo que cada app declara a Android: sus componentes, las bibliotecas que registran, los permisos que protegen sus servicios y receptores | Android (`PackageManager`) | Se lee para los rastreadores y la puntuación de privacidad; nunca se conserva |
 | Apps que trabajan sin abrirse: el teclado en uso, los servicios de accesibilidad activados, los administradores del dispositivo activos, el fondo de pantalla animado | Ajustes de Android (`Settings.Secure`, `DevicePolicyManager`, `WallpaperManager`) | Se lee para mantenerlas fuera de las listas de apps inactivas; nunca se conserva |
 | Rastreadores detectados, puntuación de privacidad | Calculados en el teléfono (véase más abajo) | Se recalculan cada vez que se muestran |
 | Historial de los permisos concedidos a cada app — **desactivado por defecto** | Instantánea periódica, si lo activa | 90 días por defecto, ajustable de 7 a 365; el último estado conocido de cada permiso se conserva como referencia; todo se borra al desactivarlo |

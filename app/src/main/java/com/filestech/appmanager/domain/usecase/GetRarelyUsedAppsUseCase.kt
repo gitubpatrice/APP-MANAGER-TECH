@@ -36,7 +36,8 @@ class GetRarelyUsedAppsUseCase @Inject constructor(
         )
         // The access probe and the role reads are IPCs: this map runs on io, like the query upstream.
         return repository.observeFiltered(filter).map { outcome ->
-            if (!repository.hasUsageStatsAccess()) return@map Outcome.Success(emptyList())
+            // No usage access: empty for want of data — but a failure upstream stays a failure.
+            if (!repository.hasUsageStatsAccess()) return@map outcome.map { emptyList() }
             val inUse = activeRoles.packages()
             outcome.map { apps -> apps.filter { it.packageName !in inUse }.sortedBy { it.lastUsedTime } }
         }.flowOn(io)

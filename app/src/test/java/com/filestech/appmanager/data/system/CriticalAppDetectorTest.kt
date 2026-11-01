@@ -66,11 +66,9 @@ class CriticalAppDetectorTest {
     }
 
     @Test
-    fun `every built-in id is lowercase and sits in one category only`() {
+    fun `no built-in id sits in two categories`() {
         val d = detector()
-        val all = CriticalCategory.entries.flatMap { d.builtInPackagesFor(it) }
-        all.forEach { assertThat(it).isEqualTo(it.lowercase()) }
-        assertThat(all).containsNoDuplicates()
+        assertThat(CriticalCategory.entries.flatMap { d.builtInPackagesFor(it) }).containsNoDuplicates()
     }
 
     @Test

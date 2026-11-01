@@ -27,7 +27,7 @@ your apps, not your content.
 | Data | Where it comes from | How long |
 |---|---|---|
 | List of apps: name, version, sizes, install, update and last-used dates, store of origin, state (enabled, hibernated) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Replaced at every scan |
-| What each app declares to Android: its components, the libraries they register, the permissions guarding them | Android (`PackageManager`) | Read for the trackers and the privacy score; never stored |
+| What each app declares to Android: its components, the libraries they register, the permissions guarding its services and receivers | Android (`PackageManager`) | Read for the trackers and the privacy score; never stored |
 | Apps that work without being opened: the keyboard in use, the accessibility services switched on, the active device admins, the live wallpaper | Android's settings (`Settings.Secure`, `DevicePolicyManager`, `WallpaperManager`) | Read to keep them out of the lists of inactive apps; never stored |
 | Trackers detected, privacy score | Computed on the phone (see below) | Recomputed every time they are shown |
 | History of the permissions granted to each app — **off by default** | Periodic capture, if you turn it on | 90 days by default, adjustable from 7 to 365; the last known state of each permission is kept as a reference; all erased when you turn it off |

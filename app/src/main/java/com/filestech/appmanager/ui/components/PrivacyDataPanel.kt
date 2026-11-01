@@ -245,9 +245,13 @@ private fun capabilityLabelRes(capability: PermissionCapability): Int = when (ca
     PermissionCapability.NOTIFICATIONS       -> R.string.perm_group_notifications
 }
 
-/** Accesses that are not dangerous permissions but matter as much, shown after them. */
+/**
+ * Accesses that are not dangerous permissions but that the score counts, shown after them: every
+ * deduction of the score has its line in the panel.
+ */
 private val SPECIAL_ACCESS_LABELS: List<Pair<String, Int>> = listOf(
     "android.permission.INTERNET"                to R.string.perm_group_internet,
+    "android.permission.FOREGROUND_SERVICE"      to R.string.perm_group_foreground_service,
     "android.permission.SYSTEM_ALERT_WINDOW"     to R.string.perm_group_overlay,
     "android.permission.MANAGE_EXTERNAL_STORAGE" to R.string.perm_group_all_files,
 )

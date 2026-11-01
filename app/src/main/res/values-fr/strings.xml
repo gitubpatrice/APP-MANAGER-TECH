@@ -397,7 +397,7 @@
     <string name="screen_transparency_title">Transparence</string>
     <string name="transparency_intro">App Manager Tech fonctionne entièrement sur votre téléphone. Voici ce que cette app lit, conserve et envoie. La politique de confidentialité détaille chaque point, permission par permission.</string>
     <string name="transparency_section_reads">Ce que nous lisons sur votre appareil</string>
-    <string name="transparency_reads_packages">La liste des apps installées (nom, version, package, dates d\'installation / mise à jour / dernière utilisation, source d\'installation, permissions déclarées, certificat de signature) et ce que chaque app déclare à Android : ses composants, les bibliothèques qu\'ils enregistrent, les permissions qui les protègent. Sources : Android PackageManager + StorageStatsManager + UsageStatsManager. Et les apps qui travaillent sans être ouvertes (clavier utilisé, services d\'accessibilité activés, administrateurs de l\'appareil, fond d\'écran animé), pour ne jamais les dire inutilisées : lu au besoin, jamais conservé.</string>
+    <string name="transparency_reads_packages">La liste des apps installées (nom, version, package, dates d\'installation / mise à jour / dernière utilisation, source d\'installation, permissions déclarées, certificat de signature) et ce que chaque app déclare à Android : ses composants, les bibliothèques qu\'ils enregistrent, les permissions qui protègent ses services et récepteurs. Sources : Android PackageManager + StorageStatsManager + UsageStatsManager. Et les apps qui travaillent sans être ouvertes (clavier utilisé, services d\'accessibilité activés, administrateurs de l\'appareil, fond d\'écran animé), pour ne jamais les dire inutilisées : lu au besoin, jamais conservé.</string>
     <string name="transparency_reads_sizes">Tailles des apps : octets d\'installation / données / cache par paquet. Nécessite PACKAGE_USAGE_STATS accordée dans les Paramètres OS.</string>
     <string name="transparency_reads_apk">Le fichier d\'installation (APK) d\'une app : pour le copier dans le dossier de sauvegarde que vous avez choisi quand vous la mettez en quarantaine, et pour calculer son empreinte SHA-256 dans l\'historique des installations, si vous l\'avez activé.</string>
     <string name="transparency_section_stores">Ce que nous stockons sur votre appareil</string>
@@ -557,6 +557,7 @@
     <string name="perm_group_nearby">trouver et localiser les appareils proches (Wi-Fi, ultra-large bande)</string>
     <string name="perm_group_notifications">poster des notifications</string>
     <string name="perm_group_internet">accéder à Internet</string>
+    <string name="perm_group_foreground_service">continuer à fonctionner au premier plan (avec une notification permanente)</string>
     <string name="perm_group_overlay">dessiner par-dessus les autres apps</string>
     <string name="perm_group_all_files">accéder à tous vos fichiers</string>
     <string name="perm_group_device_admin">agir comme administrateur de l\'appareil (peut bloquer sa propre désinstallation)</string>

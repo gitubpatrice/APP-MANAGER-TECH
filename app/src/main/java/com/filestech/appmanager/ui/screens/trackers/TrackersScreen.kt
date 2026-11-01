@@ -163,11 +163,21 @@ private fun TrackersBody(
 
         val result = state.result
         if (result == null || result.totalAppCount == 0) {
-            EmptyState(
-                icon  = Icons.Outlined.VerifiedUser,
-                title = stringResource(R.string.trackers_empty_title),
-                body  = stringResource(R.string.trackers_empty_body),
-            )
+            // Nothing analysed: either nothing to analyse, or every scan failed — not the same news.
+            if (result != null && result.failedAppCount > 0) {
+                EmptyState(
+                    icon  = Icons.Outlined.VerifiedUser,
+                    title = pluralStringResource(
+                        R.plurals.trackers_summary_failed, result.failedAppCount, result.failedAppCount,
+                    ),
+                )
+            } else {
+                EmptyState(
+                    icon  = Icons.Outlined.VerifiedUser,
+                    title = stringResource(R.string.trackers_empty_title),
+                    body  = stringResource(R.string.trackers_empty_body),
+                )
+            }
             return@Box
         }
 

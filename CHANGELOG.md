@@ -21,7 +21,8 @@ confirmed is fixed below, each with a test proven by sabotage.
   components register in their meta-data (Firebase registrars, AndroidX Startup initializers), and
   includes disabled components — a tracker waiting for consent is still in the APK.
 - **A scan that failed counted the app as clean**, lowering the percentage; it is now counted apart
-  ("N apps could not be scanned"), and the app's detail says the scan failed instead of "no tracker".
+  ("N apps could not be scanned", also when every scan failed), and the app's detail says the scan
+  failed instead of "no tracker".
 - **"0 %" next to "1 app of 230 contains trackers"**: shown as "< 1 %".
 - The list: Smartlook was listed twice (45 entries, 44 trackers); Smartling, a translation SDK, and
   App Center, whose only detectable part distributes updates, are not trackers and are removed; Vungle 7
@@ -37,8 +38,9 @@ confirmed is fixed below, each with a test proven by sabotage.
 - The dangerous permissions are the platform's own list (read from Android 14 and 16): 13 were missing
   (`GET_ACCOUNTS`, `RECEIVE_MMS`, `ACCESS_MEDIA_LOCATION`, `BLUETOOTH_ADVERTISE`…), health data
   permissions are counted, and `USE_BIOMETRIC`, a normal permission, no longer costs 5 points. One
-  penalty per capability (precise and approximate location are one), and the panel lists exactly what
-  the score counts — `CALL_PHONE` or `RECEIVE_SMS` were scored but never shown.
+  penalty per capability (precise and approximate location are one), and every deduction of the score
+  has its line in the panel — `CALL_PHONE`, `RECEIVE_SMS` or a foreground service were scored but never
+  shown.
 - A capability shows as granted when any of its permissions is (music allowed, photos refused).
 - A permission list that cannot be read gives no score, not 100/100.
 - Install source: every F-Droid client earns the bonus, the phone makers' stores are mainstream, a
@@ -77,7 +79,8 @@ confirmed is fixed below, each with a test proven by sabotage.
 
 ### Changed
 - Transparency screen, privacy policy and terms (5 languages): the app reads what each app declares
-  (components, registered libraries, guarding permissions) and which apps work without being opened;
+  (components, the libraries they register, the permissions guarding its services and receivers) and
+  which apps work without being opened;
   the tracker list is inspired by, not taken from, Exodus Privacy's database.
 
 ---

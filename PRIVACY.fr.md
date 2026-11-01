@@ -28,7 +28,7 @@ elle décrit vos applications, pas vos contenus.
 | Donnée | D'où elle vient | Combien de temps |
 |---|---|---|
 | Liste des applications : nom, version, tailles, dates d'installation, de mise à jour et de dernière utilisation, magasin d'origine, état (activée, en veille) | Android (`PackageManager`, `StorageStatsManager`, `UsageStatsManager`) | Remplacée à chaque analyse |
-| Ce que chaque application déclare à Android : ses composants, les bibliothèques qu'ils enregistrent, les permissions qui les protègent | Android (`PackageManager`) | Lu pour les pisteurs et le score de confidentialité ; jamais conservé |
+| Ce que chaque application déclare à Android : ses composants, les bibliothèques qu'ils enregistrent, les permissions qui protègent ses services et récepteurs | Android (`PackageManager`) | Lu pour les pisteurs et le score de confidentialité ; jamais conservé |
 | Applications qui travaillent sans être ouvertes : clavier utilisé, services d'accessibilité activés, administrateurs de l'appareil actifs, fond d'écran animé | Réglages d'Android (`Settings.Secure`, `DevicePolicyManager`, `WallpaperManager`) | Lu pour les tenir hors des listes d'applications inactives ; jamais conservé |
 | Pisteurs détectés, score de confidentialité | Calculés sur le téléphone (voir plus bas) | Recalculés à chaque affichage |
 | Historique des permissions accordées à chaque application — **désactivé par défaut** | Relevé périodique, si vous l'activez | 90 jours par défaut, réglable de 7 à 365 ; le dernier état connu de chaque permission est gardé comme référence ; tout est effacé quand vous le désactivez |
