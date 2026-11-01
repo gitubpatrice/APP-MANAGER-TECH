@@ -1,6 +1,6 @@
 # App Manager Tech — Security model
 
-Current release: **v0.5.1**
+Current release: **v0.5.2**
 
 ## v0.5.1 — Quarantine restore, legal texts
 

@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.CheckBox
@@ -96,6 +97,8 @@ import com.filestech.appmanager.ui.components.state.EmptyState
 import com.filestech.appmanager.ui.components.state.ErrorState
 import com.filestech.appmanager.ui.components.state.LoadingState
 import com.filestech.appmanager.ui.theme.BrandDanger
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import timber.log.Timber
 
 /**
@@ -107,14 +110,18 @@ import timber.log.Timber
  * - Selection: contextual TopAppBar with selection count, batch actions
  *              (uninstall, clear cache, force stop), and a close button.
  *
- * BackHandler intercepts back when in selection mode to clear the selection
- * instead of popping the back stack.
+ * BackHandler intercepts back when in selection mode to clear the selection,
+ * then when a tag filter is active to lift it, instead of popping the back stack.
+ *
+ * [homeReselected] emits when the user taps "Accueil" while already on it:
+ * the tag filter is lifted and the list returns to the top.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun AppListScreen(
     onNavigateToDetail: (packageName: String) -> Unit,
     onNavigateToSettings: () -> Unit,
+    homeReselected: Flow<Unit> = emptyFlow(),
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -163,9 +170,19 @@ fun AppListScreen(
         }
     }
 
-    // Back exits selection mode first; nav back is the system fallback.
+    // Back exits selection mode first, then lifts the tag filter; nav back is the system fallback.
     BackHandler(enabled = state.isInSelectionMode) {
         viewModel.clearSelection()
+    }
+    BackHandler(enabled = !state.isInSelectionMode && state.tagFilter.isNotEmpty()) {
+        viewModel.onClearTagFilter()
+    }
+
+    LaunchedEffect(homeReselected) {
+        homeReselected.collect {
+            viewModel.onClearTagFilter()
+            listState.animateScrollToItem(0)
+        }
     }
 
     // v0.1.1 — re-probe PACKAGE_USAGE_STATS on ON_RESUME so a freshly-granted
@@ -524,7 +541,9 @@ private fun AppListBody(
                     onRetry = onRetry,
                 )
                 is Outcome.Success -> {
-                    if (o.value.isEmpty()) {
+                    // A tag filter that matches nothing keeps the list, chip row included:
+                    // the full-screen empty state hid the "All" chip, the only way out of the filter.
+                    if (o.value.isEmpty() && state.tagFilter.isEmpty()) {
                         EmptyState(
                             icon  = Icons.Outlined.Apps,
                             title = stringResource(R.string.app_list_empty_title),
@@ -553,11 +572,21 @@ private fun AppListBody(
                                     onClear  = onClearTagFilter,
                                 )
                             }
-                            item(key = "__section_header__") {
-                                SectionHeader(
-                                    icon  = Icons.Outlined.Apps,
-                                    label = stringResource(R.string.home_section_apps),
-                                )
+                            if (o.value.isEmpty()) {
+                                item(key = "__tag_filter_empty__") {
+                                    EmptyState(
+                                        icon  = Icons.AutoMirrored.Outlined.Label,
+                                        title = stringResource(R.string.tag_filter_empty_title),
+                                        body  = stringResource(R.string.tag_filter_empty_body),
+                                    )
+                                }
+                            } else {
+                                item(key = "__section_header__") {
+                                    SectionHeader(
+                                        icon  = Icons.Outlined.Apps,
+                                        label = stringResource(R.string.home_section_apps),
+                                    )
+                                }
                             }
                             items(
                                 items = o.value,

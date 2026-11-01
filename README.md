@@ -36,7 +36,7 @@ sending a single byte off the device.
 | Layer | Tooling |
 |---|---|
 | Language | Kotlin 2.4.10 |
-| Build | Android Gradle Plugin 9.4.1 (built-in Kotlin), Gradle 9.8.1, KSP 2, JDK 17 |
+| Build | Android Gradle Plugin 9.4.1 (built-in Kotlin), Gradle 9.8.2, KSP 2, JDK 17 |
 | UI | Jetpack Compose 1.12 + Material 3 1.4 (BOM 2026.09.00), Navigation 2.10, edge-to-edge |
 | DI | Hilt 2.60.1 (KSP, no kapt) + Hilt-Work 1.4 for `@HiltWorker` |
 | Storage | Room 2.8.5 (schema v8, additive migrations only) + DataStore Preferences |

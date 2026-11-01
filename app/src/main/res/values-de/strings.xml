@@ -944,6 +944,8 @@
     <!-- v0.3.4 — Tag filter chip row (AppList toolbar)                   -->
     <!-- ================================================================ -->
     <string name="tag_filter_all">Alle</string>
+    <string name="tag_filter_empty_title">Keine App für diesen Filter</string>
+    <string name="tag_filter_empty_body">Fügen Sie in den App-Details einen Tag hinzu, oder tippen Sie auf „Alle“, um alle Apps anzuzeigen.</string>
 
     <!-- ================================================================ -->
     <!-- v0.3.4 — Tag stats card (Settings)                               -->
