@@ -21,8 +21,8 @@ import javax.inject.Inject
  *
  * Source of truth: the append-only `app_lifecycle_event` log. The previous
  * baseline is the latest event of type [LifecycleEventType.INSTALLED],
- * [LifecycleEventType.REPLACED] or [LifecycleEventType.BASELINE] STRICTLY
- * older than [event]. We compare the granted-dangerous-perms snapshots
+ * [LifecycleEventType.REPLACED] or [LifecycleEventType.BASELINE] recorded
+ * before [event]. We compare the granted-dangerous-perms snapshots
  * captured by [RecordLifecycleEventUseCase] (no live PM call — pure history
  * arithmetic).
  *
@@ -48,9 +48,12 @@ class DetectPermissionDeltaUseCase @Inject constructor(
         }
         return runCatchingOutcome(mapError = { AppError.Unknown(it) }) {
             withContext(io) {
-                val history = lifecycleRepository.observeByPackage(event.packageName).first()
+                // A history that cannot be read is not an empty one: "no comparison" would hide a gained
+                // permission. The failure goes up instead.
+                val history = lifecycleRepository.observeByPackage(event.packageName)
+                    .first { it !is Outcome.Loading }
                     .getOrNull()
-                    .orEmpty()
+                    ?: error("Lifecycle history of ${event.packageName} unreadable")
                 val baseline = findBaseline(history = history, current = event)
                     ?: return@withContext null
 
@@ -67,23 +70,26 @@ class DetectPermissionDeltaUseCase @Inject constructor(
     }
 
     /**
-     * Picks the most recent lifecycle event for [current]'s package that is
-     * STRICTLY older AND of a type that carries a perm snapshot (BASELINE /
-     * INSTALLED / REPLACED). Returns null if no such ancestor exists — the
-     * REPLACED event sits at index 0 with nothing to compare against.
+     * Picks the latest lifecycle event for [current]'s package recorded BEFORE it and of a type that
+     * carries a perm snapshot (BASELINE / INSTALLED / REPLACED). Returns null if no such ancestor exists
+     * — the first REPLACED event has nothing to compare against.
      *
-     * The history is delivered newest-first by the DAO; we scan in order.
+     * "Before" is the insertion order, read from the auto-generated id: the wall clock behind
+     * `capturedAt` can go back (a manual or time-zone change) and two events can share a millisecond,
+     * so ordering by it could skip the real ancestor.
      */
     private fun findBaseline(
         history: List<LifecycleEvent>,
         current: LifecycleEvent,
     ): LifecycleEvent? = history
-        .asSequence()
-        .filter { it.id != current.id }
-        .filter { it.capturedAt < current.capturedAt }
-        .firstOrNull { ev ->
-            ev.type == LifecycleEventType.BASELINE ||
-                ev.type == LifecycleEventType.INSTALLED ||
-                ev.type == LifecycleEventType.REPLACED
-        }
+        .filter { ev -> ev.id < current.id && ev.type in SNAPSHOT_TYPES }
+        .maxByOrNull { it.id }
+
+    private companion object {
+        val SNAPSHOT_TYPES = setOf(
+            LifecycleEventType.BASELINE,
+            LifecycleEventType.INSTALLED,
+            LifecycleEventType.REPLACED,
+        )
+    }
 }

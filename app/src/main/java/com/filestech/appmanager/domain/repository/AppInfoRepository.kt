@@ -97,6 +97,14 @@ interface AppInfoRepository {
 
     suspend fun getRequestedPermissions(packageName: String): Outcome<List<String>>
 
+    /**
+     * The permissions guarding the app's own services and receivers (`android:permission`), disabled
+     * ones included: BIND_ACCESSIBILITY_SERVICE on an accessibility service, BIND_DEVICE_ADMIN on a
+     * device-admin receiver. An app never *requests* these, so they are absent from
+     * [getRequestedPermissions].
+     */
+    suspend fun getComponentPermissions(packageName: String): Outcome<Set<String>>
+
     suspend fun getGrantedPermissions(packageName: String): Outcome<List<String>>
 
     /**

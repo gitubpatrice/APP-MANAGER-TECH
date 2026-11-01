@@ -172,11 +172,15 @@ fun ZombiesScreen(
                     is Outcome.Failure   -> ErrorState(message = o.error.toUiText().asString(), onRetry = viewModel::refresh)
                     is Outcome.Success   -> {
                         if (o.value.isEmpty()) {
-                            EmptyState(
-                                icon  = Icons.Outlined.SentimentSatisfied,
-                                title = stringResource(R.string.zombies_empty_title),
-                                body  = stringResource(R.string.zombies_empty_body),
-                            )
+                            // Without usage access the list is empty for want of data, not for want
+                            // of zombies: the banner above says so, an "all clear" would not be true.
+                            if (state.usageStatsGranted) {
+                                EmptyState(
+                                    icon  = Icons.Outlined.SentimentSatisfied,
+                                    title = stringResource(R.string.zombies_empty_title),
+                                    body  = stringResource(R.string.zombies_empty_body),
+                                )
+                            }
                         } else {
                             val filtered = remember(o.value, searchQuery) {
                                 if (searchQuery.isBlank()) {

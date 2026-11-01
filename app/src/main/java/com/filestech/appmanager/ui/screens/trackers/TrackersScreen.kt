@@ -231,7 +231,11 @@ private fun SummaryCard(
             // Big number — contamination %
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text       = stringResource(R.string.trackers_contamination_percent, result.contaminationPercent),
+                    text       = if (result.isBelowOnePercent) {
+                        stringResource(R.string.trackers_contamination_below_one)
+                    } else {
+                        stringResource(R.string.trackers_contamination_percent, result.contaminationPercent)
+                    },
                     style      = MaterialTheme.typography.displayMedium,
                     color      = when {
                         result.contaminationPercent >= 50 -> BrandDanger
@@ -257,6 +261,15 @@ private fun SummaryCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    if (result.failedAppCount > 0) {
+                        Text(
+                            text  = pluralStringResource(
+                                R.plurals.trackers_summary_failed, result.failedAppCount, result.failedAppCount,
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 

@@ -2,6 +2,7 @@ package com.filestech.appmanager.domain.usecase
 
 import com.filestech.appmanager.core.result.AppError
 import com.filestech.appmanager.core.result.Outcome
+import com.filestech.appmanager.data.system.ActiveRoleApps
 import com.filestech.appmanager.domain.model.AppCategory
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.ZombieApp
@@ -9,8 +10,10 @@ import com.filestech.appmanager.domain.repository.AppInfoRepository
 import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 /**
@@ -19,11 +22,43 @@ import org.junit.jupiter.api.Test
  * - UNUSED_SINCE: lastUsedTime non-zero but older than threshold.
  * - System apps (`isUninstallable=false`) excluded — can't act on them anyway.
  * - Brand-new installs (firstInstall within grace window) excluded.
+ * - Apps working without being opened (keyboard, accessibility, admin, wallpaper) excluded.
+ * - No usage access: empty, since every app would read "never used".
  */
 class GetZombieAppsUseCaseTest {
 
     private val repository: AppInfoRepository = mockk()
-    private val useCase = GetZombieAppsUseCase(repository)
+    private val activeRoles: ActiveRoleApps = mockk()
+    private val useCase = GetZombieAppsUseCase(repository, activeRoles, Dispatchers.Unconfined)
+
+    @BeforeEach
+    fun usageReadableNoRoles() {
+        every { repository.hasUsageStatsAccess() } returns true
+        every { activeRoles.packages() } returns emptySet()
+    }
+
+    @Test
+    fun `without usage access nothing is called a zombie`() = runTest {
+        every { repository.hasUsageStatsAccess() } returns false
+        givenAppList(listOf(sample(pkg = "com.any", lastUsed = 0L, firstInstall = now - 400 * msPerDay)))
+
+        assertThat((useCase() as Outcome.Success).value).isEmpty()
+    }
+
+    @Test
+    fun `the keyboard in use is never a zombie, even never opened`() = runTest {
+        every { activeRoles.packages() } returns setOf("com.touchtype.swiftkey")
+        givenAppList(
+            listOf(
+                sample(pkg = "com.touchtype.swiftkey", lastUsed = 0L, firstInstall = now - 400 * msPerDay),
+                sample(pkg = "com.forgotten", lastUsed = 0L, firstInstall = now - 400 * msPerDay),
+            ),
+        )
+
+        val result = (useCase() as Outcome.Success).value
+
+        assertThat(result.map { it.info.packageName }).containsExactly("com.forgotten")
+    }
 
     private val now = System.currentTimeMillis()
     private val msPerDay = 24L * 60 * 60 * 1000

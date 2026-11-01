@@ -4,11 +4,15 @@ import com.filestech.appmanager.core.ext.MS_PER_DAY
 import com.filestech.appmanager.core.result.AppError
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.runCatchingOutcome
+import com.filestech.appmanager.data.system.ActiveRoleApps
+import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.ZombieApp
 import com.filestech.appmanager.domain.repository.AppInfoRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
@@ -24,9 +28,15 @@ import javax.inject.Inject
  *
  * The two patterns are NOT mutually exclusive at the data level; NEVER_OPENED
  * always wins in the output (more specific signal).
+ *
+ * Without usage access every app reads "never used": the list is empty rather than false (the screen's
+ * banner asks for the access). Apps that work without being opened ([ActiveRoleApps]: the keyboard, an
+ * accessibility service, a device admin, the live wallpaper) are never zombies.
  */
 class GetZombieAppsUseCase @Inject constructor(
     private val repository: AppInfoRepository,
+    private val activeRoles: ActiveRoleApps,
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) {
 
     suspend operator fun invoke(
@@ -61,8 +71,14 @@ class GetZombieAppsUseCase @Inject constructor(
                 Outcome.Loading    -> emptyList()
             }
 
+            val (usageReadable, inUse) = withContext(io) {
+                repository.hasUsageStatsAccess() to activeRoles.packages()
+            }
+            if (!usageReadable) return@runCatchingOutcome emptyList()
+
             apps.asSequence()
                 .filter { it.isUninstallable } // can't act on system apps anyway
+                .filter { it.packageName !in inUse }
                 .mapNotNull { app -> classify(app, now, unusedCutoff, newInstallCutoff) }
                 .sortedByDescending { it.unusedDays }
                 .toList()

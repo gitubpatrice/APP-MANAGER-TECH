@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.data.local.datastore.SettingsRepository
+import com.filestech.appmanager.data.system.CriticalAppDetector
 import com.filestech.appmanager.data.system.NotificationChannels
 import com.filestech.appmanager.data.system.PackageMonitor
 import com.filestech.appmanager.data.system.WorkScheduler
@@ -52,6 +53,10 @@ class MainApplication : Application(), Configuration.Provider {
     @Inject lateinit var baselineLifecycleScan: BaselineLifecycleScanUseCase
     @Inject lateinit var eraseDisabledHistories: EraseDisabledHistoriesUseCase
     @Inject @ApplicationScope lateinit var appScope: CoroutineScope
+
+    // Injected for its construction alone: it starts reading the user's protected apps at process start,
+    // before any screen restored after process death can ask for a classification.
+    @Inject lateinit var criticalAppDetector: CriticalAppDetector
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()

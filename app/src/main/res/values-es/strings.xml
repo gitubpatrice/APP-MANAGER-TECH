@@ -362,9 +362,14 @@
         <item quantity="many">%1$d de %2$d apps contienen rastreadores · detecciones: %3$d</item>
         <item quantity="other">%1$d de %2$d apps contienen rastreadores · detecciones: %3$d</item>
     </plurals>
+    <plurals name="trackers_summary_failed">
+        <item quantity="one">%d app no se ha podido analizar</item>
+        <item quantity="many">%d apps no se han podido analizar</item>
+        <item quantity="other">%d apps no se han podido analizar</item>
+    </plurals>
     <string name="trackers_summary_categories">Por categoría</string>
     <string name="trackers_section_with_trackers">Apps con rastreadores (%1$d)</string>
-    <string name="trackers_section_clean">Apps limpias (%1$d)</string>
+    <string name="trackers_section_clean">Sin rastreadores detectados (%1$d)</string>
 
     <!-- Privacy score badge -->
     <string name="privacy_score_label">Puntuación de privacidad</string>
@@ -395,7 +400,7 @@
     <string name="screen_transparency_title">Transparencia</string>
     <string name="transparency_intro">App Manager Tech funciona por completo en su teléfono. Esto es lo que esta app lee, conserva y envía. La política de privacidad detalla cada punto, permiso por permiso.</string>
     <string name="transparency_section_reads">Lo que leemos de su dispositivo</string>
-    <string name="transparency_reads_packages">La lista de apps instaladas (nombre visible, versión, nombre del paquete, fechas de instalación / actualización / último uso, origen de la instalación, permisos declarados, certificado de firma). Fuente: PackageManager + StorageStatsManager + UsageStatsManager de Android.</string>
+    <string name="transparency_reads_packages">La lista de apps instaladas (nombre visible, versión, nombre del paquete, fechas de instalación / actualización / último uso, origen de la instalación, permisos declarados, certificado de firma) y lo que cada app declara a Android: sus componentes, las bibliotecas que registran, los permisos que los protegen. Fuente: PackageManager + StorageStatsManager + UsageStatsManager de Android. Además, las apps que trabajan sin abrirse (teclado en uso, servicios de accesibilidad activados, administradores del dispositivo activos, fondo de pantalla animado), para no declararlas nunca sin uso: se lee cuando hace falta, nunca se conserva.</string>
     <string name="transparency_reads_sizes">Tamaño de las apps: bytes de instalación / datos / caché por paquete. Requiere que PACKAGE_USAGE_STATS esté concedido en los Ajustes del sistema.</string>
     <string name="transparency_reads_apk">El archivo de instalación (APK) de una app: para copiarlo en la carpeta de copia de seguridad que usted eligió cuando pone la app en cuarentena, y para calcular su huella SHA-256 para el historial de instalaciones, si lo ha activado.</string>
     <string name="transparency_section_stores">Lo que guardamos en su dispositivo</string>
@@ -416,7 +421,8 @@
     <!-- AppDetail Privacy Data Panel (clear-text permission descriptions) -->
     <string name="appdetail_privacy_panel_title">Qué hace esta app</string>
     <string name="appdetail_privacy_panel_no_dangerous">No tiene concedido ningún permiso peligroso.</string>
-    <string name="appdetail_privacy_panel_trackers_clean">No se ha detectado ningún rastreador conocido en los componentes declarados.</string>
+    <string name="appdetail_privacy_panel_trackers_clean">No se ha encontrado ningún rastreador conocido en lo que la app declara a Android.</string>
+    <string name="appdetail_privacy_panel_trackers_unavailable">El análisis de rastreadores ha fallado para esta app.</string>
     <plurals name="appdetail_privacy_panel_trackers_count">
         <item quantity="one">%1$d rastreador detectado</item>
         <item quantity="many">%1$d rastreadores detectados</item>
@@ -430,19 +436,23 @@
     <string name="perm_group_location">leer su ubicación precisa</string>
     <string name="perm_group_location_approx">leer su ubicación aproximada</string>
     <string name="perm_group_location_background">leer su ubicación incluso en segundo plano</string>
-    <string name="perm_group_contacts">leer sus contactos</string>
-    <string name="perm_group_calendar">leer su calendario</string>
-    <string name="perm_group_sms">leer o enviar SMS</string>
-    <string name="perm_group_call_log">leer su registro de llamadas</string>
+    <string name="perm_group_contacts">leer o modificar sus contactos y cuentas</string>
+    <string name="perm_group_calendar">leer o modificar su calendario</string>
+    <string name="perm_group_sms">leer, recibir o enviar SMS y MMS</string>
+    <string name="perm_group_call_log">leer o modificar su registro de llamadas</string>
     <string name="perm_group_phone">acceder al estado del teléfono y hacer llamadas</string>
+    <string name="perm_group_health">leer o escribir sus datos de salud</string>
     <string name="perm_group_storage">leer o escribir en el almacenamiento externo</string>
     <string name="perm_group_media">leer sus fotos, vídeos y audio</string>
+    <string name="perm_group_media_location">leer los lugares guardados en sus fotos</string>
     <string name="perm_group_activity">leer su actividad física</string>
     <string name="perm_group_sensors">leer sus sensores corporales</string>
     <string name="perm_group_bluetooth">buscar dispositivos Bluetooth cercanos y conectarse a ellos</string>
+    <string name="perm_group_nearby">encontrar y localizar dispositivos cercanos (Wi-Fi, banda ultraancha)</string>
     <string name="perm_group_notifications">mostrar notificaciones</string>
     <string name="perm_group_internet">acceder a Internet</string>
     <string name="perm_group_overlay">mostrarse sobre otras apps</string>
+    <string name="perm_group_all_files">acceder a todos sus archivos</string>
     <string name="perm_group_device_admin">actuar como administrador de dispositivos (puede impedir su propia desinstalación)</string>
     <string name="perm_group_accessibility">usar servicios de accesibilidad (puede leer el contenido de la pantalla y simular entradas)</string>
 
@@ -1064,6 +1074,7 @@
     <string name="tracker_category_push">Notificaciones push</string>
     <string name="tracker_category_session_replay">Grabación de sesiones</string>
     <string name="trackers_contamination_percent">%1$d\u00A0%%</string>
+    <string name="trackers_contamination_below_one" formatted="false">&lt;\u00A01\u00A0%</string>
     <string name="rarely_used_days_short">%1$d d</string>
     <string name="notif_channel_scan_name">Análisis en segundo plano</string>
     <string name="notif_channel_scan_desc">Notificaciones del análisis periódico del catálogo.</string>

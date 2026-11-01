@@ -2,10 +2,14 @@ package com.filestech.appmanager.domain.usecase
 
 import com.filestech.appmanager.core.result.Outcome
 import com.filestech.appmanager.core.result.map
+import com.filestech.appmanager.data.system.ActiveRoleApps
+import com.filestech.appmanager.di.IoDispatcher
 import com.filestech.appmanager.domain.model.AppInfo
 import com.filestech.appmanager.domain.model.FilterOptions
 import com.filestech.appmanager.domain.repository.AppInfoRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -13,10 +17,14 @@ import javax.inject.Inject
  * Returns apps not used for at least [thresholdDays] days, sorted by
  * `lastUsedTime` ascending (oldest first — most likely uninstall candidate).
  *
- * Apps never opened (lastUsedTime == 0) come first.
+ * Apps never opened (lastUsedTime == 0) come first, if installed before the threshold. Without usage
+ * access every app reads "never used": the list is empty rather than false. Apps that work without being
+ * opened ([ActiveRoleApps]) are left out.
  */
 class GetRarelyUsedAppsUseCase @Inject constructor(
     private val repository: AppInfoRepository,
+    private val activeRoles: ActiveRoleApps,
+    @IoDispatcher private val io: CoroutineDispatcher,
 ) {
 
     operator fun invoke(
@@ -26,10 +34,12 @@ class GetRarelyUsedAppsUseCase @Inject constructor(
             includeSystemApps = false,
             unusedSinceDays   = thresholdDays,
         )
-        // VII C3 fix: direct .map preserves upstream flowOn(io) — see GetInstalledAppsUseCase.
+        // The access probe and the role reads are IPCs: this map runs on io, like the query upstream.
         return repository.observeFiltered(filter).map { outcome ->
-            outcome.map { apps -> apps.sortedBy { it.lastUsedTime } }
-        }
+            if (!repository.hasUsageStatsAccess()) return@map Outcome.Success(emptyList())
+            val inUse = activeRoles.packages()
+            outcome.map { apps -> apps.filter { it.packageName !in inUse }.sortedBy { it.lastUsedTime } }
+        }.flowOn(io)
     }
 
     private companion object {

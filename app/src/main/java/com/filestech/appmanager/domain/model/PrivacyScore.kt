@@ -18,15 +18,17 @@ package com.filestech.appmanager.domain.model
  *
  * Heuristic (Phase IX innovation):
  * - Start from 100
- * - −5 per dangerous permission requested
+ * - −5 per [PermissionCapability] group the requested dangerous permissions give (precise and
+ *   approximate location are one group)
+ * - −5 if MANAGE_EXTERNAL_STORAGE present (access to all files, a special access, not a dangerous one)
  * - −10 if INTERNET present
  * - −10 if FOREGROUND_SERVICE present
  * - −15 if SYSTEM_ALERT_WINDOW present
- * - −20 if BIND_DEVICE_ADMIN active
- * - −20 if BIND_ACCESSIBILITY_SERVICE active
- * - −10 if installer is "sideload" (unknown source, but legitimate use case → mild penalty)
- * - −15 if installer source is "other" (unknown store)
- * - +5 if installer is F-Droid (vetted source bonus)
+ * - −20 if the app declares a device-admin receiver (guarded by BIND_DEVICE_ADMIN)
+ * - −20 if the app declares an accessibility service (guarded by BIND_ACCESSIBILITY_SERVICE)
+ * - −10 if installed outside any store (a package installer, adb, or no installer on a user app)
+ * - −15 if the installer is not a known store
+ * - +5 if installed by an F-Droid client
  *
  * Clamped to [0, 100]. See [PrivacyTier] for human-friendly buckets.
  */
@@ -36,6 +38,10 @@ data class PrivacyScore(
     val tier: PrivacyTier,
     /** Human-readable reasons that lowered the score (used in AppDetail tooltip). */
     val deductions: List<String>,
+    /** The app declares an accessibility service: it can read the screen and act for the user once enabled. */
+    val declaresAccessibilityService: Boolean = false,
+    /** The app declares a device-admin receiver: once activated, it can block its own uninstall. */
+    val declaresDeviceAdmin: Boolean = false,
 ) {
     companion object {
         const val MAX_SCORE = 100

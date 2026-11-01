@@ -4,10 +4,13 @@ import com.filestech.appmanager.data.local.datastore.SettingsRepository
 import com.filestech.appmanager.di.ApplicationScope
 import com.filestech.appmanager.domain.model.CriticalCategory
 import com.filestech.appmanager.domain.model.CriticalClassification
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -54,19 +57,30 @@ class CriticalAppDetector @Inject constructor(
      */
     private val userProtectedCache: AtomicReference<Set<String>> = AtomicReference(emptySet())
 
+    /** Completed once the user's list has been read (or its read has failed): see [awaitUserList]. */
+    private val userListRead = CompletableDeferred<Unit>()
+
     init {
         appScope.launch {
-            settings.flow
-                .map { it.safety.userProtectedPackages }
-                .distinctUntilChanged()
-                .collect { fresh ->
-                    userProtectedCache.set(fresh.map { it.lowercase() }.toSet())
-                }
+            try {
+                settings.flow
+                    .map { it.safety.userProtectedPackages }
+                    .distinctUntilChanged()
+                    .collect { fresh ->
+                        userProtectedCache.set(fresh.map { it.lowercase() }.toSet())
+                        userListRead.complete(Unit)
+                    }
+            } finally {
+                // A settings flow that fails or ends must not leave classify() waiting: the built-in
+                // lists still apply.
+                userListRead.complete(Unit)
+            }
         }
     }
 
     /** Returns the [CriticalCategory] for [packageName] or null if not classified. */
     fun classify(packageName: String): CriticalClassification? {
+        awaitUserList()
         val key = packageName.lowercase()
         for (category in CategoryRanking) {
             val matchesBuiltIn = key in WHITELISTS.getValue(category)
@@ -77,6 +91,18 @@ class CriticalAppDetector @Inject constructor(
             }
         }
         return null
+    }
+
+    /**
+     * The user's list is read from DataStore when this singleton is created, which MainApplication does
+     * at process start, before any screen can be restored. Should a classification still come first (a
+     * screen restored after process death, the user tapping Uninstall at once), it waits for that read
+     * rather than answering from an empty list: an app the user protected would lose its warning. The
+     * wait is bounded; past it, the built-in lists still answer.
+     */
+    private fun awaitUserList() {
+        if (userListRead.isCompleted) return
+        runBlocking { withTimeoutOrNull(USER_LIST_WAIT_MS) { userListRead.await() } }
     }
 
     /** Convenience probe — `true` iff the package is classified in any category. */
@@ -99,6 +125,9 @@ class CriticalAppDetector @Inject constructor(
 
     companion object {
 
+        /** Longest wait for the user's list in [awaitUserList]: a DataStore read takes milliseconds. */
+        private const val USER_LIST_WAIT_MS = 2_000L
+
         /**
          * Order in which categories are scanned. Authenticators FIRST — losing
          * 2FA seeds is the worst outcome (multi-day account lockout). Then
@@ -119,87 +148,89 @@ class CriticalAppDetector @Inject constructor(
             CriticalCategory.USER_PROTECTED,
         )
 
+        // Every id below was checked on 2026-11-01 against the Play Store and F-Droid listings (title
+        // read), or, for an app distributed elsewhere, against its own source; see each comment.
         private val AUTHENTICATION_PKGS = setOf(
-            "com.beemdevelopment.aegis",            // Aegis Authenticator (F-Droid)
-            "org.shadowice.flocke.andotp",          // andOTP (legacy F-Droid)
+            "com.beemdevelopment.aegis",            // Aegis Authenticator
+            "org.shadowice.flocke.andotp",          // andOTP (discontinued 2022, still installed on older phones)
             "org.fedorahosted.freeotp",             // FreeOTP
+            "org.liberty.android.freeotpplus",      // FreeOTP+
             "com.google.android.apps.authenticator2",
             "com.azure.authenticator",              // Microsoft Authenticator
-            "com.authy.authy",
+            "com.authy.authy",                      // Twilio Authy
             "com.duosecurity.duomobile",
             "com.lastpass.authenticator",
-            "io.raivo.android",
-            "com.twilio.authy",
-            "io.gitlab.zenofile.zenotp",            // Zen OTP (F-Droid)
-            "me.lemoo.openauth",
+            "com.twofasapp",                        // 2FAS
+            "io.ente.auth",                         // Ente Auth
+            "proton.android.authenticator",         // Proton Authenticator
+            "com.bitwarden.authenticator",          // Bitwarden Authenticator
+            "com.stratumauth.app",                  // Stratum
         )
 
         private val PASSWORD_MANAGER_PKGS = setOf(
             "com.x8bit.bitwarden",                  // Bitwarden
             "com.kunzisoft.keepass.libre",          // KeePassDX (F-Droid)
             "com.kunzisoft.keepass.free",
-            "com.agilebits.onepassword",            // 1Password
+            "keepass2android.keepass2android",      // Keepass2Android
+            "keepass2android.keepass2android_nonet",
+            "com.onepassword.android",              // 1Password 8
+            "com.agilebits.onepassword",            // 1Password 7 (withdrawn, still installed on older phones)
             "com.dashlane",
             "proton.android.pass",                  // Proton Pass
             "com.lastpass.lpandroid",
-            "com.keepersecurity.passwordmanager",
-            "com.enpass.app",
+            "com.callpod.android_apps.keeper",      // Keeper
+            "io.enpass.app",                        // Enpass
             "com.zoho.vault",
+            "com.filestech.pass_tech",              // Pass Tech 3.x (files-tech.com, GitHub)
+            "com.passtech.pass_tech",               // Pass Tech 2.x (still the release for Android 7)
         )
 
         // FR retail / online banks + payment apps. Focused on the Files Tech
         // FR audience. Curated, NOT exhaustive — better to miss than to over-
         // protect (we want warnings to stay meaningful).
         private val BANKING_FR_PKGS = setOf(
-            "net.bnpparibas.mabanque",
-            "fr.boursorama.android.clients",
+            "net.bnpparibas.mescomptes",            // Mes Comptes BNP Paribas
+            "com.boursorama.android.clients",       // BoursoBank
             "fr.creditagricole.androidapp",
             "com.cm_prod.bad",                      // Crédit Mutuel
             "com.cic_prod.bad",                     // CIC
-            "net.banquepopulaire.cyberplus",
-            "com.caisseepargne.cebanqueavous",
+            "fr.banquepopulaire.cyberplus",         // Banque Populaire
+            "com.caisseepargne.android.mobilebanking", // Caisse d'Epargne (renamed Banxo)
             "fr.lcl.android.customerarea",
-            "com.banquepostale.client",
-            "fr.laposte.lapostemobile",
-            "com.societegenerale.mobile.lappli",
-            "fr.hellobank",                         // Hello bank! (BNP)
+            "com.fullsix.android.labanquepostale.accountaccess", // La Banque Postale
+            "mobi.societegenerale.mobile.lappli",   // L'Appli SG
+            "fr.bnpp.digitalbanking",               // Hello bank!
             "com.fortuneo.android",
-            "com.helios.bank",                      // helios
-            "com.shine.android",
-            "fr.lydia.app",
-            "com.lydia.lydia",
-            "com.wero.app",
+            "do.helios.app",                        // helios
+            "com.shine.app",                        // Shine
+            "com.lydia",                            // Sumeria (ex-Lydia account)
+            "com.lydia.app",                        // Lydia
+            "eu.epicompany.wero.wallet",            // Wero
             "com.paypal.android.p2pmobile",
             "com.revolut.revolut",
             "de.number26.android",                  // N26
-            "com.wise.android",                     // Wise (formerly TransferWise)
-            "fr.orangebank.orangebank",
+            "com.transferwise.android",             // Wise
         )
 
         private val HEALTH_PKGS = setOf(
             "com.google.android.apps.healthdata",   // Health Connect
             "com.sec.android.app.shealth",          // Samsung Health
-            "fr.doctolib.app",                      // Doctolib
-            "fr.cnam.monespacesante",               // Mon Espace Santé
-            "fr.gouv.tousanticovid",                // TousAntiCovid (legacy, kept)
-            "com.fitbit.FitbitMobile",
-            "com.huawei.health",
+            "fr.doctolib.www",                      // Doctolib
+            "fr.assurancemaladie.monespacesante",   // Mon espace santé
+            "fr.gouv.android.stopcovid",            // TousAntiCovid (discontinued, kept)
+            "com.fitbit.FitbitMobile",              // Fitbit (mixed case: WHITELISTS lowercases it)
+            "com.huawei.health",                    // Huawei Health (AppGallery only)
             "com.garmin.android.apps.connectmobile",
         )
 
         private val TRANSPORT_FR_PKGS = setOf(
-            "fr.sncf.connect.app",                  // SNCF Connect
-            "com.app.sncf",
-            "fr.ratp.ratp",
-            "com.bonjour.ratp",
-            "fr.iledefrance_mobilites",             // Île-de-France Mobilités
-            "com.thalesgroup.smartlife",            // Navigo
+            "com.vsct.vsc.mobile.horaireetresa.android", // SNCF Connect
+            "com.fabernovel.ratp",                  // Bonjour RATP
+            "com.applidium.vianavigo",              // Île-de-France Mobilités (Navigo pass)
             "com.comuto",                           // BlaBlaCar
-            "fr.ouisncf",                           // Oui.sncf (legacy)
-            "fr.tcl.android",                       // Lyon
-            "fr.transgvexpress",                    // various
-            "com.uber.android",
-            "com.lyft.android",
+            "com.micropole.android.tcl_mobile",     // TCL (Lyon)
+            "com.ubercab",                          // Uber
+            "me.lyft.android",                      // Lyft
         )
 
         private val MESSAGING_E2E_PKGS = setOf(
@@ -207,11 +238,11 @@ class CriticalAppDetector @Inject constructor(
             "com.whatsapp",
             "org.telegram.messenger",
             "ch.threema.app",
-            "ch.threema.libre",                     // Threema Libre (F-Droid)
-            "im.vector.app",                        // Element
-            "im.vector.app.x",                      // Element X
+            "ch.threema.app.libre",                 // Threema Libre (F-Droid)
+            "im.vector.app",                        // Element Classic
+            "io.element.android.x",                 // Element X
             "chat.simplex.app",                     // SimpleX Chat
-            "im.molly.app",                         // Molly (Signal fork)
+            "im.molly.app",                         // Molly (Signal fork, its own F-Droid repository)
             "org.briarproject.briar.android",       // Briar
         )
 
@@ -223,6 +254,8 @@ class CriticalAppDetector @Inject constructor(
          */
         private val USER_PROTECTED_BUILTIN: Set<String> = emptySet()
 
+        // Lowercased here, once: classify() lowercases the package it is given, so a mixed-case id
+        // (Fitbit's) written as the store spells it would otherwise never match.
         private val WHITELISTS: Map<CriticalCategory, Set<String>> = mapOf(
             CriticalCategory.AUTHENTICATION    to AUTHENTICATION_PKGS,
             CriticalCategory.PASSWORD_MANAGERS to PASSWORD_MANAGER_PKGS,
@@ -231,6 +264,6 @@ class CriticalAppDetector @Inject constructor(
             CriticalCategory.TRANSPORT_FR      to TRANSPORT_FR_PKGS,
             CriticalCategory.MESSAGING_E2E     to MESSAGING_E2E_PKGS,
             CriticalCategory.USER_PROTECTED    to USER_PROTECTED_BUILTIN,
-        )
+        ).mapValues { (_, packages) -> packages.map { it.lowercase() }.toSet() }
     }
 }

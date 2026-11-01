@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.Manifest
 import android.app.AppOpsManager
 import android.app.usage.StorageStatsManager
+import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.pm.ApplicationInfo
@@ -269,6 +270,26 @@ class AppInfoRepositoryImpl @Inject constructor(
             withContext(io) {
                 val pkg = getPackageInfoWithPermissions(packageName)
                 pkg.requestedPermissions?.toList().orEmpty()
+            }
+        }
+    }
+
+    override suspend fun getComponentPermissions(packageName: String): Outcome<Set<String>> {
+        if (!packageName.isValidPackageName()) {
+            return Outcome.Failure(AppError.Validation("Invalid package name"))
+        }
+        return runCatchingOutcome(::mapError) {
+            withContext(io) {
+                val pkg = packageManager.getPackageInfo(
+                    packageName,
+                    PackageManager.GET_SERVICES or
+                        PackageManager.GET_RECEIVERS or
+                        PackageManager.MATCH_DISABLED_COMPONENTS,
+                )
+                buildSet {
+                    pkg.services?.forEach { service -> service.permission?.let(::add) }
+                    pkg.receivers?.forEach { receiver -> receiver.permission?.let(::add) }
+                }
             }
         }
     }
@@ -652,7 +673,9 @@ class AppInfoRepositoryImpl @Inject constructor(
         filter.unusedSinceDays?.let { days ->
             val cutoff = System.currentTimeMillis() - days * MS_PER_DAY
             if (app.lastUsedTime >= cutoff) return false
-            // Apps NEVER used (lastUsedTime == 0) match by definition.
+            // An app never used matches only if installed before the cutoff: one installed yesterday has
+            // not gone unused for that long.
+            if (app.lastUsedTime == 0L && app.firstInstallTime > cutoff) return false
         }
         // Required permissions — requires a live PackageManager probe.
         // Skipped here to keep observeFiltered fast; a dedicated UseCase can
@@ -839,11 +862,22 @@ class AppInfoRepositoryImpl @Inject constructor(
             val end = System.currentTimeMillis()
             val start = end - USAGE_LOOKBACK_MS
             mgr.queryAndAggregateUsageStats(start, end)
-                .mapValues { it.value.lastTimeUsed }
+                .mapValues { (_, stats) -> lastUse(stats) }
         } catch (expected: SecurityException) {
             emptyMap()
         }
     }
+
+    /**
+     * The latest sign of use: an activity in front, and from Android 10 one merely visible (a video in
+     * picture-in-picture, a split screen) or a foreground service running (music, navigation).
+     */
+    private fun lastUse(stats: UsageStats): Long =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            maxOf(stats.lastTimeUsed, stats.lastTimeVisible, stats.lastTimeForegroundServiceUsed)
+        } else {
+            stats.lastTimeUsed
+        }
 
     // -----------------------------------------------------------------------
     // Category mapping
@@ -892,8 +926,12 @@ class AppInfoRepositoryImpl @Inject constructor(
             AppOpsManager.OPSTR_GET_USAGE_STATS     to (Manifest.permission.PACKAGE_USAGE_STATS to false),
         )
 
-        /** Look back 30 days when aggregating UsageStats — enough for "rarely used" detection. */
-        private const val USAGE_LOOKBACK_MS: Long = 30L * 24 * 60 * 60 * 1000
+        /**
+         * Look back two years when aggregating UsageStats: Android keeps yearly aggregates that long. With
+         * 30 days, an app last opened 45 days ago had no entry, read 0, and was called "never opened";
+         * the 60-, 90- and 180-day thresholds of the rarely-used screen could not mean anything.
+         */
+        private const val USAGE_LOOKBACK_MS: Long = 2L * 365 * 24 * 60 * 60 * 1000
         // MS_PER_DAY now imported from core.ext.TimeConstants (VII C1 fix — single source).
 
         /**

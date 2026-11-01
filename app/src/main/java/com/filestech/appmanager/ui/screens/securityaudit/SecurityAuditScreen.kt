@@ -152,6 +152,7 @@ fun SecurityAuditScreen(
             error                     = state.error,
             deviceAdmins              = state.deviceAdmins,
             accessibilityServices     = state.accessibilityServices,
+            systemBadged              = state.systemBadged,
             onAppClick                = onAppClick,
             onUninstallClick          = viewModel::uninstall,
             onDisableDeviceAdminClick = viewModel::openDeviceAdminSettings,
@@ -167,6 +168,7 @@ private fun SecurityAuditBody(
     error: UiText?,
     deviceAdmins: List<String>,
     accessibilityServices: List<String>,
+    systemBadged: Set<String>,
     onAppClick: (String) -> Unit,
     onUninstallClick: (String) -> Unit,
     onDisableDeviceAdminClick: () -> Unit,
@@ -218,6 +220,7 @@ private fun SecurityAuditBody(
             AuditCard(
                 description       = stringResource(R.string.security_audit_device_admin_desc),
                 packages          = deviceAdmins,
+                systemBadged      = systemBadged,
                 onAppClick        = onAppClick,
                 onUninstallClick  = onUninstallClick,
                 disableActionLabel = stringResource(R.string.security_audit_action_disable_admin),
@@ -228,6 +231,7 @@ private fun SecurityAuditBody(
             AuditCard(
                 description       = stringResource(R.string.security_audit_accessibility_desc),
                 packages          = accessibilityServices,
+                systemBadged      = systemBadged,
                 onAppClick        = onAppClick,
                 onUninstallClick  = onUninstallClick,
                 disableActionLabel = stringResource(R.string.security_audit_action_disable_a11y),
@@ -241,6 +245,7 @@ private fun SecurityAuditBody(
 private fun AuditCard(
     description: String,
     packages: List<String>,
+    systemBadged: Set<String>,
     onAppClick: (String) -> Unit,
     onUninstallClick: (String) -> Unit,
     disableActionLabel: String,
@@ -269,6 +274,7 @@ private fun AuditCard(
                 packages.forEach { pkg ->
                     PackageRow(
                         packageName  = pkg,
+                        isSystem     = pkg in systemBadged,
                         onViewDetails = { onAppClick(pkg) },
                         onUninstall   = { onUninstallClick(pkg) },
                     )
@@ -288,10 +294,10 @@ private fun AuditCard(
 @Composable
 private fun PackageRow(
     packageName: String,
+    isSystem: Boolean,
     onViewDetails: () -> Unit,
     onUninstall: () -> Unit,
 ) {
-    val isSystem = packageName in SecurityAuditViewModel.SYSTEM_PUBLISHERS
     var menuOpen by remember { mutableStateOf(false) }
     Row(
         modifier          = Modifier
