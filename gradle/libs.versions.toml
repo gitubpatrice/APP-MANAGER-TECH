@@ -11,7 +11,7 @@ ksp                     = "2.3.12"
 # --- Android Gradle Plugin ---
 # AGP 9: Kotlin is built into AGP, there is no `org.jetbrains.kotlin.android` plugin any more.
 # Aligned on Agenda Tech (migrated 2026-09-14).
-agp                     = "9.4.1"
+agp                     = "9.5.1"
 
 # --- AndroidX Core ---
 # Aligned on Agenda Tech. Core 1.19, lifecycle 2.11, navigation 2.10 and hilt-navigation-compose 1.4
