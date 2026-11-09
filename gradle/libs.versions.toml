@@ -6,7 +6,7 @@
 # with `strictly`, since AGP 9 would otherwise bring its own.
 kotlin                  = "2.4.10"
 # KSP2: Room 2.8 does not run on the KSP 1.x of Kotlin 2.1 (internal compiler error, Dependabot #4).
-ksp                     = "2.3.12"
+ksp                     = "2.3.13"
 
 # --- Android Gradle Plugin ---
 # AGP 9: Kotlin is built into AGP, there is no `org.jetbrains.kotlin.android` plugin any more.
