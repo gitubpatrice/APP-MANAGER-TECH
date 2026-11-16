@@ -44,7 +44,7 @@ androidxSplashscreen    = "1.2.0"
 coroutines              = "1.11.0"
 
 # --- kotlinx-serialization (version constraint only, see app/build.gradle.kts) ---
-kotlinxSerialization    = "1.12.0"
+kotlinxSerialization    = "1.13.0"
 
 # --- WorkManager ---
 workManager             = "2.12.0"
